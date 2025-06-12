@@ -78,6 +78,12 @@ em, i {
   margin-left: 15%;
 }
 
+.block-format section {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 240px); /* Three equal columns */
+  gap: 1rem;
+}
+
 .sesame-image {
 margin-top: 20px;
 width: 40%;
