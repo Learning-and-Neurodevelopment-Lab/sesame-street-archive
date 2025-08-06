@@ -55,14 +55,14 @@ export default function Toolbar() {
       >
         <Pencil className="w-5 h-5" />
       </Button> */}
-      <Button
+      {/* <Button
         size="icon"
         variant={tool === "move" ? "secondary" : "ghost"}
         aria-label={TOOLTIP.move}
         onClick={() => setTool("move")}
       >
         <Move className="w-5 h-5" />
-      </Button>
+      </Button> */}
       <Button
         size="icon"
         variant={tool === "delete" ? "secondary" : "ghost"}

@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useRef, useMemo, useEffect } from "react";
-import { Stage, Layer, Rect, Ellipse, Image as KonvaImage } from "react-konva";
+import { Stage, Layer, Rect, Ellipse, Image as KonvaImage, Transformer } from "react-konva";
 import { useAtom } from "jotai";
 import { toolAtom } from "@/lib/annotation-atoms";
 import { Upload, Download, Settings, Check, X } from "lucide-react";
@@ -57,15 +57,15 @@ export default function Tool() {
   const imageUrl = searchParams.get("image");
 
   const [tool, setTool] = useAtom(toolAtom);
-  // Use imageUrl from params if available, otherwise allow upload
   const [image, setImage] = useState<string | null>(imageUrl || null);
-  const [selectedAnnotation, setSelectedAnnotation] = useState<any | null>(null);
+  const [selectedAnnotation, setSelectedAnnotation] = useState<number | null>(null);
   const [konvaImage] = useImage(image || "");
-  const [rectangles, setRectangles] = useState<any[]>([]); // LabelMe 3.0 format
+  const [rectangles, setRectangles] = useState<any[]>([]);
   const [ellipses, setEllipses] = useState<any[]>([]);
   const [newRect, setNewRect] = useState<any | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const stageRef = useRef<any>();
+  const transformerRef = useRef<any>();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Calculate stage size based on image aspect ratio
@@ -102,7 +102,52 @@ export default function Tool() {
     }
   };
 
+  // Handle transformer changes
+  const handleTransformEnd = (e: any) => {
+    const node = e.target;
+    const scaleX = node.scaleX();
+    const scaleY = node.scaleY();
+
+    // Reset scale and update width/height instead
+    node.scaleX(1);
+    node.scaleY(1);
+
+    const newAttrs = {
+      x: node.x(),
+      y: node.y(),
+      width: Math.max(5, node.width() * scaleX),
+      height: Math.max(5, node.height() * scaleY),
+    };
+
+    // Update the rectangle in the array
+    if (selectedAnnotation !== null) {
+      const newRectangles = rectangles.slice();
+      newRectangles[selectedAnnotation] = newAttrs;
+      setRectangles(newRectangles);
+    }
+  };
+
+  // Update transformer when selection changes
+  useEffect(() => {
+    if (selectedAnnotation !== null && transformerRef.current) {
+      const selectedNode = stageRef.current?.findOne(`.rect-${selectedAnnotation}`);
+      if (selectedNode) {
+        transformerRef.current.nodes([selectedNode]);
+        transformerRef.current.getLayer().batchDraw();
+      }
+    } else if (transformerRef.current) {
+      transformerRef.current.nodes([]);
+      transformerRef.current.getLayer().batchDraw();
+    }
+  }, [selectedAnnotation]);
+
   const handleMouseDown = (e: any) => {
+    // Deselect when clicking on stage
+    if (e.target === e.target.getStage()) {
+      setSelectedAnnotation(null);
+      return;
+    }
+
     const stage = stageRef.current.getStage();
     const point = stage.getPointerPosition();
     setNewRect({ x: point.x, y: point.y, width: 0, height: 0 });
@@ -111,12 +156,13 @@ export default function Tool() {
       // Select annotation logic
       return;
     }
-    if (tool === "move") {
-      // Move annotation logic
-      return;
-    }
+    // if (tool === "move") {
+    //   // Move annotation logic
+    //   return;
+    // }
 
     if (tool === "rectangle" || tool === "ellipse") {
+      setSelectedAnnotation(null); // Deselect when drawing new shape
       setIsDrawing(true);
       return;
     } else {
@@ -192,16 +238,17 @@ export default function Tool() {
         case "p":
           setTool("pencil");
           break;
-        case "m":
-        case "v":
-          setTool("move");
-          break;
+        // case "m":
+        // case "v":
+        //   setTool("move");
+        //   break;
         case "d":
         case "t":
           setTool("delete");
           break;
         case "a":
         case "s":
+        case "v":
           setTool("select");
           break;
         default:
@@ -293,40 +340,44 @@ export default function Tool() {
                     {rectangles.map((rect, i) => (
                       <Rect
                         key={i}
+                        name={`rect-${i}`}
                         x={rect.x}
                         y={rect.y}
                         width={rect.width}
                         height={rect.height}
-                        stroke={selectedAnnotation === i ? "green" : "red"}
+                        stroke={selectedAnnotation === i ? "blue" : "red"}
                         strokeWidth={2}
-                        draggable={tool === "move"}
+                        draggable={tool === "move" || tool === "select"}
                         onMouseOver={(e) => {
                           if (tool === "select" || tool === "delete") {
-                            e.target.getStage().container().style.cursor =
-                              "pointer";
+                            e.target.getStage().container().style.cursor = "pointer";
                           }
                         }}
                         onMouseMove={(e) => {
                           if (tool === "move") {
-                            e.target.getStage().container().style.cursor =
-                              "move";
+                            e.target.getStage().container().style.cursor = "move";
                           }
                         }}
                         onMouseOut={(e) => {
-                          if (
-                            tool === "move" ||
-                            tool === "select" ||
-                            tool === "delete"
-                          ) {
-                            e.target.getStage().container().style.cursor =
-                              "default";
+                          if (tool === "move" || tool === "select" || tool === "delete") {
+                            e.target.getStage().container().style.cursor = "default";
                           }
                         }}
-                        onMouseDown={(e) => {
+                        onClick={(e) => {
                           if (tool === "select") {
-                           setSelectedAnnotation(i);
+                            setSelectedAnnotation(i);
                           }
                         }}
+                        onDragEnd={(e) => {
+                          const newRectangles = rectangles.slice();
+                          newRectangles[i] = {
+                            ...rect,
+                            x: e.target.x(),
+                            y: e.target.y(),
+                          };
+                          setRectangles(newRectangles);
+                        }}
+                        onTransformEnd={handleTransformEnd}
                       />
                     ))}
                     {ellipses.map((rect, i) => (
@@ -341,29 +392,45 @@ export default function Tool() {
                         draggable={tool === "move"}
                         onMouseOver={(e) => {
                           if (tool === "select" || tool === "delete") {
-                            e.target.getStage().container().style.cursor =
-                              "pointer";
+                            e.target.getStage().container().style.cursor = "pointer";
                           }
                         }}
                         onMouseMove={(e) => {
                           if (tool === "move") {
-                            e.target.getStage().container().style.cursor =
-                              "move";
+                            e.target.getStage().container().style.cursor = "move";
                           }
                         }}
                         onMouseOut={(e) => {
-                          if (
-                            tool === "move" ||
-                            tool === "select" ||
-                            tool === "delete"
-                          ) {
-                            e.target.getStage().container().style.cursor =
-                              "default";
+                          if (tool === "move" || tool === "select" || tool === "delete") {
+                            e.target.getStage().container().style.cursor = "default";
                           }
                         }}
                       />
                     ))}
                     <Shape rect={newRect} tool={tool} />
+                    
+                    {/* Transformer for resizing selected rectangles */}
+                    <Transformer
+                      ref={transformerRef}
+                      enabledAnchors={[
+                        'top-left',
+                        'top-center', 
+                        'top-right',
+                        'middle-right',
+                        'middle-left',
+                        'bottom-left',
+                        'bottom-center',
+                        'bottom-right'
+                      ]}
+                      // rotateEnabled={false}
+                      boundBoxFunc={(oldBox, newBox) => {
+                        // Limit resize to minimum size
+                        if (newBox.width < 5 || newBox.height < 5) {
+                          return oldBox;
+                        }
+                        return newBox;
+                      }}
+                    />
                   </Layer>
                 </Stage>
               </div>
