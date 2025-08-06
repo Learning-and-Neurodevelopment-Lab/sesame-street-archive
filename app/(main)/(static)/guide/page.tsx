@@ -65,10 +65,10 @@ export default function GuidePage() {
               <strong>Use the Explore Feature:</strong> Enter keywords such as episode titles, character names, or topics.
             </li>
             <li>
-              <strong>Advanced Filters:</strong> Refine your search by season, year, or content type using the filter panel.
+              <strong>Advanced Filters:</strong> Refine your search using the filter panel.
             </li>
             <li>
-              <strong>Segment Search:</strong> Find specific skits, songs, or animations by entering relevant terms.
+              <strong>Segment Search:</strong> Find relevant terms.
             </li>
           </ol>
         </section>
@@ -77,10 +77,10 @@ export default function GuidePage() {
           <h2 className="text-2xl font-semibold mb-2">Browsing by Category</h2>
           <ul className="list-disc list-inside space-y-2 text-neutral-700">
             <li>
-              <strong>Faces:</strong> Browse episodes featuring specific characters or cast members.
+              <strong>Faces:</strong> Browse annotations.
             </li>
             <li>
-              <strong>Places:</strong> Explore segments set in iconic locations like Sesame Street, Hooper's Store, and the Fix-It Shop. /
+              <strong>Places:</strong> Explore segments.
             </li>
             <li>
               <strong>Numbers:</strong> Find episodes and segments focused on specific numbers or counting themes.
