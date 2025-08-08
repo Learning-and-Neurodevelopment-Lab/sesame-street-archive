@@ -5,6 +5,7 @@ import vanderbilt from '@/app/(main)/assets/vanderbilt.png';
 import minnesota from '@/app/(main)/assets/minnesota.png';
 import texas from '@/app/(main)/assets/texas.png';
 import landlab from '@/app/(main)/assets/landlab.png';
+import digitalLab from '@/app/(main)/assets/digital-lab-hz.png';
 
 export default function HomePage() {
   return (
@@ -115,6 +116,9 @@ export default function HomePage() {
           </div>
           <div className="text-gray-600 font-semibold">
             <Image src={vanderbilt} width={300} alt="Vanderbilt University" className="" />
+          </div>
+          <div className="text-gray-600 font-semibold">
+            <Image src={digitalLab} width={300} alt="Digital Lab" className="" />
           </div>
           <div className="text-gray-600 font-semibold">
             <Image src={minnesota} width={300} alt="University of Minnesota" className="" />
