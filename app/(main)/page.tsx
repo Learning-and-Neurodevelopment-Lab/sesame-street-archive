@@ -55,7 +55,7 @@ export default function HomePage() {
       </section>
 
       {/* Gallery Section */}
-      <section className="w-full py-16 px-4">
+      <section className="w-full py-16 px-4 patterned">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl font-semibold text-center text-gray-700 mb-12">
             Labeled stills powered by YOLO ML Model

@@ -7,9 +7,9 @@ export const metadata = {
 
 export default function GuidePage() {
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12 flex gap-8">
+    <div className="max-w-5xl mx-auto px-4 py-12 flex flex-col md:flex-row gap-8">
       {/* Left Sidebar Navigation */}
-      <aside className="w-64 flex-shrink-0">
+      <aside className="w-full md:w-64 flex-shrink-0">
         <nav className="sticky top-20">
           <h3 className="font-semibold text-neutral-800 mb-4">Contents</h3>
           <ul className="space-y-2 text-sm">
