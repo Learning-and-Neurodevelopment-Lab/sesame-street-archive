@@ -6,6 +6,10 @@ import minnesota from '@/app/(main)/assets/minnesota.png';
 import texas from '@/app/(main)/assets/texas.png';
 import landlab from '@/app/(main)/assets/landlab.png';
 import digitalLab from '@/app/(main)/assets/digital-lab-hz.png';
+import one from '@/app/(main)/assets/annotated-examples/03212.png';
+import two from '@/app/(main)/assets/annotated-examples/S35-E4057_01283.png';
+import three from '@/app/(main)/assets/annotated-examples/S35-E4058_00212.png'
+import four from '@/app/(main)/assets/annotated-examples/S35-E4058_00332.png';
 
 export default function HomePage() {
   return (
@@ -17,7 +21,7 @@ export default function HomePage() {
             <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6 leading-tight">
               Researching Brain Development Through Children's Media
             </h1>
-            <p className="text-lg text-gray-600 mb-8">
+            <p className="text-lg text-gray-600 mb-8 font-bold"> 
               MRI, Computer Vision, and 4,000+ Labeled Sesame Street images
             </p>
             <Button asChild size="lg" className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-8 py-4">
@@ -25,8 +29,8 @@ export default function HomePage() {
             </Button>
           </div>
           <div className="flex-1 flex justify-center">
-            <div className="w-80 h-80 bg-gray-200 border-2 border-gray-300 flex items-center justify-center">
-              <div className="text-gray-400 text-6xl">×</div>
+            <div className="w-80 h-80 bg-gray-200 border-2 border-gray-300 flex justify-center">
+              <Image src={four} alt="Rep" className="object-cover" />
             </div>
           </div>
         </div>
@@ -57,9 +61,9 @@ export default function HomePage() {
             Labeled stills powered by YOLO ML Model
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {Array.from({ length: 8 }, (_, i) => (
-              <div key={i} className="aspect-square bg-gray-200 border border-gray-300 flex items-center justify-center">
-                <div className="text-gray-400 text-4xl">×</div>
+            {[one,two,three,four,two,one,four,three].map((image, i) => (
+              <div key={i} className="aspect-square bg-gray-200 border border-gray-300 flex justify-center">
+                <Image src={image} alt={`Annotated example ${i + 1}`} className="object-cover" />
               </div>
             ))}
           </div>
@@ -67,7 +71,7 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="w-full py-16 px-4 bg-white">
+      <section className="w-full py-16 px-4 border-t bg-white">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
           <div>
             <div className="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-gray-300 flex items-center justify-center">

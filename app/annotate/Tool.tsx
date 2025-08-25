@@ -1,19 +1,27 @@
 // app/annotate/page.tsx
 "use client";
 
-import { useState, useRef, useMemo, useEffect } from "react";
-import { Stage, Layer, Rect, Ellipse, Image as KonvaImage, Transformer } from "react-konva";
+import { useState, useRef, useMemo, useEffect, Fragment } from "react";
+import { Stage, Layer, Rect, Ellipse, Image as KonvaImage, Transformer, Text, Group } from "react-konva";
 import { useAtom } from "jotai";
 import { toolAtom } from "@/lib/annotation-atoms";
-import { Upload, Download, Settings, Check, X } from "lucide-react";
+import { Upload, Download, Settings, Check, X, ChevronDown } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
 import useImage from "use-image";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { SearchableCombobox } from "@/components/SearchableCombobox";
 
 const MAX_WIDTH = 1024;
 const MAX_HEIGHT = 720;
+
+// Annotation categories
+const ANNOTATION_CATEGORIES = [
+  { value: "places", label: "Places", color: "#22c55e" },
+  { value: "faces", label: "Faces", color: "#3b82f6" },
+  { value: "numbers", label: "Numbers", color: "#a855f7" },
+];
 
 function Shape({
   rect,
@@ -64,6 +72,9 @@ export default function Tool() {
   const [ellipses, setEllipses] = useState<any[]>([]);
   const [newRect, setNewRect] = useState<any | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [showLabelCombobox, setShowLabelCombobox] = useState(false);
+  const [comboboxPosition, setComboboxPosition] = useState({ x: 0, y: 0 });
+  const [pendingRectIndex, setPendingRectIndex] = useState<number | null>(null);
   const stageRef = useRef<any>();
   const transformerRef = useRef<any>();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -122,7 +133,7 @@ export default function Tool() {
     // Update the rectangle in the array
     if (selectedAnnotation !== null) {
       const newRectangles = rectangles.slice();
-      newRectangles[selectedAnnotation] = newAttrs;
+      newRectangles[selectedAnnotation] = { ...newRectangles[selectedAnnotation], ...newAttrs };
       setRectangles(newRectangles);
     }
   };
@@ -142,6 +153,9 @@ export default function Tool() {
   }, [selectedAnnotation]);
 
   const handleMouseDown = (e: any) => {
+    // Hide combobox when clicking elsewhere
+    setShowLabelCombobox(false);
+    
     // Deselect when clicking on stage
     if (e.target === e.target.getStage()) {
       setSelectedAnnotation(null);
@@ -153,13 +167,8 @@ export default function Tool() {
     setNewRect({ x: point.x, y: point.y, width: 0, height: 0 });
 
     if (tool === "select") {
-      // Select annotation logic
       return;
     }
-    // if (tool === "move") {
-    //   // Move annotation logic
-    //   return;
-    // }
 
     if (tool === "rectangle" || tool === "ellipse") {
       setSelectedAnnotation(null); // Deselect when drawing new shape
@@ -180,21 +189,48 @@ export default function Tool() {
     setNewRect({ ...newRect, width, height });
   };
 
-  const handleMouseUp = (e) => {
-    if (newRect) {
+  interface AnnotationRect {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    label: string;
+    category: string;
+    id: number;
+  }
+
+  interface KonvaMouseEvent {
+    target: any;
+  }
+
+  const handleMouseUp = (e: KonvaMouseEvent) => {
+    if (
+      newRect &&
+      Math.abs(newRect.width) > 10 &&
+      Math.abs(newRect.height) > 10
+    ) {
+      const rectWithLabel: AnnotationRect = {
+        ...newRect,
+        label: "",
+        category: "",
+        id: Date.now(), // Simple ID generation
+      };
+
       switch (tool) {
         case "rectangle":
-          setRectangles([...rectangles, newRect]);
+          const newRectangles: AnnotationRect[] = [...rectangles, rectWithLabel];
+          setRectangles(newRectangles);
+
+          // Show combobox for labeling
+          setComboboxPosition({ x: window.innerWidth / 2 - 72, y: window.innerHeight / 2 - 74 });
+          setPendingRectIndex(newRectangles.length - 1);
+          setShowLabelCombobox(true);
           break;
         case "ellipse":
-          setEllipses([...ellipses, newRect]);
-          break;
-        case "pencil":
-          break;
-        case "move":
+          setEllipses([...ellipses, rectWithLabel]);
           break;
         case "delete":
-          if (!(e.target.getAttr('image') instanceof HTMLImageElement)) {
+          if (!(e.target.getAttr("image") instanceof HTMLImageElement)) {
             e.target?.remove();
           }
           return;
@@ -208,9 +244,31 @@ export default function Tool() {
 
   const handleMouseLeave = () => {
     if (isDrawing) {
-      // setNewRect(null);
       setIsDrawing(false);
     }
+  };
+
+  const handleLabelChange = (category: string) => {
+    if (pendingRectIndex !== null) {
+      const newRectangles = rectangles.slice();
+      newRectangles[pendingRectIndex] = {
+        ...newRectangles[pendingRectIndex],
+        category,
+        label: ANNOTATION_CATEGORIES.find(cat => cat.value === category)?.label || ""
+      };
+      setRectangles(newRectangles);
+      setShowLabelCombobox(false);
+      setPendingRectIndex(null);
+    }
+  };
+
+  const getStrokeColor = (rect: any, index: number) => {
+    if (selectedAnnotation === index) return "blue";
+    if (rect.category) {
+      const category = ANNOTATION_CATEGORIES.find(cat => cat.value === rect.category);
+      return category?.color || "red";
+    }
+    return "red";
   };
 
   const exportAnnotations = () => {
@@ -238,10 +296,6 @@ export default function Tool() {
         case "p":
           setTool("pencil");
           break;
-        // case "m":
-        // case "v":
-        //   setTool("move");
-        //   break;
         case "d":
         case "t":
           setTool("delete");
@@ -263,6 +317,38 @@ export default function Tool() {
   useEffect(() => {
     if (imageUrl) setImage(imageUrl);
   }, [imageUrl]);
+
+  // Type for Konva Stage ref
+  interface KonvaStageRef {
+    children: any[];
+    getStage: () => any;
+    content: any;
+  }
+
+  // Type for Konva Layer
+  interface KonvaLayer {
+    children: any[];
+  }
+
+  // Type for Konva Group
+  // (imported from react-konva, but for runtime check, use typeof Group)
+  // interface KonvaGroup {} // Not needed for runtime instanceof
+
+  // Type assertion for stageRef
+  const stageRefTyped = stageRef as React.MutableRefObject<KonvaStageRef | null>;
+
+  // console.log(
+  //   ((stageRefTyped.current?.children[0]?.children ?? []) as any[]).filter(
+  //     (o: any) => o.constructor.name === 'Group'
+  //   ).map((group: any) => {
+  //     // Do something with each group
+  //     return (group?.children ?? []).find((o:any) => o.constructor.name === 'Text');
+  //   }).forEach((text: any) => {
+  //     console.log('Found text node:', text.textWidth);
+  //   })
+  // );
+  
+  // console.log('Stage size:', Array.from(stageRef.current?.children[0]?.children ?? []).filter((layer) => layer === true));
 
   return (
     <>
@@ -312,11 +398,11 @@ export default function Tool() {
         </div>
       </header>
       <div className="flex flex-1 overflow-hidden">
-        <main className="flex-1 p-8 overflow-auto bg-neutral-50">
+        <main className="flex-1 p-8 overflow-auto bg-neutral-50 relative">
           <div className="p-6 space-y-6">
             <div className="flex items-center justify-center min-h-[720px] min-w-[1024px] bg-neutral-100">
               <div
-                className="flex items-center justify-center"
+                className="flex items-center justify-center relative"
                 style={{ width: stageSize.width, height: stageSize.height }}
               >
                 <Stage
@@ -327,7 +413,7 @@ export default function Tool() {
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseLeave}
                   ref={stageRef}
-                  className="bg-white"
+                  className="bg-white relative"
                 >
                   <Layer>
                     {konvaImage && (
@@ -338,15 +424,11 @@ export default function Tool() {
                       />
                     )}
                     {rectangles.map((rect, i) => (
-                      <Rect
-                        key={i}
-                        name={`rect-${i}`}
+                      <Group 
                         x={rect.x}
                         y={rect.y}
-                        width={rect.width}
-                        height={rect.height}
-                        stroke={selectedAnnotation === i ? "blue" : "red"}
-                        strokeWidth={2}
+                        key={rect.id || i}
+                        onTransformEnd={handleTransformEnd}
                         draggable={tool === "move" || tool === "select"}
                         onMouseOver={(e) => {
                           if (tool === "select" || tool === "delete") {
@@ -368,6 +450,13 @@ export default function Tool() {
                             setSelectedAnnotation(i);
                           }
                         }}
+                        onDblClick={(e) => {
+                          if (tool === "select") {
+                            const rect = stageRef?.current?.content.getBoundingClientRect();  
+                            setShowLabelCombobox(true);
+                            setComboboxPosition({ x: window.innerWidth / 2 - 72, y: window.innerHeight / 2 - 74 });
+                          }
+                        }}
                         onDragEnd={(e) => {
                           const newRectangles = rectangles.slice();
                           newRectangles[i] = {
@@ -377,10 +466,50 @@ export default function Tool() {
                           };
                           setRectangles(newRectangles);
                         }}
-                        onTransformEnd={handleTransformEnd}
-                      />
+                      >
+                        <Rect
+                          name={`rect-${i}`}
+                          width={rect.width}
+                          height={rect.height}
+                          stroke={getStrokeColor(rect, i)}
+                          strokeWidth={2}
+                        />
+                        {rect.label && (
+                          <Text
+                            x={rect.width / 2}
+                            y={rect.height / 2}
+                            text={rect.label}
+                            fontSize={12}
+                            fill={getStrokeColor(rect, i)}
+                            fontStyle="bold"
+                          />
+                        )}
+                      </Group>
                     ))}
-                    {ellipses.map((rect, i) => (
+                    {/* Transformer for resizing selected rectangles */}
+                    <Transformer
+                      ref={transformerRef}
+                      enabledAnchors={[
+                        'top-left',
+                        'top-center', 
+                        'top-right',
+                        'middle-right',
+                        'middle-left',
+                        'bottom-left',
+                        'bottom-center',
+                        'bottom-right'
+                      ]}
+                      centeredScaling={true}
+                      rotateEnabled={true}
+                      boundBoxFunc={(oldBox, newBox) => {
+                        // Limit resize to minimum size
+                        if (newBox.width < 5 || newBox.height < 5) {
+                          return oldBox;
+                        }
+                        return newBox;
+                      }}
+                    />
+                    {/* {ellipses.map((rect, i) => (
                       <Ellipse
                         key={i}
                         x={rect.x + rect.width / 2}
@@ -406,41 +535,33 @@ export default function Tool() {
                           }
                         }}
                       />
-                    ))}
+                    ))} */}
                     <Shape rect={newRect} tool={tool} />
-                    
-                    {/* Transformer for resizing selected rectangles */}
-                    <Transformer
-                      ref={transformerRef}
-                      enabledAnchors={[
-                        'top-left',
-                        'top-center', 
-                        'top-right',
-                        'middle-right',
-                        'middle-left',
-                        'bottom-left',
-                        'bottom-center',
-                        'bottom-right'
-                      ]}
-                      // rotateEnabled={false}
-                      boundBoxFunc={(oldBox, newBox) => {
-                        // Limit resize to minimum size
-                        if (newBox.width < 5 || newBox.height < 5) {
-                          return oldBox;
-                        }
-                        return newBox;
-                      }}
-                    />
                   </Layer>
                 </Stage>
               </div>
             </div>
           </div>
+          
+          {/* Annotation Combobox */}
+          {showLabelCombobox && (
+            <SearchableCombobox
+              options={ANNOTATION_CATEGORIES}
+              value=""
+              onChange={handleLabelChange}
+              position={comboboxPosition}
+              placeholder="Search categories..."
+              onCancel={() => {
+                setShowLabelCombobox(false);
+                setPendingRectIndex(null);
+              }}
+            />
+          )}
         </main>
       </div>
       {/* Footer/Status Bar */}
       <footer className="h-8 px-6 flex items-center bg-white border-t border-neutral-200 text-xs text-neutral-500">
-        Status: Ready
+        Status: Ready | Rectangles: {rectangles.length}
       </footer>
     </>
   );

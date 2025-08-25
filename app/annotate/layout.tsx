@@ -9,16 +9,14 @@ export default function AnnotateLayout({
 }) {
   return (
     <Provider>
-      <html lang="en">
-        <body className="bg-neutral-50 text-neutral-900 min-h-screen flex flex-col w-full">
-          <div className="flex min-h-screen">
-            <Toolbar />
-            <div className="flex flex-col flex-1">
-              {children}
-            </div>
+      <div className="bg-neutral-50 text-neutral-900 min-h-screen flex flex-col w-full">
+        <div className="flex min-h-screen">
+          <Toolbar />
+          <div className="flex flex-col flex-1">
+            {children}
           </div>
-        </body>
-      </html>
+        </div>
+      </div>
     </Provider>
   );
 }

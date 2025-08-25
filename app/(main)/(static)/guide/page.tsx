@@ -45,7 +45,7 @@ export default function GuidePage() {
       {/* Main Content */}
       <div className="flex-1 max-w-3xl">
         <header className="mb-10">
-          <h1 className="text-4xl font-bold mb-2">Sesame Street Archive Guide</h1>
+          <h1 className="text-4xl font-bold mb-2"><em>Sesame Street</em> Archive Guide</h1>
           <p className="text-lg text-neutral-600">
             Learn how to use the Sesame Street Archive with this step-by-step guide. Explore features, search tips, and annotation best practices.
           </p>

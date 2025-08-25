@@ -29,6 +29,9 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                 <Link href="/guide">Guide</Link>
               </Button>
               <Button asChild variant="ghost" className="text-base px-4 py-2 rounded-md hover:bg-neutral-100">
+                <Link href="/team">Team</Link>
+              </Button>
+              <Button asChild variant="ghost" className="text-base px-4 py-2 rounded-md hover:bg-neutral-100">
                 <Link href="/dashboard">Dashboard</Link>
               </Button>
               {session?.user ? (

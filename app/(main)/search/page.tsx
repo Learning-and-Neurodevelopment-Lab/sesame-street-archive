@@ -144,7 +144,7 @@ export default function ExplorePage() {
         <div className="p-6 bg-white rounded-lg border border-gray-200">
           <h3 className="font-semibold text-gray-900 mb-3">Iconic Places</h3>
           <ul className="space-y-2">
-            <li><Link href="/places/main-street" className="text-blue-600 hover:underline">Sesame Street</Link></li>
+            <li><Link href="/places/main-street" className="text-blue-600 hover:underline"><em>Sesame Street</em></Link></li>
             <li><Link href="/places/kitchen" className="text-blue-600 hover:underline">Kitchen Scenes</Link></li>
             <li><Link href="/places/playground" className="text-blue-600 hover:underline">Playground</Link></li>
             <li><Link href="/places/library" className="text-blue-600 hover:underline">Library</Link></li>

@@ -9,7 +9,7 @@ const TOOLTIP = {
   select: "Select/Describe",
   rectangle: "Rectangle",
   // ellipse: "Ellipse",
-  // pencil: "Free Draw",
+  pencil: "Free Draw",
   move: "Move",
   delete: "Delete",
 };
@@ -44,17 +44,14 @@ export default function Toolbar() {
       >
         <Circle className="w-5 h-5" />
       </Button> */}
-      {/* <Button
+      <Button
         size="icon"
-        // variant={tool === "pencil" ? "secondary" : "ghost"}
-        variant="disabled "
+        variant={tool === "pencil" ? "secondary" : "ghost"}
         aria-label={TOOLTIP.pencil}
         onClick={() => setTool("pencil")}
-        className="opacity-25 cursor-not-allowed"
-        disabled
       >
         <Pencil className="w-5 h-5" />
-      </Button> */}
+      </Button>
       {/* <Button
         size="icon"
         variant={tool === "move" ? "secondary" : "ghost"}
