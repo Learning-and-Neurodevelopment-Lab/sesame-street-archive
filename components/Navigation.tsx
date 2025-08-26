@@ -16,8 +16,6 @@ import {
 } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
-
-
 export default function Navigation({ session }) {
   return (
     <Disclosure as="nav">
@@ -104,7 +102,11 @@ export default function Navigation({ session }) {
                 <SignOutButton />
               </>
             ) : (
-              <Button asChild variant="ghost">
+              <Button
+                asChild
+                variant="ghost"
+                className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
+              >
                 <Link href="/auth/signin">Sign In</Link>
               </Button>
             )}
@@ -156,9 +158,29 @@ export default function Navigation({ session }) {
               className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
             >
               <Link onNavigate={() => close()} href="/dashboard">
-                Dashboard{" "}
+                Dashboard
               </Link>
             </Button>
+            {session?.user ? (
+              <Button
+                asChild
+                variant="ghost"
+                className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
+              >
+                <Link onNavigate={() => close()} href="/annotate">Annotate</Link>
+              </Button>
+            ) : null}
+            {session?.user ? (  
+              <SignOutButton />
+            ) : (
+              <Button
+                asChild
+                variant="ghost"
+                className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
+              >
+                <Link href="/auth/signin">Sign In</Link>
+              </Button>
+            )}
           </div>
         )}
       </DisclosurePanel>

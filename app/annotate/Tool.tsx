@@ -446,9 +446,12 @@ export default function Tool() {
                           }
                         }}
                         onClick={(e) => {
-                          if (tool === "select") {
-                            setSelectedAnnotation(i);
-                          }
+                          // Switch to select/move mode when any group is clicked
+                          setTool("select");
+                          setSelectedAnnotation(i);
+                          
+                          // Stop event propagation to prevent stage click handler
+                          e.cancelBubble = true;
                         }}
                         onDblClick={(e) => {
                           if (tool === "select") {

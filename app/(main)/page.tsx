@@ -6,6 +6,7 @@ import minnesota from '@/app/(main)/assets/minnesota.png';
 import texas from '@/app/(main)/assets/texas.png';
 import landlab from '@/app/(main)/assets/landlab.png';
 import digitalLab from '@/app/(main)/assets/digital-lab-hz.png';
+import sesameworkshop from '@/app/(main)/assets/sesame-workshop-cooney-center.png';
 import one from '@/app/(main)/assets/annotated-examples/03212.png';
 import two from '@/app/(main)/assets/annotated-examples/S35-E4057_01283.png';
 import three from '@/app/(main)/assets/annotated-examples/S35-E4058_00212.png'
@@ -22,7 +23,7 @@ export default function HomePage() {
               Researching Brain Development Through Children's Media
             </h1>
             <p className="text-lg text-gray-600 mb-8 font-bold"> 
-              MRI, Computer Vision, and 4,000+ Labeled Sesame Street images
+              MRI, Computer Vision, and 4,000+ Labeled <em>Sesame Street</em> images
             </p>
             <Button asChild size="lg" className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-8 py-4">
               <Link href="/explore">Explore the Archive</Link>
@@ -50,6 +51,154 @@ export default function HomePage() {
           <div>
             <div className="text-4xl font-bold text-gray-800">4k+</div>
             <div className="text-gray-600">labeled images</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Secondary Featured Stories */}
+      <section className="w-full py-16 px-4 bg-gray-50 border-b">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">
+              Research Highlights
+            </h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Discover how our interdisciplinary research is advancing understanding of child development through innovative computer vision and neuroscience approaches.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Story 1 */}
+            <article className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+              <div className="aspect-video bg-gray-200 border-b">
+                <Image src={one} alt="Brain imaging study" className="w-full h-full object-cover" />
+              </div>
+              <div className="p-6">
+                <span className="inline-block px-3 py-1 text-xs font-semibold text-purple-600 bg-purple-100 rounded-full mb-3">
+                  Collaboration
+                </span>
+                <h3 className="text-xl font-semibold text-gray-800 mb-3">
+                  Announcing the Vision, Hands, Sesame 2026 hackathon
+                </h3>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                  A groundbreaking study linking children's brain responses to specific visual elements in Sesame Street episodes, revealing insights into cognitive development.
+                </p>
+                <Link href="/research/character-recognition" className="text-blue-600 text-sm font-medium hover:underline">
+                  Read more →
+                </Link>
+              </div>
+            </article>
+
+            {/* Story 2 */}
+            <article className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+              <div className="aspect-video bg-gray-200 border-b">
+                <Image src={two} alt="Computer vision annotation" className="w-full h-full object-cover" />
+              </div>
+              <div className="p-6">
+                <span className="inline-block px-3 py-1 text-xs font-semibold text-green-600 bg-green-100 rounded-full mb-3">
+                  Computer Vision
+                </span>
+                <h3 className="text-xl font-semibold text-gray-800 mb-3">
+                  AI-Powered Content Analysis
+                </h3>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                  Machine learning models trained on 4,000+ annotated images help researchers automatically identify educational content patterns.
+                </p>
+                <Link href="/research/ai-analysis" className="text-blue-600 text-sm font-medium hover:underline">
+                  Read more →
+                </Link>
+              </div>
+            </article>
+
+            {/* Story 3 */}
+            <article className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+              <div className="aspect-video bg-gray-200 border-b">
+                <Image src={three} alt="Multi-lab collaboration" className="w-full h-full object-cover" />
+              </div>
+              <div className="p-6">
+                <span className="inline-block px-3 py-1 text-xs font-semibold text-purple-600 bg-purple-100 rounded-full mb-3">
+                  Collaboration
+                </span>
+                <h3 className="text-xl font-semibold text-gray-800 mb-3">
+                  Cross-University Research Initiative
+                </h3>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                  Five leading research institutions collaborate to create the largest annotated dataset of children's educational media.
+                </p>
+                <Link href="/research/collaboration" className="text-blue-600 text-sm font-medium hover:underline">
+                  Read more →
+                </Link>
+              </div>
+            </article>
+
+            {/* Story 4 */}
+            <article className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+              <div className="aspect-video bg-gray-200 border-b">
+                <Image src={four} alt="Educational impact study" className="w-full h-full object-cover" />
+              </div>
+              <div className="p-6">
+                <span className="inline-block px-3 py-1 text-xs font-semibold text-orange-600 bg-orange-100 rounded-full mb-3">
+                  Education
+                </span>
+                <h3 className="text-xl font-semibold text-gray-800 mb-3">
+                  Learning Through Visual Narratives
+                </h3>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                  Research shows how specific visual elements in Sesame Street episodes enhance number recognition and mathematical thinking in preschoolers.
+                </p>
+                <Link href="/research/visual-learning" className="text-blue-600 text-sm font-medium hover:underline">
+                  Read more →
+                </Link>
+              </div>
+            </article>
+
+            {/* Story 5 */}
+            <article className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+              <div className="aspect-video bg-gray-200 border-b">
+                <Image src={two} alt="Annotation methodology" className="w-full h-full object-cover" />
+              </div>
+              <div className="p-6">
+                <span className="inline-block px-3 py-1 text-xs font-semibold text-red-600 bg-red-100 rounded-full mb-3">
+                  Methodology
+                </span>
+                <h3 className="text-xl font-semibold text-gray-800 mb-3">
+                  Open-Source Annotation Tools
+                </h3>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                  Our web-based annotation platform enables researchers worldwide to contribute to and benefit from standardized media analysis tools.
+                </p>
+                <Link href="/research/annotation-tools" className="text-blue-600 text-sm font-medium hover:underline">
+                  Read more →
+                </Link>
+              </div>
+            </article>
+
+            {/* Story 6 */}
+            <article className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+              <div className="aspect-video bg-gray-200 border-b">
+                <Image src={one} alt="Future research directions" className="w-full h-full object-cover" />
+              </div>
+              <div className="p-6">
+                <span className="inline-block px-3 py-1 text-xs font-semibold text-indigo-600 bg-indigo-100 rounded-full mb-3">
+                  Future Work
+                </span>
+                <h3 className="text-xl font-semibold text-gray-800 mb-3">
+                  Next Generation Media Studies
+                </h3>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                  Exploring how emerging technologies like VR and interactive media can be analyzed using our computer vision and neuroscience frameworks.
+                </p>
+                <Link href="/research/future-directions" className="text-blue-600 text-sm font-medium hover:underline">
+                  Read more →
+                </Link>
+              </div>
+            </article>
+          </div>
+
+          <div className="text-center mt-12">
+            <Button asChild variant="outline" size="lg">
+              <Link href="/research">View All Research</Link>
+            </Button>
           </div>
         </div>
       </section>
@@ -129,6 +278,9 @@ export default function HomePage() {
           </div>
           <div className="text-gray-600 font-semibold">
             <Image src={texas} width={300} alt="The University of Texas at Austin" className="" />
+          </div>
+          <div className="text-gray-600 font-semibold">
+            <Image src={sesameworkshop} width={300} alt="Joan Ganz Cooney Center at Sesame Workshop" className="" />
           </div>
         </div>
       </section>

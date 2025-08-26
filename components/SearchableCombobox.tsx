@@ -55,11 +55,13 @@ export function SearchableCombobox({
         onCancel();
       } else {
         setIsOpen(false);
+        setSearchQuery("");
       }
       return;
     }
     
     if (e.key === "Enter" && filteredOptions.length > 0) {
+      e.preventDefault();
       const firstOption = filteredOptions[0];
       handleOptionSelect(firstOption.value);
       return;
@@ -73,6 +75,7 @@ export function SearchableCombobox({
         : [...selectedValues, optionValue];
       onChange(newValues);
     } else {
+      // Single select - pass the string value directly
       onChange(optionValue);
       setIsOpen(false);
       setSearchQuery("");
@@ -85,6 +88,22 @@ export function SearchableCombobox({
       onChange(newValues);
     }
   };
+
+  // Handle clicking outside to close (for non-positioned combobox)
+  useEffect(() => {
+    if (!position) {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
+          setIsOpen(false);
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [position]);
 
   const baseClasses = position 
     ? "absolute z-50 bg-white border border-gray-300 rounded-lg shadow-lg"
@@ -116,8 +135,13 @@ export function SearchableCombobox({
                 )}
                 {option.label}
                 <button
-                  onClick={() => handleRemoveTag(option.value)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleRemoveTag(option.value);
+                  }}
                   className="hover:bg-blue-200 rounded-full p-0.5"
+                  type="button"
                 >
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -150,16 +174,22 @@ export function SearchableCombobox({
             filteredOptions.map((option) => {
               const isSelected = selectedValues.includes(option.value);
               return (
-                <label
+                <button
                   key={option.value}
-                  className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleOptionSelect(option.value);
+                  }}
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-3 focus:bg-gray-50 focus:outline-none"
                 >
                   {multiple && (
                     <input
                       type="checkbox"
                       checked={isSelected}
-                      onChange={() => handleOptionSelect(option.value)}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 focus:ring-2"
+                      onChange={() => {}} // Handled by button click
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 focus:ring-2 pointer-events-none"
                     />
                   )}
                   {option.color && (
@@ -168,13 +198,13 @@ export function SearchableCombobox({
                       style={{ backgroundColor: option.color }}
                     />
                   )}
-                  <span className="text-sm flex-1">{option.label}</span>
+                  <span className="flex-1">{option.label}</span>
                   {!multiple && isSelected && (
                     <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   )}
-                </label>
+                </button>
               );
             })
           ) : (
