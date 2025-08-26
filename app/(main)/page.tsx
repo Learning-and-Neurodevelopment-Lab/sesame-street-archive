@@ -42,7 +42,7 @@ export default function HomePage() {
       <section className="w-full bg-white py-12 border-t border-b">
         <div className="max-w-6xl mx-auto flex justify-around text-center">
           <div>
-            <div className="text-4xl font-bold text-gray-800">4,500+</div>
+            <div className="text-4xl font-bold text-gray-800">4500+</div>
             <div className="text-gray-600">episodes</div>
           </div>
           <div>
@@ -50,7 +50,7 @@ export default function HomePage() {
             <div className="text-gray-600">labs</div>
           </div>
           <div>
-            <div className="text-4xl font-bold text-gray-800">4k+</div>
+            <div className="text-4xl font-bold text-gray-800">4000+</div>
             <div className="text-gray-600">labeled images</div>
           </div>
         </div>
