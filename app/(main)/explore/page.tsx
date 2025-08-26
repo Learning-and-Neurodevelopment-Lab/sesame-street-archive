@@ -11,103 +11,95 @@ import two from '@/app/(main)/assets/annotated-examples/S35-E4057_01283.png';
 import three from '@/app/(main)/assets/annotated-examples/S35-E4058_00212.png';
 import four from '@/app/(main)/assets/annotated-examples/S35-E4058_00332.png';
 
-// Mock search data - replace with your actual data source
+// Simplified search data structure
 const searchData = [
   {
     id: 1,
-    title: "Big Bird Face Detection - Episode 4550",
-    type: "face",
-    url: "/faces/big-bird",
-    keywords: ["puppet", "forward", "close-up", "single"],
-    season: "Season 45",
-    episode: "Episode 4550",
-    year: "2015",
+    filename: "03212.png",
+    categories: ["face"], // Only show categories if annotations exist
+    url: "/annotate",
+    annotations: ["Big Bird", "Face", "Puppet"],
     image: one,
-    description: "Analysis of Big Bird's facial expressions and recognition patterns in educational segments."
+    hasAnnotations: true,
+    episode: "Episode 4550",
+    year: "2015"
   },
   {
     id: 2,
-    title: "Elmo Close-up Analysis",
-    type: "face",
-    url: "/faces/elmo",
-    keywords: ["puppet", "forward", "close-up", "single"],
-    season: "Season 44",
-    episode: "Episode 4421",
-    year: "2014",
+    filename: "S35-E4057_01283.png",
+    categories: ["face"],
+    url: "/annotate",
+    annotations: ["Elmo", "Face", "Close-up"],
     image: two,
-    description: "Detailed study of Elmo's facial features and emotional expressions during learning activities."
+    hasAnnotations: true,
+    episode: "Episode 4421",
+    year: "2014"
   },
   {
     id: 3,
-    title: "Sesame Street Set - Main Street",
-    type: "place",
-    url: "/places/main-street",
-    keywords: ["domicile", "clear", "full-view"],
-    season: "Season 46",
-    episode: "Episode 4601",
-    year: "2016",
+    filename: "S35-E4058_00212.png",
+    categories: ["place", "face"], // Multiple categories example
+    url: "/annotate",
+    annotations: ["Main Street", "Outdoor", "Full View", "Big Bird", "Elmo"],
     image: three,
-    description: "Comprehensive analysis of the iconic Sesame Street neighborhood setting."
+    hasAnnotations: true,
+    episode: "Episode 4601",
+    year: "2016"
   },
   {
     id: 4,
-    title: "Cookie Monster's Kitchen",
-    type: "place",
-    url: "/places/kitchen",
-    keywords: ["business", "clear", "full-view"],
-    season: "Season 43",
-    episode: "Episode 4312",
-    year: "2013",
+    filename: "S35-E4058_00332.png",
+    categories: ["place", "number"], // Multiple categories example
+    url: "/annotate",
+    annotations: ["Kitchen", "Indoor", "Clear", "Number 5"],
     image: four,
-    description: "Study of indoor kitchen environment and cooking-related educational content."
+    hasAnnotations: true,
+    episode: "Episode 4312",
+    year: "2013"
   },
   {
     id: 5,
-    title: "Number 8 Segment Analysis",
-    type: "number",
-    url: "/numbers/8",
-    keywords: ["single-digit", "clear", "forward"],
-    season: "Season 47",
-    episode: "Episode 4701",
-    year: "2017",
+    filename: "number_8_frame.png",
+    categories: ["number"],
+    url: "/annotate",
+    annotations: ["Number 8", "Single Digit"],
     image: one,
-    description: "Mathematical learning segment featuring the number 8 with visual recognition analysis."
+    hasAnnotations: true,
+    episode: "Episode 4701",
+    year: "2017"
   },
   {
     id: 6,
-    title: "Count von Count Face Recognition",
-    type: "face",
-    url: "/faces/count",
-    keywords: ["puppet", "forward", "close-up", "single"],
-    season: "Season 45",
-    episode: "Episode 4502",
-    year: "2015",
+    filename: "count_von_count.png",
+    categories: ["face", "number"], // Multiple categories example
+    url: "/annotate",
+    annotations: ["Count", "Vampire", "Purple", "Numbers"],
     image: two,
-    description: "Character analysis of Count von Count during number-focused educational segments."
+    hasAnnotations: true,
+    episode: "Episode 4502",
+    year: "2015"
   },
   {
     id: 7,
-    title: "Hooper's Store Interior",
-    type: "place",
-    url: "/places/hoopers-store",
-    keywords: ["business", "clear", "full-view"],
-    season: "Season 46",
-    episode: "Episode 4625",
-    year: "2016",
+    filename: "hoopers_store.png",
+    categories: [], // No categories when no annotations
+    url: "/annotate",
+    annotations: [],
     image: three,
-    description: "Interior setting analysis of the neighborhood store location."
+    hasAnnotations: false,
+    episode: "Episode 4625",
+    year: "2016"
   },
   {
     id: 8,
-    title: "Number 3 Recognition Study",
-    type: "number",
-    url: "/numbers/3",
-    keywords: ["single-digit", "clear", "forward"],
-    season: "Season 44",
-    episode: "Episode 4435",
-    year: "2014",
+    filename: "number_3_segment.png",
+    categories: [], // No categories when no annotations
+    url: "/annotate",
+    annotations: [],
     image: four,
-    description: "Computer vision analysis of number 3 presentations in educational contexts."
+    hasAnnotations: false,
+    episode: "Episode 4435",
+    year: "2014"
   },
 ];
 
@@ -115,23 +107,11 @@ const KEYWORD_OPTIONS = [
   { value: "puppet", label: "Puppet" },
   { value: "human", label: "Human" },
   { value: "animal", label: "Animal" },
-  { value: "infant", label: "Infant" },
-  { value: "child", label: "Child" },
-  { value: "teen", label: "Teen" },
-  { value: "adult", label: "Adult" },
-  { value: "elderly", label: "Elderly" },
-  { value: "forward", label: "Forward" },
-  { value: "full-view", label: "Full View" },
+  { value: "face", label: "Face" },
   { value: "close-up", label: "Close-up" },
-  { value: "occluded", label: "Occluded" },
-  { value: "truncated", label: "Truncated" },
-  { value: "oblique", label: "Oblique" },
-  { value: "single", label: "Single" },
-  { value: "multiple", label: "Multiple" },
-  { value: "skyline", label: "Skyline" },
-  { value: "domicile", label: "Domicile" },
-  { value: "business", label: "Business" },
-  { value: "house", label: "House" },
+  { value: "full-view", label: "Full View" },
+  { value: "indoor", label: "Indoor" },
+  { value: "outdoor", label: "Outdoor" },
   { value: "clear", label: "Clear" },
   { value: "blurry", label: "Blurry" },
   { value: "single-digit", label: "Single Digit" },
@@ -144,23 +124,10 @@ const CATEGORY_OPTIONS = [
   { value: "number", label: "Number", color: "#a855f7" },
 ];
 
-const SEASON_OPTIONS = Array.from({ length: 50 }, (_, i) => ({
-  value: `season-${i + 1}`,
-  label: `Season ${i + 1}`,
-}));
-
 const YEAR_OPTIONS = Array.from({ length: 25 }, (_, i) => ({
   value: (2024 - i).toString(),
   label: (2024 - i).toString(),
 }));
-
-const RATING_OPTIONS = [
-  { value: "1", label: "1 Star & Up" },
-  { value: "2", label: "2 Stars & Up" },
-  { value: "3", label: "3 Stars & Up" },
-  { value: "4", label: "4 Stars & Up" },
-  { value: "5", label: "5 Stars Only" },
-];
 
 const getTypeColor = (type: string) => {
   switch (type) {
@@ -177,8 +144,8 @@ const getTypeColor = (type: string) => {
 
 export default function ExplorePage() {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<typeof searchData>([]);
-  const [filteredResults, setFilteredResults] = useState<typeof searchData>([]);
+  const [results, setResults] = useState<typeof searchData>(searchData);
+  const [filteredResults, setFilteredResults] = useState<typeof searchData>(searchData);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [showFullscreenResults, setShowFullscreenResults] = useState(false);
@@ -186,31 +153,28 @@ export default function ExplorePage() {
   // Filter states
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
   const [selectedYears, setSelectedYears] = useState<string[]>([]);
-  const [selectedRating, setSelectedRating] = useState<string>("");
-  const [minVotes, setMinVotes] = useState("");
+  const [showAnnotatedOnly, setShowAnnotatedOnly] = useState(false);
 
   // Search functionality
   useEffect(() => {
-    if (query.trim().length > 0) {
-      setIsSearching(true);
-      const timer = setTimeout(() => {
-        const searchResults = searchData.filter((item) =>
-          item.title.toLowerCase().includes(query.toLowerCase()) ||
-          item.description.toLowerCase().includes(query.toLowerCase())
-        );
-        setResults(searchResults);
-        setIsSearching(false);
-        setShowResults(true);
-      }, 200);
-
-      return () => clearTimeout(timer);
-    } else {
-      setResults([]);
-      setShowResults(false);
+    setIsSearching(true);
+    const timer = setTimeout(() => {
+      const searchResults = query.trim().length > 0 
+        ? searchData.filter((item) =>
+            item.filename.toLowerCase().includes(query.toLowerCase()) ||
+            item.annotations.some(annotation => 
+              annotation.toLowerCase().includes(query.toLowerCase())
+            )
+          )
+        : searchData;
+      
+      setResults(searchResults);
       setIsSearching(false);
-    }
+      setShowResults(true);
+    }, 200);
+
+    return () => clearTimeout(timer);
   }, [query]);
 
   // Filter functionality
@@ -220,14 +184,18 @@ export default function ExplorePage() {
     // Apply category filter
     if (selectedCategories.length > 0) {
       filtered = filtered.filter((item) =>
-        selectedCategories.includes(item.type)
+        selectedCategories.some(category => item.categories.includes(category))
       );
     }
 
     // Apply keyword filter
     if (selectedKeywords.length > 0) {
       filtered = filtered.filter((item) =>
-        selectedKeywords.some((keyword) => item.keywords.includes(keyword))
+        selectedKeywords.some((keyword) => 
+          item.annotations.some(annotation =>
+            annotation.toLowerCase().includes(keyword.toLowerCase())
+          )
+        )
       );
     }
 
@@ -236,39 +204,37 @@ export default function ExplorePage() {
       filtered = filtered.filter((item) => selectedYears.includes(item.year));
     }
 
+    // Apply annotation filter
+    if (showAnnotatedOnly) {
+      filtered = filtered.filter((item) => item.hasAnnotations);
+    }
+
     setFilteredResults(filtered);
-  }, [results, selectedCategories, selectedKeywords, selectedYears]);
+  }, [results, selectedCategories, selectedKeywords, selectedYears, showAnnotatedOnly]);
 
   const clearAllFilters = () => {
     setSelectedKeywords([]);
     setSelectedCategories([]);
-    setSelectedSeasons([]);
     setSelectedYears([]);
-    setSelectedRating("");
-    setMinVotes("");
+    setShowAnnotatedOnly(false);
   };
 
   const handleSearch = () => {
-    if (filteredResults.length > 0) {
-      setShowFullscreenResults(true);
-    }
+    setShowFullscreenResults(true);
   };
 
   const activeFiltersCount =
     selectedKeywords.length +
     selectedCategories.length +
-    selectedSeasons.length +
     selectedYears.length +
-    (selectedRating ? 1 : 0) +
-    (minVotes ? 1 : 0);
+    (showAnnotatedOnly ? 1 : 0);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-4">Explore the Archive</h1>
+        <h1 className="text-4xl font-bold mb-4">Explore Images</h1>
         <p className="text-lg text-neutral-600">
-          Discover faces, places, numbers, and more from the Sesame Street
-          Archive using computer vision analysis.
+          Browse and search through annotated images from the Sesame Street Archive.
         </p>
       </div>
 
@@ -277,9 +243,10 @@ export default function ExplorePage() {
         <div className="relative">
           <input
             type="text"
-            placeholder="Search annotations, episodes, characters..."
+            placeholder="Search images, annotations, characters..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => setShowResults(true)}
             className="w-full px-4 py-3 pl-12 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -299,8 +266,8 @@ export default function ExplorePage() {
           </div>
         </div>
 
-        {/* Floating Results Container - Quick Preview */}
-        {(showResults || isSearching) && !showFullscreenResults && (
+        {/* Quick Preview Results */}
+        {query.length > 0 && (showResults || isSearching) && !showFullscreenResults && (
           <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
             {isSearching && (
               <div className="p-4 text-center text-gray-500">
@@ -312,64 +279,58 @@ export default function ExplorePage() {
             {!isSearching && filteredResults.length > 0 && (
               <div className="py-2">
                 <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b flex justify-between items-center">
-                  <span>Quick Preview ({filteredResults.length} results)</span>
+                  <span>Images ({filteredResults.length} results)</span>
                   <button
                     onClick={handleSearch}
                     className="text-blue-600 text-xs hover:text-blue-800"
                   >
-                    View All Results →
+                    View All →
                   </button>
                 </div>
                 {filteredResults.slice(0, 5).map((result) => (
                   <Link
                     key={result.id}
                     href={result.url}
-                    className="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900 mb-1">
-                          {result.title}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {result.season} • {result.year}
-                        </div>
+                    <div className="w-12 h-12 bg-gray-200 rounded overflow-hidden flex-shrink-0">
+                      <Image
+                        src={result.image}
+                        alt={result.filename}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-gray-900 truncate">
+                        {result.filename}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${getTypeColor(
-                            result.type
-                          )}`}
-                        >
-                          {result.type}
-                        </span>
+                      <div className="text-sm text-gray-500 flex items-center gap-2 flex-wrap">
+                        {/* Show multiple category pills only if annotations exist */}
+                        {result.hasAnnotations && result?.categories?.map((category) => (
+                          <span key={category} className={`px-2 py-0.5 text-xs rounded-full ${getTypeColor(category)}`}>
+                            {category}
+                          </span>
+                        ))}
+                        {result.hasAnnotations && (
+                          <span className="text-xs text-green-600">
+                            {result.annotations.length} annotations
+                          </span>
+                        )}
+                        {!result.hasAnnotations && (
+                          <span className="text-xs text-gray-400">
+                            No annotations
+                          </span>
+                        )}
                       </div>
                     </div>
                   </Link>
                 ))}
-                {filteredResults.length > 5 && (
-                  <div className="px-4 py-2 text-center border-t border-gray-100">
-                    <button
-                      onClick={handleSearch}
-                      className="text-blue-600 text-sm hover:text-blue-800 font-medium"
-                    >
-                      View all {filteredResults.length} results
-                    </button>
-                  </div>
-                )}
               </div>
             )}
 
-            {!isSearching && filteredResults.length === 0 && results.length > 0 && (
+            {!isSearching && filteredResults.length === 0 && (
               <div className="p-4 text-center text-gray-500">
-                No results match your current filters. Try adjusting your search
-                criteria.
-              </div>
-            )}
-
-            {!isSearching && results.length === 0 && query.trim().length > 0 && (
-              <div className="p-4 text-center text-gray-500">
-                No results found for "{query}"
+                No images found for "{query}"
               </div>
             )}
           </div>
@@ -379,12 +340,11 @@ export default function ExplorePage() {
       {/* Advanced Filters */}
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">Advanced Filters</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Filter Images</h2>
           <div className="flex items-center gap-4">
             {activeFiltersCount > 0 && (
               <span className="text-sm text-gray-600">
-                {activeFiltersCount} filter
-                {activeFiltersCount > 1 ? "s" : ""} applied
+                {activeFiltersCount} filter{activeFiltersCount > 1 ? "s" : ""} applied
               </span>
             )}
             <Button
@@ -398,7 +358,7 @@ export default function ExplorePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Category Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -444,86 +404,48 @@ export default function ExplorePage() {
             />
           </div>
 
-          {/* Season Filter */}
+          {/* Annotation Status */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Season
+              Annotation Status
             </label>
-            <SearchableCombobox
-              options={SEASON_OPTIONS}
-              value={selectedSeasons}
-              onChange={(value) => setSelectedSeasons(value as string[])}
-              placeholder="Select seasons..."
-              className="w-full"
-              multiple={true}
-            />
-          </div>
-
-          {/* Rating Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Annotation Quality
+            <label className="flex items-center gap-2 p-3 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
+              <input
+                type="checkbox"
+                checked={showAnnotatedOnly}
+                onChange={(e) => setShowAnnotatedOnly(e.target.checked)}
+                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+              />
+              <span className="text-sm">Annotated images only</span>
             </label>
-            <SearchableCombobox
-              options={RATING_OPTIONS}
-              value={selectedRating}
-              onChange={(value) => setSelectedRating(value as string)}
-              placeholder="Select minimum rating..."
-              className="w-full"
-              multiple={false}
-            />
-          </div>
-
-          {/* Min Votes Filter */}
-          <div>
-            <label
-              htmlFor="minVotes"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Minimum Annotations
-            </label>
-            <input
-              type="number"
-              id="minVotes"
-              value={minVotes}
-              onChange={(e) => setMinVotes(e.target.value)}
-              placeholder="e.g. 100"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              min="0"
-            />
           </div>
         </div>
 
         {/* Search Button */}
         <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center">
           <div>
-            {results.length > 0 && (
-              <p className="text-sm text-gray-600">
-                {filteredResults.length} of {results.length} results match your criteria
-              </p>
-            )}
+            <p className="text-sm text-gray-600">
+              {filteredResults.length} of {searchData.length} images
+              {activeFiltersCount > 0 && ' match your criteria'}
+            </p>
           </div>
-          <Button
-            onClick={handleSearch}
-            disabled={filteredResults.length === 0}
-            className="min-w-[120px]"
-          >
-            {filteredResults.length > 0 ? `Search ${filteredResults.length} Results` : 'Search'}
+          <Button onClick={handleSearch} className="min-w-[120px]">
+            Browse {filteredResults.length} Images
           </Button>
         </div>
       </div>
 
-      {/* Fullscreen Results Popover */}
+      {/* Fullscreen Results Grid */}
       {showFullscreenResults && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg w-full max-w-7xl h-full max-h-[90vh] flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Search Results</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Images</h2>
                 <p className="text-gray-600 mt-1">
-                  {filteredResults.length} results found
-                  {query && ` for "${query}"`}
+                  {filteredResults.length} images
+                  {query.trim().length > 0 && ` matching "${query}"`}
                 </p>
               </div>
               <button
@@ -536,45 +458,59 @@ export default function ExplorePage() {
               </button>
             </div>
 
-            {/* Results Grid */}
+            {/* Image Grid */}
             <div className="flex-1 overflow-y-auto p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {filteredResults.map((result) => (
                   <Link
                     key={result.id}
                     href={result.url}
-                    className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow group"
+                    className="group relative bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200"
                     onClick={() => setShowFullscreenResults(false)}
                   >
-                    <div className="aspect-video bg-gray-200 overflow-hidden">
+                    {/* Image */}
+                    <div className="aspect-square bg-gray-200 overflow-hidden">
                       <Image
                         src={result.image}
-                        alt={result.title}
+                        alt={result.filename}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
-                    <div className="p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${getTypeColor(
-                            result.type
-                          )}`}
-                        >
-                          {result.type}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {result.year}
-                        </span>
+
+                    {/* Overlay Info */}
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-200 flex items-end">
+                      <div className="p-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-200">
+                        <div className="text-sm font-medium truncate mb-1">
+                          {result.filename}
+                        </div>
+                        <div className="flex items-center gap-1 text-xs flex-wrap">
+                          {/* Show multiple category pills only if annotations exist */}
+                          {result.hasAnnotations && result.categories.map((category) => (
+                            <span key={category} className={`px-2 py-0.5 rounded-full ${getTypeColor(category)} text-gray-800 mb-1`}>
+                              {category}
+                            </span>
+                          ))}
+                          {result.hasAnnotations && (
+                            <span className="bg-green-500 px-2 py-0.5 rounded-full mb-1">
+                              {result.annotations.length} annotations
+                            </span>
+                          )}
+                          {!result.hasAnnotations && (
+                            <span className="bg-gray-500 px-2 py-0.5 rounded-full mb-1">
+                              No annotations
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-                        {result.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 line-clamp-3 mb-3">
-                        {result.description}
-                      </p>
-                      <div className="text-xs text-gray-500">
-                        {result.season} • {result.episode}
-                      </div>
+                    </div>
+
+                    {/* Top-right status indicator */}
+                    <div className="absolute top-2 right-2">
+                      {result.hasAnnotations ? (
+                        <div className="w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                      ) : (
+                        <div className="w-3 h-3 bg-gray-400 rounded-full border-2 border-white"></div>
+                      )}
                     </div>
                   </Link>
                 ))}
@@ -583,11 +519,11 @@ export default function ExplorePage() {
               {filteredResults.length === 0 && (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 mx-auto mb-4 text-gray-300">
-                    <svg fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No images found</h3>
                   <p className="text-gray-600">Try adjusting your search terms or filters.</p>
                 </div>
               )}
@@ -601,31 +537,17 @@ export default function ExplorePage() {
         <div className="flex items-start gap-3">
           <div className="w-6 h-6 text-blue-600 flex-shrink-0">
             <svg fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                clipRule="evenodd"
-              />
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-medium text-blue-900 mb-2">
-              Search Tips
-            </h3>
+            <h3 className="text-sm font-medium text-blue-900 mb-2">Browse Tips</h3>
             <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Use the search bar to find specific content or episodes</li>
-              <li>• Apply multiple filters to narrow down results</li>
-              <li>• Keywords describe visual characteristics of annotations</li>
-              <li>• Click the search button to view detailed results in fullscreen</li>
-              <li>
-                • For detailed explanations, visit the{" "}
-                <Link
-                  href="/guide"
-                  className="underline hover:text-blue-900"
-                >
-                  annotation guide
-                </Link>
-              </li>
+              <li>• Green dots indicate images with annotations</li>
+              <li>• Images can have multiple category tags</li>
+              <li>• Use filters to find specific types of content</li>
+              <li>• Search by filename or annotation keywords</li>
+              <li>• Click any image to start annotating</li>
             </ul>
           </div>
         </div>
