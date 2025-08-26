@@ -15,7 +15,7 @@ export default function TeamPage() {
         </p>
       </header>
       <main>
-        <h2 className="text-2xl font-semibold mb-2">Team</h2>
+        <h2 className="text-3xl font-semibold mb-8">Team</h2>
         <div>
           <h3 className="text-xl font-semibold mb-2">Founding Leadership</h3>
           <section className="grid sm:grid-cols-2 md:grid-cols-3 gap-8 mb-8">
