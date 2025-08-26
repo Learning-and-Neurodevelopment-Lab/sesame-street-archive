@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { getResearchArticle, getRelatedArticles, getAllResearchIds } from '@/lib/research-data';
 
 interface Props {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
@@ -18,7 +18,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const article = getResearchArticle(params.slug);
+  const { slug } = await params;
+  const article = getResearchArticle(slug);
   
   if (!article) {
     return {
@@ -40,8 +41,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function ResearchArticlePage({ params }: Props) {
-  const article = getResearchArticle(params.slug);
+export default async function ResearchArticlePage({ params }: Props) {
+  const { slug } = await params;
+  const article = getResearchArticle(slug);
 
   if (!article) {
     notFound();
