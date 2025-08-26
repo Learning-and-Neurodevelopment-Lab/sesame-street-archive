@@ -31,6 +31,7 @@ export function SearchableCombobox({
   const [isOpen, setIsOpen] = useState(!!position);
   const [searchQuery, setSearchQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   const selectedValues = Array.isArray(value) ? value : value ? [value] : [];
   const selectedOptions = options.filter(opt => selectedValues.includes(opt.value));
@@ -93,17 +94,21 @@ export function SearchableCombobox({
   useEffect(() => {
     if (!position) {
       const handleClickOutside = (event: MouseEvent) => {
-        if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        // Check if the click is inside our container
+        if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
           setIsOpen(false);
         }
       };
 
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
+      // Only add listener when open
+      if (isOpen) {
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+          document.removeEventListener('mousedown', handleClickOutside);
+        };
+      }
     }
-  }, [position]);
+  }, [position, isOpen]);
 
   const baseClasses = position 
     ? "absolute z-50 bg-white border border-gray-300 rounded-lg shadow-lg"
@@ -115,6 +120,7 @@ export function SearchableCombobox({
 
   return (
     <div 
+      ref={containerRef}
       className={`${baseClasses} ${className}`}
       style={containerStyle}
     >
@@ -174,22 +180,38 @@ export function SearchableCombobox({
             filteredOptions.map((option) => {
               const isSelected = selectedValues.includes(option.value);
               return (
-                <button
+                <div
                   key={option.value}
-                  type="button"
+                  className="px-3 py-2 hover:bg-gray-50 cursor-pointer flex items-center gap-3"
                   onClick={(e) => {
-                    e.preventDefault();
+                    // Prevent event from bubbling up
                     e.stopPropagation();
-                    handleOptionSelect(option.value);
+                    
+                    // For multi-select, only handle clicks outside the checkbox
+                    if (multiple) {
+                      const target = e.target as HTMLElement;
+                      if (!(target instanceof HTMLInputElement && target.type === 'checkbox')) {
+                        handleOptionSelect(option.value);
+                      }
+                    } else {
+                      // For single select, handle all clicks
+                      handleOptionSelect(option.value);
+                    }
                   }}
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-3 focus:bg-gray-50 focus:outline-none"
                 >
                   {multiple && (
                     <input
                       type="checkbox"
                       checked={isSelected}
-                      onChange={() => {}} // Handled by button click
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 focus:ring-2 pointer-events-none"
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        handleOptionSelect(option.value);
+                      }}
+                      onClick={(e) => {
+                        // Prevent the div's onClick from firing
+                        e.stopPropagation();
+                      }}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 focus:ring-2"
                     />
                   )}
                   {option.color && (
@@ -198,13 +220,13 @@ export function SearchableCombobox({
                       style={{ backgroundColor: option.color }}
                     />
                   )}
-                  <span className="flex-1">{option.label}</span>
+                  <span className="text-sm flex-1">{option.label}</span>
                   {!multiple && isSelected && (
                     <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   )}
-                </button>
+                </div>
               );
             })
           ) : (

@@ -446,11 +446,8 @@ export default function Tool() {
                           }
                         }}
                         onClick={(e) => {
-                          // Switch to select/move mode when any group is clicked
                           setTool("select");
                           setSelectedAnnotation(i);
-                          
-                          // Stop event propagation to prevent stage click handler
                           e.cancelBubble = true;
                         }}
                         onDblClick={(e) => {
@@ -470,13 +467,18 @@ export default function Tool() {
                           setRectangles(newRectangles);
                         }}
                       >
+                        {/* Background Rectangle with Low Opacity */}
                         <Rect
                           name={`rect-${i}`}
                           width={rect.width}
                           height={rect.height}
+                          fill={'#ffffff66'}
                           stroke={getStrokeColor(rect, i)}
                           strokeWidth={2}
+                          strokeScaleEnabled={false}
                         />
+                        
+                        {/* Label Text */}
                         {rect.label && (
                           <Text
                             x={rect.width / 2}
@@ -485,6 +487,10 @@ export default function Tool() {
                             fontSize={12}
                             fill={getStrokeColor(rect, i)}
                             fontStyle="bold"
+                            align="center"
+                            verticalAlign="middle"
+                            offsetX={rect.label.length * 3} // Rough centering
+                            offsetY={6} // Rough centering
                           />
                         )}
                       </Group>
