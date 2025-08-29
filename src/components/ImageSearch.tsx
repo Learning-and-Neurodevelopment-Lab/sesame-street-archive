@@ -3,8 +3,6 @@ import type { Schema } from "../../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
 import { getUrl } from 'aws-amplify/storage';
 import AnnotatedImage from "./AnnotatedImage";
-import { Authenticator} from "@aws-amplify/ui-react";
-import CustomHeader from './CustomMessaging';
 import AnnotationDataViewerToggle from "./AnnotationDataViewerToggle";
 import { FetchImageUrls } from "./FetchImageUrls";
 
@@ -172,8 +170,7 @@ const ImageSearch: React.FC = () => {
   };
 
   return (
-    <Authenticator hideSignUp components={{ Header: CustomHeader }}>
-      {() => (
+      
         <div>
           <main className="main-content">
             <br/>            <br/>
@@ -248,8 +245,7 @@ const ImageSearch: React.FC = () => {
         <br/>
           </main>
         </div>
-      )}
-    </Authenticator>
+      
   );
 };
 

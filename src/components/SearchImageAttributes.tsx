@@ -4,8 +4,7 @@ import { generateClient } from "aws-amplify/data";
 import { getUrl } from "aws-amplify/storage";
 import DownloadResults from "./DownloadResults";
 import "./search.css";
-import { Authenticator, Divider } from "@aws-amplify/ui-react";
-import CustomHeader from "./CustomMessaging";
+import { Divider } from "@aws-amplify/ui-react";
 import AnnotationDataViewerToggle from "./AnnotationDataViewerToggle";
 
 const SearchImageAttributes: React.FC = () => {
@@ -26,9 +25,6 @@ const SearchImageAttributes: React.FC = () => {
 
  const [selectedCategories, setSelectedCategories] = useState<{ [category: string]: { [subcategory: string]: string[] } }>({});
 
-  const components = {
-    Header: CustomHeader,
-  };
 
   const fetchSearchResultAnnotations = async () => {
     try {
@@ -410,8 +406,6 @@ const SearchImageAttributes: React.FC = () => {
   };
 
   return (
-    <Authenticator hideSignUp className="authenticator-popup" components={components}>
-    {({  }) => (
     <main className="main-content">
       <div className="separator"></div>
       <h1 className="intro">Annotation Search</h1>
@@ -508,8 +502,6 @@ const SearchImageAttributes: React.FC = () => {
       <div><DownloadResults annotations={annotations} /></div>
       <br/>
       </main>
-    )}
-    </Authenticator>
   );
 };
 

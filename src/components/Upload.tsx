@@ -1,26 +1,48 @@
-import React, { useEffect, useState } from 'react';
-import { uploadData} from 'aws-amplify/storage';
-import { Divider } from '@aws-amplify/ui-react';
-import {getCurrentUser } from 'aws-amplify/auth';
-import useScrollToTop from '../ScrollToTop';
-
+// Upload.tsx
+import React, { useEffect, useState } from "react";
+import { Authenticator, Divider } from "@aws-amplify/ui-react";
+import { uploadData } from "aws-amplify/storage";
+import { getCurrentUser } from "aws-amplify/auth";
+import useScrollToTop from "../ScrollToTop";
+import CustomHeader from "./CustomMessaging"; // <- this is your header that renders AuthWithDua
 
 const Upload: React.FC = () => {
+  // ---- DUA / signup gating ----
+  const [duaAccepted, setDuaAccepted] = useState(false);
 
-  //Individual image file upload
+  // Stamp DUA acceptance and any extra metadata at signup
+  const services = {
+    handleSignUp: async (formData: any) => {
+      formData.signUpAttributes = {
+        ...formData.signUpAttributes,
+        "custom:duaAccepted": "true",
+      };
+      // optionally: formData.clientMetadata = { ...formData.clientMetadata, duaAccepted: "true" }
+      return formData;
+    },
+  };
+
+  const components = {
+    Header: () => (
+      <CustomHeader
+        duaAccepted={duaAccepted}
+        onDuaAgreed={() => setDuaAccepted(true)}
+      />
+    ),
+  };
+
+  // ---- Upload state / logic ----
   const [file, setFile] = useState<File | null>(null);
-  //Folder upload
   const [files, setFiles] = useState<FileList | null>(null);
-  //Visualize image selected for upload
-  //Selected folder and file state
+
   const inputRefFile = React.useRef<HTMLInputElement | null>(null);
   const inputRef = React.useRef<HTMLInputElement | null>(null);
-  //Messaging
+
   const [folderMessage, setFolderMessage] = useState<string | undefined>("");
   const [fileMessage, setFileMessage] = useState<string | undefined>("");
-  // Visualize file uploaded
 
   useScrollToTop();
+
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.setAttribute("webkitdirectory", "true");
@@ -28,99 +50,76 @@ const Upload: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (files) {
-      handleUpload(); // Trigger upload when files are selected, no upload button needed, as it is on popup
-    }
-  }, [files]); // Run this effect when `files` changes
+    if (files) handleUpload();
+  }, [files]);
 
-  // Function to check if user is logged in
   const checkUserAuthorization = async () => {
     try {
       const { userId } = await getCurrentUser();
-      if (!userId ) {return false;}
-      return true; // User is logged in
-      } catch (error) {
-        console.error("Error checking user authorization:", error);
-        return false;
-      }
-    };
+      return !!userId;
+    } catch (err) {
+      console.error("Error checking user authorization:", err);
+      return false;
+    }
+  };
 
-
-  //When folder is selected, reset messaging and set files
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFolderMessage("");
-    const selectedFiles = event.target.files;
-    setFiles(selectedFiles);
-    console.log("files:", selectedFiles);
+    setFiles(event.target.files);
   };
-  //Single file upload in response to button
+
   const handleSingleFileUpload = async () => {
     if (!file) {
-      console.error("No file selected");
+      setFileMessage("No file selected");
       return;
     }
     try {
       const isAuthorized = await checkUserAuthorization();
       if (!isAuthorized) {
         setFileMessage("User not authorized to upload file.");
-        return; // Stop if user is unauthorized
+        return;
       }
-      const filePath = file.type === 'text/xml' ? 'data' : 'images';
-      console.log(file.name);
-      console.log(filePath);
-      await uploadData({
-        path: `data/${file.name}`,
-        data: file,
-      });
-      console.log(`File ${file.name} uploaded successfully`);
-      setFileMessage("File uploaded successfully");
-      if (inputRefFile.current) {
-        inputRefFile.current.value = ""; // Reset the file input field
-      }
-      hideMessageAfterDelay(); // Auto-hide the message after delay
+      const filePath = file.type === "text/xml" ? `data/${file.name}` : `images/${file.name}`;
+      await uploadData({ path: filePath, data: file });
+      setFileMessage(`File ${file.name} uploaded successfully`);
+      if (inputRefFile.current) inputRefFile.current.value = "";
+      hideMessageAfterDelay();
     } catch (error) {
       console.error("Error uploading file:", error);
       setFileMessage("Error uploading file.");
     }
   };
 
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-  //Folder upload, upload in batches to circumvent API rate limits
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
   const handleUpload = async () => {
     if (!files) {
-      console.error("No files selected");
+      setFolderMessage("No files selected");
       return;
     }
-
-    const BATCH_SIZE = 5; // Number of files to upload at a time
-    const DELAY = 1000; // Delay in milliseconds between batches
+    const BATCH_SIZE = 5;
+    const DELAY = 1000;
 
     try {
       const isAuthorized = await checkUserAuthorization();
       if (!isAuthorized) {
         setFolderMessage("User not authorized to upload folder.");
-        return; // Stop if user is unauthorized
+        return;
       }
+
       for (let i = 0; i < files.length; i += BATCH_SIZE) {
         const batch = Array.from(files).slice(i, i + BATCH_SIZE);
-        await Promise.all(batch.map(async file => {
-          const filePath = `data/${file.webkitRelativePath}`;
-          console.log(`Uploading file: ${file.name} to path: ${filePath}`);
-          await uploadData({
-            path: filePath,
-            data: file,
-          });
-          console.log(`File ${file.name} uploaded successfully`);
-          setFolderMessage(`File ${file.name} uploaded successfully`);
-        }));
-
-        // Add delay between batches to prevent rate limiting
-        if (i + BATCH_SIZE < files.length) {
-          await sleep(DELAY);
-        }
+        await Promise.all(
+          batch.map(async (f) => {
+            const filePath = `data/${(f as any).webkitRelativePath || f.name}`;
+            await uploadData({ path: filePath, data: f });
+            setFolderMessage(`File ${f.name} uploaded successfully`);
+          })
+        );
+        if (i + BATCH_SIZE < files.length) await sleep(DELAY);
       }
       setFolderMessage("Folder uploaded successfully");
-      hideMessageAfterDelay(); // Auto-hide the message after 5 seconds
+      hideMessageAfterDelay();
     } catch (error) {
       console.error("Error uploading folder:", error);
       setFolderMessage("Error uploading folder.");
@@ -129,60 +128,55 @@ const Upload: React.FC = () => {
 
   const hideMessageAfterDelay = () => {
     setTimeout(() => {
-      setFolderMessage(undefined); // Clear the message after 5 seconds
-      setFileMessage(undefined); // Clear the message after 5 seconds
+      setFolderMessage(undefined);
+      setFileMessage(undefined);
     }, 5000);
   };
 
   return (
-    <div >
-      <div className='separator'></div>
-      <div className='separator'></div>
-      <div className='separator'></div>
-      <div className='separator'></div>
-      <header className="banner1"></header>
-      <div className='separator'></div>
-        <h1 className='intro'>Add Images and Annotations to Archive</h1>
-        <div className='upload-tooltip-container'>
-        <div className="upload-tooltip">
-          <span>ℹ️</span>
-          <div className="upload-tooltiptext">
-          <p>To correlate image and annotation data, annotations should reference image ids in their filename field. </p><p>Preferred filename format is : S season number -E episode number_image number.png.<br/>Example: S13-E4055_00129.png.</p> <p> Currently, only xml files for annotation data and png files for images can be uploaded. </p>          
-          </div>
+    <Authenticator
+      hideSignUp={!duaAccepted}
+      services={services}
+      className="authenticator-popup"
+      components={components}
+    >
+      {() => (
+        <div>
+          <div className="separator" />
+          <header className="banner1"></header>
+          <h1 className="intro">Add Images and Annotations to Archive</h1>
+
+          <Divider />
+
+          <div className="upload-content">
+            <h3>Upload Folder</h3>
+            <input
+              type="file"
+              onChange={handleChange}
+              multiple
+              ref={inputRef}
+              style={{ display: "none" }}
+            />
+            <button onClick={() => inputRef.current?.click()}>Select Folder</button>
+            <div className="separator" />
+            {folderMessage && <p>{folderMessage}</p>}
+
+            <Divider />
+
+            <h3>Upload File</h3>
+            <input
+              type="file"
+              onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+              ref={inputRefFile}
+            />
+            <button onClick={handleSingleFileUpload} disabled={!file}>
+              Upload File
+            </button>
+            {fileMessage && <p>{fileMessage}</p>}
           </div>
         </div>
-        <br/>
-      <Divider></Divider>
-      <div className='upload-content'>
-      <h3>Upload Folder</h3>
-      <input
-        type="file"
-        onChange={handleChange}
-        multiple
-        ref={inputRef}
-        style={{ display: 'none' }}
-      />
-      <button onClick={() => inputRef.current?.click()}>
-        Select Folder
-      </button>
-      <div className="separator" />
-      <div>{folderMessage && <p>{folderMessage}</p>}</div>
-      <div className="separator" />
-      <Divider></Divider>
-      <h3>Upload File</h3>
-      <input
-        type="file"
-        onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
-        ref={inputRefFile}
-      />
-      <button onClick={handleSingleFileUpload} disabled={!file}>
-        Upload File
-      </button>
-      <div>{fileMessage && <p>{fileMessage}</p>}</div>
-      <div className="separator" />
-      <br/>
-    </div>
-    </div>
+      )}
+    </Authenticator>
   );
 };
 
