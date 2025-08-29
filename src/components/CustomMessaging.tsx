@@ -1,14 +1,23 @@
+// CustomMessaging.tsx
+import { View, useTheme } from "@aws-amplify/ui-react";
+import AuthWithDua from "./AuthWithDua";
 
-import { View, useTheme } from '@aws-amplify/ui-react';
-
-const CustomHeader = () => {
+export default function CustomHeader({
+  onDuaAgreed,
+  duaAccepted
+}: {
+  onDuaAgreed: () => void;
+  duaAccepted: boolean;
+}) {
   const { tokens } = useTheme();
+
+  // Hide the header completely after agreement
+  if (duaAccepted) return null;
 
   return (
     <View textAlign="center" padding={tokens.space.large}>
-      <h2>Website in development. Account creation not permitted.</h2>
+      <AuthWithDua onAgreed={onDuaAgreed} />
+      <h2>Account creation requires a Data Use Agreement.</h2>
     </View>
   );
-};
-
-export default CustomHeader;
+}
