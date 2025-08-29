@@ -76,7 +76,7 @@ function Team() {
             </p>
             <p>
               Erin Geier <br />
-              Full-Stack Cloud Engineer
+              Cloud Engineer and Developer
             </p>
           </section>
         </div>
