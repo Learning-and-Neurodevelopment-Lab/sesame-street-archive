@@ -5,7 +5,7 @@ export const metadata = {
   description:"Meet the dedicated team behind the Sesame Street Archive.",
 };
 
-export default async function TeamPage({ params }) {
+export default async function TeamPage({ params }: { params: { [key: string]: string } }) {
   const { locale = 'en' } = params;
 
     try {

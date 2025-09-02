@@ -5,7 +5,7 @@ export const metadata = {
   description: "About the annotation tool project",
 };
 
-export default async function AboutPage({ params }: { params: { locale: string } }) {
+export default async function AboutPage({ params }: { params: { [key: string]: string } }) {
   const { locale = 'en' } = params;
 
    try {
