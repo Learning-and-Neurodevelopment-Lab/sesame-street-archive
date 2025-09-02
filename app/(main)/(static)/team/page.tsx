@@ -5,12 +5,8 @@ export const metadata = {
   description:"Meet the dedicated team behind the Sesame Street Archive.",
 };
 
-export default async function TeamPage({
-  params,
-}: {
-  params: Record<string, string | string[]>;
-}) {
-  const { locale = 'en' } = params;
+export default async function TeamPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale = 'en' } = await params;
 
     try {
     const Content = (await import(`./${locale}.mdx`)).default;

@@ -5,12 +5,8 @@ export const metadata = {
   description: "How to use the annotation tool effectively",
 };
 
-export default async function GuidePage({
-  params,
-}: {
-  params: Record<string, string | string[]>;
-}) {
-  const { locale = "en" } = params;
+export default async function GuidePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale = "en" } = await params;
 
   try {
     const Content = (await import(`./${locale}.mdx`)).default;
