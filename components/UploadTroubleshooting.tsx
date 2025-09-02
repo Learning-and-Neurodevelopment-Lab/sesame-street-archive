@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { uploadData, getUrl } from 'aws-amplify/storage';
 import { Divider } from '@aws-amplify/ui-react';
 import {getCurrentUser } from 'aws-amplify/auth';
-import useScrollToTop from '../ScrollToTop';
+import useScrollToTop from '@/hooks/ScrollToTop';
 
 
 const Upload: React.FC = () => {
