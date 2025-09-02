@@ -28,8 +28,6 @@ export default function Navigation({ session }) {
     { label: t("links.signIn.label"), path: t("links.signIn.path") }
   ];
 
-  console.log('NAV LINKS', navLinks);
-
   // Filter links for session-specific logic
   const filteredLinks = navLinks.filter(link => {
     if (link.path === "/annotate" && !session?.user) return false;

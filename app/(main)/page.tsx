@@ -52,17 +52,17 @@ export default function HomePage() {
       link:  t('contributors.landlab.link')
     },
     {
-      alt: t('contributors.vanberbilt.alt'),
+      alt: t('contributors.vanderbilt.alt'),
       image: vanderbilt,
       link:  t('contributors.vanderbilt.link')
     },
     {
-      alt: t('contributors.digitalLab.alt'),
+      alt: t('contributors.digitallab.alt'),
       image: digitalLab,
       link:  t('contributors.digitallab.link')
     },
     {
-      alt: t('contributors.minnresota.alt'),
+      alt: t('contributors.minnesota.alt'),
       image: minnesota,
       link: t('contributors.minnesota.link')
     },
@@ -234,7 +234,7 @@ export default function HomePage() {
       <section className="w-full py-12 border-t bg-gray-50">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-16 px-4">
           {contributors.map((entity) => (
-            <div className="text-gray-600 font-semibold">
+            <div key={entity.image.src} className="text-gray-600 font-semibold">
               <a href={entity.link} target="_blank">
                 <Image src={entity.image} width={300} alt={entity.alt} />
               </a>
