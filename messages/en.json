@@ -1,0 +1,165 @@
+{
+  "HomePage": {
+    "heroTitle": "Researching Brain Development Through Children's Media",
+    "heroSubTitle": "MRI, Computer Vision, and 4,000+ Labeled <em>Sesame Street</em> images",
+    "heroCta": "Explore the Archive",
+    "heroCtaPath": "/explore",
+    "data": {
+      "episodes": "<title>{episodes}</title> <description>episodes</description>",
+      "labs": "<title>{labs}</title> <description>labs</description>",
+      "labeledImages": "<title>{labeledImages}</title> <description>labeled images</description>"
+    },
+    "researchTitle": "Research Highlights",
+    "researchDescription": "Discover how our interdisciplinary research is advancing understanding of child development through innovative computer vision and neuroscience approaches.",
+    "researchCta": "View All Research",
+    "researchCtaPath": "/research",
+    "stillsTitle": "Labeled Stills Powered by YOLO ML Model",
+    "labeledStills": {
+      "one": {
+        "title": "Annotated example 1",
+        "description": "Description for annotated example 1",
+        "id": "one"
+      },
+      "two": {
+        "title": "Annotated example 2",
+        "description": "Description for annotated example 2",
+        "id": "two"
+      },
+      "three": {
+        "title": "Annotated example 3",
+        "description": "Description for annotated example 3",
+        "id": "three"
+      },
+      "four": {
+        "title": "Annotated example 4",
+        "description": "Description for annotated example 4",
+        "id": "four"
+      }
+    },
+    "deepMRIStudies": {
+      "title": "DeepMRI Studies",
+      "description": "Explore our groundbreaking DeepMRI studies that leverage advanced machine learning techniques to analyze brain development in children. These studies provide new insights into cognitive and neural growth patterns."
+    },
+    "multiLabCollaboration": {
+      "title": "Multi-Lab Collaboration",
+      "description": "Learn about our collaborative efforts across multiple research labs to enhance the study of child development. This initiative fosters innovation and knowledge sharing among experts in various fields."
+    },
+    "aiAndMachineLearning": {
+      "title": "AI and Machine Learning",
+      "description": "Discover how AI and machine learning are being utilized to advance research in child development. This includes innovative applications of computer vision and data analysis techniques."
+    },
+    "contributors": {
+      "landlab": {
+        "alt": "LANDLAB",
+        "link": "https://www.vanderbiltlandlab.io/"
+      },
+      "vanderbilt": {
+        "alt": "Vanderbilt University",
+        "link": "https://www.vanderbilt.edu/"
+      },
+      "digitallab": {
+        "alt": "Digital Lab",
+        "link": "https://www.library.vanderbilt.edu/digital-lab/"
+      },
+      "minnesota": {
+        "alt": "The University of Minnesota Twin Cities",
+        "link": "https://twin-cities.umn.edu/"
+      },
+      "texas": {
+        "alt": "The University of Texas at Austin",
+        "link": "https://www.utexas.edu/"
+      },
+      "sesameworkshop": {
+        "alt": "Sesame Workshop",
+        "link": "https://sesameworkshop.org/"
+      }
+    }
+  },
+  "ExplorePage": {
+    "exploreTitle": "Explore Images",
+    "exploreDescription": "Browse and search through annotated images from the Sesame Street Archive.",
+    "explorePlaceholder": "Search images, annotations, characters…",
+    "filterTitle": "Filter Images",
+    "filterClearCta": "Clear Filters",
+    "browseCta": "Browse {count, plural, =0 {no images} =1 {# image} other {# images}}",
+    "activeFilters": "{count, plural, =0 {no filters} =1 {# filter} other {# filters}} applied",
+    "categoryFilter": {
+      "label": "Category",
+      "placeholder": "Select categories…"
+    },
+    "keywordFilter": {
+      "label": "Keyword",
+      "placeholder": "Select keywords…"
+    },
+    "yearFilter": {
+      "label": "Year",
+      "placeholder": "Select years…"
+    },
+    "annotationStatus": {
+      "label": "Annotation Status",
+      "option": "Annotated images only"
+    },
+    "browseCount": "{filteredResults.length} of {searchData.length} images",
+    "criteriaLabel": "{count} of {total, plural, =0 {no images} =1 {# image} other {# images}} match your criteria",
+    "noResults": "<primary>No images found</primary><secondary>Try adjusting your search terms or filters.</secondary>",
+    "browseTips": "Browse Tips"
+  },
+  "Navigation": {
+    "links": {
+      "home": { "label": "Home", "path": "/" },
+      "explore": { "label": "Explore", "path": "/explore" },
+      "about": { "label": "About", "path": "/about" },
+      "guide": { "label": "Guide", "path": "/guide" },
+      "team": { "label": "Team", "path": "/team" },
+      "dashboard": { "label": "Dashboard", "path": "/dashboard" },
+      "annotate": { "label": "Annotate", "path": "/annotate" },
+      "signIn": { "label": "Sign In", "path": "/auth/signin" }
+    }
+  },
+  "Footer": {
+    "Navigation": {
+      "general": {
+        "label": "General",
+        "links": {
+          "home": { "label": "Home", "path": "/" },
+          "explore": { "label": "Explore", "path": "/explore" },
+          "about": { "label": "About", "path": "/about" },
+          "guide": { "label": "Guide", "path": "/guide" }
+        }
+      },
+      "research": {
+        "label": "Research",
+        "links": {
+          "research": { "label": "Publications", "path": "/research" },
+          "neuroscience": { "label": "Neuroscience", "path": "/research/neuroscience" },
+          "computerVision": { "label": "Computer Vision", "path": "/research/computer-vision" },
+          "collaboration": { "label": "Collaboration", "path": "/research/collaboration" }
+        }
+      },
+      "tools": {
+        "label": "Tools & Resources",
+        "links": {
+          "annotate": { "label": "Annotate", "path": "/annotate" },
+          "dataset": { "label": "Dataset", "path": "/dataset" },
+          "documentation": { "label": "Documentation", "path": "/documentation" },
+          "contact": { "label": "Team", "path": "/team" }
+        }
+      }
+    },
+    "copyright": "© {year} <em>Sesame Street</em> Archive",
+    "disclaimer": "This site is not affiliated with Sesame Workshop or the Joan Ganz Cooney Center. All trademarks and copyrights are the property of their respective owners. The <em>Sesame Street</em> Archive is for educational and research purposes only.",
+    "subscribe": {
+      "title": "Subscribe to our Newsletter",
+      "description": "Stay updated on the latest research, tools, and resources.",
+      "cta": "Subscribe",
+      "label": "Email address",
+      "placeholder": "Enter your email",
+      "success": "Thank you for subscribing!",
+      "error": "Something went wrong. Please try again."
+    },
+    "unsubscribe": "We respect your privacy. Unsubscribe at any time.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "accessibility": "Accessibility"
+  }
+}

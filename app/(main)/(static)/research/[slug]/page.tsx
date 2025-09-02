@@ -134,7 +134,7 @@ export default async function ResearchArticlePage({ params }: Props) {
           <ul className="space-y-3">
             {article.content.findings.map((finding, index) => (
               <li key={index} className="flex items-start gap-3">
-                <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></span>
+                <span className="w-2 h-2 bg-gray-600 rounded-full mt-2 flex-shrink-0"></span>
                 <span className="text-gray-700">{finding}</span>
               </li>
             ))}

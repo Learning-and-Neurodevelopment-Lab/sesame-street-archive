@@ -2,16 +2,35 @@
 "use client";
 
 import { useState, useRef, useMemo, useEffect, Fragment } from "react";
-import { Stage, Layer, Rect, Ellipse, Image as KonvaImage, Transformer, Text, Group } from "react-konva";
+import {
+  Stage,
+  Layer,
+  Rect,
+  Ellipse,
+  Image as KonvaImage,
+  Transformer,
+  Text,
+  Group,
+} from "react-konva";
 import { useAtom } from "jotai";
 import { toolAtom } from "@/lib/annotation-atoms";
-import { Upload, Download, Settings, Check, X, ChevronDown } from "lucide-react";
+import {
+  Upload,
+  Download,
+  Settings,
+  Check,
+  X,
+  ChevronDown,
+} from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { Authenticator } from "@aws-amplify/ui-react";
 
 import useImage from "use-image";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { SearchableCombobox } from "@/components/SearchableCombobox";
+
+import 'app/amplify-auth.css';
 
 const MAX_WIDTH = 1024;
 const MAX_HEIGHT = 720;
@@ -66,7 +85,9 @@ export default function Tool() {
 
   const [tool, setTool] = useAtom(toolAtom);
   const [image, setImage] = useState<string | null>(imageUrl || null);
-  const [selectedAnnotation, setSelectedAnnotation] = useState<number | null>(null);
+  const [selectedAnnotation, setSelectedAnnotation] = useState<number | null>(
+    null
+  );
   const [konvaImage] = useImage(image || "");
   const [rectangles, setRectangles] = useState<any[]>([]);
   const [ellipses, setEllipses] = useState<any[]>([]);
@@ -133,7 +154,10 @@ export default function Tool() {
     // Update the rectangle in the array
     if (selectedAnnotation !== null) {
       const newRectangles = rectangles.slice();
-      newRectangles[selectedAnnotation] = { ...newRectangles[selectedAnnotation], ...newAttrs };
+      newRectangles[selectedAnnotation] = {
+        ...newRectangles[selectedAnnotation],
+        ...newAttrs,
+      };
       setRectangles(newRectangles);
     }
   };
@@ -141,7 +165,9 @@ export default function Tool() {
   // Update transformer when selection changes
   useEffect(() => {
     if (selectedAnnotation !== null && transformerRef.current) {
-      const selectedNode = stageRef.current?.findOne(`.rect-${selectedAnnotation}`);
+      const selectedNode = stageRef.current?.findOne(
+        `.rect-${selectedAnnotation}`
+      );
       if (selectedNode) {
         transformerRef.current.nodes([selectedNode]);
         transformerRef.current.getLayer().batchDraw();
@@ -155,7 +181,7 @@ export default function Tool() {
   const handleMouseDown = (e: any) => {
     // Hide combobox when clicking elsewhere
     setShowLabelCombobox(false);
-    
+
     // Deselect when clicking on stage
     if (e.target === e.target.getStage()) {
       setSelectedAnnotation(null);
@@ -218,11 +244,17 @@ export default function Tool() {
 
       switch (tool) {
         case "rectangle":
-          const newRectangles: AnnotationRect[] = [...rectangles, rectWithLabel];
+          const newRectangles: AnnotationRect[] = [
+            ...rectangles,
+            rectWithLabel,
+          ];
           setRectangles(newRectangles);
 
           // Show combobox for labeling
-          setComboboxPosition({ x: window.innerWidth / 2 - 72, y: window.innerHeight / 2 - 74 });
+          setComboboxPosition({
+            x: window.innerWidth / 2 - 72,
+            y: window.innerHeight / 2 - 74,
+          });
           setPendingRectIndex(newRectangles.length - 1);
           setShowLabelCombobox(true);
           break;
@@ -230,9 +262,7 @@ export default function Tool() {
           setEllipses([...ellipses, rectWithLabel]);
           break;
         case "delete":
-          if (!(e.target.getAttr("image") instanceof HTMLImageElement)) {
-            e.target?.remove();
-          }
+          // No-op here; handled in onClick of Group above
           return;
         default:
           break;
@@ -254,7 +284,9 @@ export default function Tool() {
       newRectangles[pendingRectIndex] = {
         ...newRectangles[pendingRectIndex],
         category,
-        label: ANNOTATION_CATEGORIES.find(cat => cat.value === category)?.label || ""
+        label:
+          ANNOTATION_CATEGORIES.find((cat) => cat.value === category)?.label ||
+          "",
       };
       setRectangles(newRectangles);
       setShowLabelCombobox(false);
@@ -265,7 +297,9 @@ export default function Tool() {
   const getStrokeColor = (rect: any, index: number) => {
     if (selectedAnnotation === index) return "blue";
     if (rect.category) {
-      const category = ANNOTATION_CATEGORIES.find(cat => cat.value === rect.category);
+      const category = ANNOTATION_CATEGORIES.find(
+        (cat) => cat.value === rect.category
+      );
       return category?.color || "red";
     }
     return "red";
@@ -335,7 +369,8 @@ export default function Tool() {
   // interface KonvaGroup {} // Not needed for runtime instanceof
 
   // Type assertion for stageRef
-  const stageRefTyped = stageRef as React.MutableRefObject<KonvaStageRef | null>;
+  const stageRefTyped =
+    stageRef as React.MutableRefObject<KonvaStageRef | null>;
 
   // console.log(
   //   ((stageRefTyped.current?.children[0]?.children ?? []) as any[]).filter(
@@ -347,8 +382,25 @@ export default function Tool() {
   //     console.log('Found text node:', text.textWidth);
   //   })
   // );
-  
+
   // console.log('Stage size:', Array.from(stageRef.current?.children[0]?.children ?? []).filter((layer) => layer === true));
+
+  // return (
+  //   <div>
+  //     <div className="max-w-sm mx-auto py-16">
+  //       <Authenticator
+  //         components={{
+  //           Header() {
+  //             return (
+  //               <h1 className="text-2xl font-bold mb-6 text-center">Sign In</h1>
+  //             );
+  //           },
+  //         }}
+  //       />
+  //     </div>
+  //     {/* ...existing annotation tool code goes here, outside of Authenticator, or conditionally rendered if needed... */}
+  //   </div>
+  // );
 
   return (
     <>
@@ -424,7 +476,7 @@ export default function Tool() {
                       />
                     )}
                     {rectangles.map((rect, i) => (
-                      <Group 
+                      <Group
                         x={rect.x}
                         y={rect.y}
                         key={rect.id || i}
@@ -432,29 +484,46 @@ export default function Tool() {
                         draggable={tool === "move" || tool === "select"}
                         onMouseOver={(e) => {
                           if (tool === "select" || tool === "delete") {
-                            e.target.getStage().container().style.cursor = "pointer";
+                            e.target.getStage().container().style.cursor =
+                              "pointer";
                           }
                         }}
                         onMouseMove={(e) => {
                           if (tool === "move") {
-                            e.target.getStage().container().style.cursor = "move";
+                            e.target.getStage().container().style.cursor =
+                              "move";
                           }
                         }}
                         onMouseOut={(e) => {
-                          if (tool === "move" || tool === "select" || tool === "delete") {
-                            e.target.getStage().container().style.cursor = "default";
+                          if (
+                            tool === "move" ||
+                            tool === "select" ||
+                            tool === "delete"
+                          ) {
+                            e.target.getStage().container().style.cursor =
+                              "default";
                           }
                         }}
                         onClick={(e) => {
+                          if (tool === "delete") {
+                            setRectangles((rectangles) =>
+                              rectangles.filter((_, idx) => idx !== i)
+                            );
+                            return;
+                          }
                           setTool("select");
                           setSelectedAnnotation(i);
                           e.cancelBubble = true;
                         }}
                         onDblClick={(e) => {
                           if (tool === "select") {
-                            const rect = stageRef?.current?.content.getBoundingClientRect();  
+                            const rect =
+                              stageRef?.current?.content.getBoundingClientRect();
                             setShowLabelCombobox(true);
-                            setComboboxPosition({ x: window.innerWidth / 2 - 72, y: window.innerHeight / 2 - 74 });
+                            setComboboxPosition({
+                              x: window.innerWidth / 2 - 72,
+                              y: window.innerHeight / 2 - 74,
+                            });
                           }
                         }}
                         onDragEnd={(e) => {
@@ -472,12 +541,12 @@ export default function Tool() {
                           name={`rect-${i}`}
                           width={rect.width}
                           height={rect.height}
-                          fill={'#ffffff66'}
+                          fill={"#ffffff66"}
                           stroke={getStrokeColor(rect, i)}
                           strokeWidth={2}
                           strokeScaleEnabled={false}
                         />
-                        
+
                         {/* Label Text */}
                         {rect.label && (
                           <Text
@@ -499,14 +568,14 @@ export default function Tool() {
                     <Transformer
                       ref={transformerRef}
                       enabledAnchors={[
-                        'top-left',
-                        'top-center', 
-                        'top-right',
-                        'middle-right',
-                        'middle-left',
-                        'bottom-left',
-                        'bottom-center',
-                        'bottom-right'
+                        "top-left",
+                        "top-center",
+                        "top-right",
+                        "middle-right",
+                        "middle-left",
+                        "bottom-left",
+                        "bottom-center",
+                        "bottom-right",
                       ]}
                       centeredScaling={true}
                       rotateEnabled={true}
@@ -551,7 +620,7 @@ export default function Tool() {
               </div>
             </div>
           </div>
-          
+
           {/* Annotation Combobox */}
           {showLabelCombobox && (
             <SearchableCombobox

@@ -1,4 +1,5 @@
 import NextAuth, { Session, User } from "next-auth";
+import CognitoProvider from "next-auth/providers/cognito";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 // Extend the Session and User types to include 'role'

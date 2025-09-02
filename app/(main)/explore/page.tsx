@@ -5,6 +5,17 @@ import Image from "next/image";
 import { SearchableCombobox } from "@/components/SearchableCombobox";
 import { Button } from "@/components/ui/button";
 
+import { useTranslations } from "next-intl";
+
+import type { Schema } from "@/amplify/data/resource";
+import { generateClient } from "aws-amplify/data";
+import { getUrl } from 'aws-amplify/storage';
+// import AnnotatedImage from "./AnnotatedImage";
+import { Authenticator } from "@aws-amplify/ui-react";
+// import CustomHeader from './CustomMessaging';
+// import AnnotationDataViewerToggle from "./AnnotationDataViewerToggle";
+import { FetchImageUrls } from "@/components/FetchImageUrls";
+
 // Import your image assets
 import one from '@/app/(main)/assets/annotated-examples/03212.png';
 import two from '@/app/(main)/assets/annotated-examples/S35-E4057_01283.png';
@@ -17,7 +28,7 @@ const searchData = [
     id: 1,
     filename: "03212.png",
     categories: ["face"], // Only show categories if annotations exist
-    url: "/annotate",
+    url: `/annotate?image=${one.src}`,
     annotations: ["Big Bird", "Face", "Puppet"],
     image: one,
     hasAnnotations: true,
@@ -28,7 +39,7 @@ const searchData = [
     id: 2,
     filename: "S35-E4057_01283.png",
     categories: ["face"],
-    url: "/annotate",
+    url: `/annotate?image=${two.src}`,
     annotations: ["Elmo", "Face", "Close-up"],
     image: two,
     hasAnnotations: true,
@@ -39,7 +50,7 @@ const searchData = [
     id: 3,
     filename: "S35-E4058_00212.png",
     categories: ["place", "face"], // Multiple categories example
-    url: "/annotate",
+    url: `/annotate?image=${three.src}`,
     annotations: ["Main Street", "Outdoor", "Full View", "Big Bird", "Elmo"],
     image: three,
     hasAnnotations: true,
@@ -50,7 +61,7 @@ const searchData = [
     id: 4,
     filename: "S35-E4058_00332.png",
     categories: ["place", "number"], // Multiple categories example
-    url: "/annotate",
+    url: `/annotate?image=${four.src}`,
     annotations: ["Kitchen", "Indoor", "Clear", "Number 5"],
     image: four,
     hasAnnotations: true,
@@ -61,7 +72,7 @@ const searchData = [
     id: 5,
     filename: "number_8_frame.png",
     categories: ["number"],
-    url: "/annotate",
+    url: `/annotate?image=${one.src}`,
     annotations: ["Number 8", "Single Digit"],
     image: one,
     hasAnnotations: true,
@@ -72,7 +83,7 @@ const searchData = [
     id: 6,
     filename: "count_von_count.png",
     categories: ["face", "number"], // Multiple categories example
-    url: "/annotate",
+    url: `/annotate?image=${two.src}`,
     annotations: ["Count", "Vampire", "Purple", "Numbers"],
     image: two,
     hasAnnotations: true,
@@ -83,7 +94,7 @@ const searchData = [
     id: 7,
     filename: "hoopers_store.png",
     categories: [], // No categories when no annotations
-    url: "/annotate",
+    url: `/annotate?image=${three.src}`,
     annotations: [],
     image: three,
     hasAnnotations: false,
@@ -94,7 +105,7 @@ const searchData = [
     id: 8,
     filename: "number_3_segment.png",
     categories: [], // No categories when no annotations
-    url: "/annotate",
+    url: `/annotate?image=${four.src}`,
     annotations: [],
     image: four,
     hasAnnotations: false,
@@ -155,6 +166,8 @@ export default function ExplorePage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedYears, setSelectedYears] = useState<string[]>([]);
   const [showAnnotatedOnly, setShowAnnotatedOnly] = useState(false);
+
+  const t = useTranslations("ExplorePage");
 
   // Search functionality
   useEffect(() => {
@@ -232,9 +245,9 @@ export default function ExplorePage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-4">Explore Images</h1>
+        <h1 className="text-4xl font-bold mb-4">{t("exploreTitle")}</h1>
         <p className="text-lg text-neutral-600">
-          Browse and search through annotated images from the Sesame Street Archive.
+          {t("exploreDescription")}
         </p>
       </div>
 
@@ -243,7 +256,7 @@ export default function ExplorePage() {
         <div className="relative">
           <input
             type="text"
-            placeholder="Search images, annotations, characters..."
+            placeholder={t("explorePlaceholder")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => setShowResults(true)}
@@ -272,7 +285,7 @@ export default function ExplorePage() {
             {isSearching && (
               <div className="p-4 text-center text-gray-500">
                 <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                <span className="ml-2">Searching...</span>
+                <span className="ml-2">Searching…</span>
               </div>
             )}
 
@@ -340,11 +353,11 @@ export default function ExplorePage() {
       {/* Advanced Filters */}
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">Filter Images</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{t("filterTitle")}</h2>
           <div className="flex items-center gap-4">
             {activeFiltersCount > 0 && (
               <span className="text-sm text-gray-600">
-                {activeFiltersCount} filter{activeFiltersCount > 1 ? "s" : ""} applied
+                {t.rich("activeFilters", { count: activeFiltersCount })}
               </span>
             )}
             <Button
@@ -353,7 +366,7 @@ export default function ExplorePage() {
               onClick={clearAllFilters}
               disabled={activeFiltersCount === 0}
             >
-              Clear Filters
+              {t("filterClearCta")}
             </Button>
           </div>
         </div>
@@ -362,13 +375,13 @@ export default function ExplorePage() {
           {/* Category Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Category
+              {t('categoryFilter.label')}
             </label>
             <SearchableCombobox
               options={CATEGORY_OPTIONS}
               value={selectedCategories}
               onChange={(value) => setSelectedCategories(value as string[])}
-              placeholder="Select categories..."
+              placeholder={t("categoryFilter.placeholder")}
               className="w-full"
               multiple={true}
             />
@@ -377,13 +390,13 @@ export default function ExplorePage() {
           {/* Keywords Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Keywords
+              {t('keywordFilter.label')}
             </label>
             <SearchableCombobox
               options={KEYWORD_OPTIONS}
               value={selectedKeywords}
               onChange={(value) => setSelectedKeywords(value as string[])}
-              placeholder="Select keywords..."
+              placeholder={t("keywordFilter.placeholder")}
               className="w-full"
               multiple={true}
             />
@@ -392,13 +405,13 @@ export default function ExplorePage() {
           {/* Year Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Year
+              {t('yearFilter.label')}
             </label>
             <SearchableCombobox
               options={YEAR_OPTIONS}
               value={selectedYears}
               onChange={(value) => setSelectedYears(value as string[])}
-              placeholder="Select years..."
+              placeholder={t("yearFilter.placeholder")}
               className="w-full"
               multiple={true}
             />
@@ -407,7 +420,7 @@ export default function ExplorePage() {
           {/* Annotation Status */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Annotation Status
+              {t('annotationStatus.label')}
             </label>
             <label className="flex items-center gap-2 p-3 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
               <input
@@ -416,7 +429,7 @@ export default function ExplorePage() {
                 onChange={(e) => setShowAnnotatedOnly(e.target.checked)}
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
               />
-              <span className="text-sm">Annotated images only</span>
+              <span className="text-sm">{t('annotationStatus.option')}</span>
             </label>
           </div>
         </div>
@@ -425,12 +438,11 @@ export default function ExplorePage() {
         <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center">
           <div>
             <p className="text-sm text-gray-600">
-              {filteredResults.length} of {searchData.length} images
-              {activeFiltersCount > 0 && ' match your criteria'}
+              {t('criteriaLabel', { count: filteredResults.length, total: searchData.length })}
             </p>
           </div>
           <Button onClick={handleSearch} className="min-w-[120px]">
-            Browse {filteredResults.length} Images
+            {t.rich("browseCta", { count: filteredResults.length })}
           </Button>
         </div>
       </div>
@@ -478,8 +490,8 @@ export default function ExplorePage() {
                     </div>
 
                     {/* Overlay Info */}
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-200 flex items-end">
-                      <div className="p-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-200">
+                    <div className="absolute inset-0 bg-black bg-transparent group-hover:bg-opacity-60 transition-all duration-200 flex items-end">
+                      <div className="p-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-200 ">
                         <div className="text-sm font-medium truncate mb-1">
                           {result.filename}
                         </div>
@@ -523,8 +535,10 @@ export default function ExplorePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No images found</h3>
-                  <p className="text-gray-600">Try adjusting your search terms or filters.</p>
+                  {t.rich("noResults", {
+                    primary: (chunks) => <h3 className="text-lg font-medium text-gray-900 mb-2">{chunks}</h3>,
+                    secondary: (chunks) => <p className="text-gray-600">{chunks}</p>
+                  })}
                 </div>
               )}
             </div>
@@ -533,25 +547,41 @@ export default function ExplorePage() {
       )}
 
       {/* Help Information */}
-      <div className="bg-blue-50 rounded-lg p-6">
-        <div className="flex items-start gap-3">
-          <div className="w-6 h-6 text-blue-600 flex-shrink-0">
-            <svg fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
+      <section className="mt-12">
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
+          <div className="flex items-center mb-6">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 text-gray-500 mr-4">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" strokeWidth="2" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 tracking-tight">{t("browseTips")}</h3>
           </div>
-          <div>
-            <h3 className="text-sm font-medium text-blue-900 mb-2">Browse Tips</h3>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Green dots indicate images with annotations</li>
-              <li>• Images can have multiple category tags</li>
-              <li>• Use filters to find specific types of content</li>
-              <li>• Search by filename or annotation keywords</li>
-              <li>• Click any image to start annotating</li>
-            </ul>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
+              <span className="inline-block w-3 h-3 rounded-full bg-green-500"></span>
+              <span className="text-gray-900 font-medium">Green dots indicate images with annotations</span>
+            </div>
+            <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
+              <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="2" /></svg>
+              <span className="text-gray-900 font-medium">Images can have multiple category tags</span>
+            </div>
+            <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="8" rx="2" /><path d="M8 8V6a4 4 0 1 1 8 0v2" /></svg>
+              <span className="text-gray-900 font-medium">Use filters to find specific types of content</span>
+            </div>
+            <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z" /></svg>
+              <span className="text-gray-900 font-medium">Search by filename or annotation keywords</span>
+            </div>
+            <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M8 9h8M8 13h6" /></svg>
+              <span className="text-gray-900 font-medium">Click any image to start annotating</span>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

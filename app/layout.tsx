@@ -1,6 +1,11 @@
 import "./global.css";
+import { NextIntlClientProvider } from 'next-intl';
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+type Props = {
+  children: React.ReactNode;
+};
+
+export default function RootLayout({ children }: Props) {
   return (
     <html lang="en">
       <head>
@@ -9,7 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className="bg-neutral-50 text-neutral-900 min-h-screen font-inter flex flex-col w-full">
-        {children}
+        <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>
   );

@@ -36,7 +36,7 @@ export default function SignInPage() {
           onChange={e => setPassword(e.target.value)}
         />
         {error && <div className="text-red-600 text-sm">{error}</div>}
-        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded">Sign In</button>
+  <button type="submit" className="w-full bg-gray-600 text-white py-2 rounded">Sign In</button>
       </form>
     </div>
   );

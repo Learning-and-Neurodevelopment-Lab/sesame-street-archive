@@ -8,7 +8,8 @@
     ],
     "baseUrl": ".",
     "paths": {
-        "@/*": ["./*"]
+      "@payload-config": ["./payload.config.ts"],
+      "@/*": ["./*"],
     },
     "allowJs": true,
     "skipLibCheck": true,

@@ -18,3 +18,46 @@ main > div > .patterned {
   background-size: cover;
   background-position: center;
 }
+
+/* Custom styles for @aws-amplify/ui-react Authenticator to match the app's sign-in page */
+
+.amplify-authenticator {
+  @apply max-w-sm mx-auto py-16 bg-white rounded-lg shadow space-y-6;
+  font-family: var(--font-inter, 'Inter', sans-serif);
+}
+
+.amplify-authenticator__container {
+  @apply space-y-4;
+}
+
+.amplify-field {
+  @apply mb-4;
+}
+
+.amplify-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.amplify-input {
+  @apply w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+.amplify-button {
+  @apply w-full bg-gray-600 text-white py-2 rounded font-semibold hover:bg-gray-700 transition;
+}
+
+.amplify-alert {
+  @apply text-red-600 text-sm mb-2;
+}
+
+.amplify-link {
+  @apply text-blue-600 hover:underline;
+}
+
+.amplify-authenticator__header {
+  @apply text-2xl font-bold mb-6 text-center;
+}
+
+.amplify-authenticator__footer {
+  @apply mt-6 text-center text-sm text-gray-500;
+}

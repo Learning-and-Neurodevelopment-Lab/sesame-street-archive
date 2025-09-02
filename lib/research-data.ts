@@ -2,7 +2,6 @@
 import one from '@/app/(main)/assets/annotated-examples/03212.png';
 import two from '@/app/(main)/assets/annotated-examples/S35-E4057_01283.png';
 import three from '@/app/(main)/assets/annotated-examples/S35-E4058_00212.png';
-import four from '@/app/(main)/assets/annotated-examples/S35-E4058_00332.png';
 
 export interface ResearchArticle {
   id: string;
@@ -129,90 +128,6 @@ export const researchArticles: ResearchArticle[] = [
       relatedWork: ["ai-analysis", "annotation-tools", "visual-learning"]
     }
   },
-  {
-    id: "visual-learning",
-    title: "Learning Through Visual Narratives",
-    subtitle: "How Visual Elements Enhance Mathematical Understanding",
-    category: {
-      name: "Education",
-      color: "text-orange-600",
-      bgColor: "bg-orange-100"
-    },
-    excerpt: "Research shows how specific visual elements in Sesame Street episodes enhance number recognition and mathematical thinking in preschoolers.",
-    image: four,
-    publishDate: "2024-09-10",
-    readTime: "10 min read",
-    authors: ["Dr. Lisa Martinez", "Dr. Robert Kim", "Dr. Angela Foster"],
-    tags: ["mathematics education", "visual learning", "preschool development", "number recognition"],
-    content: {
-      overview: "Our comprehensive study examines how specific visual narrative elements in educational programming enhance mathematical understanding in preschool children. Through careful analysis of Sesame Street's number-focused segments, we've identified key visual strategies that significantly improve children's number recognition and early mathematical thinking skills.",
-      methodology: "We conducted a controlled study with 240 preschool children (ages 3-5) across 12 different educational settings. Children were randomly assigned to view either traditional number instruction videos or Sesame Street segments featuring specific visual narrative techniques. Pre- and post-assessments measured number recognition, counting skills, and basic mathematical reasoning abilities.",
-      findings: [
-        "Children who viewed narrative-enhanced content showed 34% greater improvement in number recognition tasks",
-        "Visual storytelling techniques increased engagement duration by an average of 67%",
-        "Character-mediated number instruction proved more effective than abstract presentations",
-        "Long-term retention (tested at 3 months) was significantly higher for narrative-based learning"
-      ],
-      implications: "These findings provide crucial insights for educational content design, demonstrating that narrative-embedded mathematical instruction can significantly enhance learning outcomes. The research supports the integration of storytelling elements in early childhood mathematics education.",
-      relatedWork: ["character-recognition", "ai-analysis", "annotation-tools"]
-    }
-  },
-  {
-    id: "annotation-tools",
-    title: "Open-Source Annotation Tools",
-    subtitle: "Web-Based Platform for Educational Media Research",
-    category: {
-      name: "Methodology",
-      color: "text-red-600",
-      bgColor: "bg-red-100"
-    },
-    excerpt: "Our web-based annotation platform enables researchers worldwide to contribute to and benefit from standardized media analysis tools.",
-    image: two,
-    publishDate: "2024-08-05",
-    readTime: "7 min read",
-    authors: ["Dr. Thomas Wilson", "Dr. Jennifer Lee", "Dr. Carlos Mendez"],
-    tags: ["open source", "annotation tools", "research methodology", "web platform"],
-    content: {
-      overview: "The development of our open-source annotation platform addresses a critical need in educational media research: standardized, accessible tools for content analysis. This web-based system enables researchers worldwide to annotate educational media content using consistent methodologies, contributing to a shared knowledge base while maintaining scientific rigor.",
-      methodology: "Built using modern web technologies including React, Node.js, and machine learning integration, our platform provides intuitive annotation interfaces for various content types. The system includes built-in validation, inter-rater reliability calculations, and automated quality assurance features to ensure annotation consistency across different users and institutions.",
-      findings: [
-        "Platform adoption by over 150 researchers across 25 countries within six months of launch",
-        "Inter-rater reliability scores consistently above 0.85 across different annotation categories",
-        "50% reduction in training time for new annotators compared to previous methods",
-        "Successful integration with existing research workflows at major institutions"
-      ],
-      implications: "This platform democratizes access to high-quality annotation tools, enabling smaller research groups to participate in large-scale studies. The standardized approach ensures data compatibility across studies, accelerating meta-analyses and comparative research in educational media.",
-      relatedWork: ["ai-analysis", "collaboration", "character-recognition"]
-    }
-  },
-  {
-    id: "future-directions",
-    title: "Next Generation Media Studies",
-    subtitle: "VR, Interactive Media, and Future Research Directions",
-    category: {
-      name: "Future Work",
-      color: "text-indigo-600",
-      bgColor: "bg-indigo-100"
-    },
-    excerpt: "Exploring how emerging technologies like VR and interactive media can be analyzed using our computer vision and neuroscience frameworks.",
-    image: one,
-    publishDate: "2024-07-20",
-    readTime: "9 min read",
-    authors: ["Dr. Future Researcher", "Dr. Innovation Team"],
-    tags: ["virtual reality", "interactive media", "emerging technology", "future research"],
-    content: {
-      overview: "As educational technology rapidly evolves, our research must adapt to understand how children learn from immersive and interactive media experiences. This forward-looking study explores the application of our established computer vision and neuroscience frameworks to emerging technologies including virtual reality, augmented reality, and interactive educational platforms.",
-      methodology: "We're developing novel research methodologies that combine traditional neuroimaging with motion capture, eye tracking, and physiological monitoring to understand children's responses to immersive educational experiences. Our pilot studies use modified VR headsets designed for young children, with safety protocols developed in collaboration with pediatric specialists.",
-      findings: [
-        "Initial VR studies show increased spatial reasoning activation compared to traditional screen-based learning",
-        "Interactive elements in educational VR increase engagement duration by 89% compared to passive viewing",
-        "Children demonstrate improved retention of 3D spatial concepts learned in VR environments",
-        "Safety protocols enable extended VR sessions (15-20 minutes) with children as young as 4 years old"
-      ],
-      implications: "These preliminary findings suggest that immersive educational technologies may offer unique learning advantages, particularly for spatial and scientific concepts. Our research framework provides a foundation for evaluating the educational effectiveness of emerging technologies as they develop.",
-      relatedWork: ["character-recognition", "ai-analysis", "visual-learning"]
-    }
-  }
 ];
 
 // Helper functions

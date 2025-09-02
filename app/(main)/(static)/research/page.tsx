@@ -1,9 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+
+import ResearchFilterSort from './ResearchFilterSort';
 import one from '@/app/(main)/assets/annotated-examples/03212.png';
 import two from '@/app/(main)/assets/annotated-examples/S35-E4057_01283.png';
-import three from '@/app/(main)/assets/annotated-examples/S35-E4058_00212.png'
+import three from '@/app/(main)/assets/annotated-examples/S35-E4058_00212.png';
 import four from '@/app/(main)/assets/annotated-examples/S35-E4058_00332.png';
 
 export default function ResearchPage() {
@@ -129,162 +131,9 @@ export default function ResearchPage() {
         </div>
       </section>
 
-      {/* All Research Articles */}
+      {/* All Research Articles (Interactive) */}
       <section className="mb-16">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">All Research</h2>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">Filter by Topic</Button>
-            <Button variant="outline" size="sm">Sort by Date</Button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Research Article 1 */}
-          <article className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-            <div className="aspect-video bg-gray-200">
-              <Image src={three} alt="Multi-lab collaboration" className="w-full h-full object-cover" />
-            </div>
-            <div className="p-6">
-              <span className="inline-block px-3 py-1 text-xs font-semibold text-purple-600 bg-purple-100 rounded-full mb-3">
-                Collaboration
-              </span>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                Cross-University Research Initiative
-              </h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Five leading research institutions collaborate to create the largest annotated dataset of children's educational media.
-              </p>
-              <div className="flex justify-between items-center">
-                <Link href="/research/collaboration" className="text-blue-600 text-sm font-medium hover:underline">
-                  Read More →
-                </Link>
-                <span className="text-xs text-gray-500">Dec 2024</span>
-              </div>
-            </div>
-          </article>
-
-          {/* Research Article 2 */}
-          <article className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-            <div className="aspect-video bg-gray-200">
-              <Image src={four} alt="Educational impact study" className="w-full h-full object-cover" />
-            </div>
-            <div className="p-6">
-              <span className="inline-block px-3 py-1 text-xs font-semibold text-orange-600 bg-orange-100 rounded-full mb-3">
-                Education
-              </span>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                Learning Through Visual Narratives
-              </h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Research shows how specific visual elements in Sesame Street episodes enhance number recognition and mathematical thinking.
-              </p>
-              <div className="flex justify-between items-center">
-                <Link href="/research/visual-learning" className="text-blue-600 text-sm font-medium hover:underline">
-                  Read More →
-                </Link>
-                <span className="text-xs text-gray-500">Nov 2024</span>
-              </div>
-            </div>
-          </article>
-
-          {/* Research Article 3 */}
-          <article className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-            <div className="aspect-video bg-gray-200">
-              <Image src={two} alt="Annotation methodology" className="w-full h-full object-cover" />
-            </div>
-            <div className="p-6">
-              <span className="inline-block px-3 py-1 text-xs font-semibold text-red-600 bg-red-100 rounded-full mb-3">
-                Methodology
-              </span>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                Open-Source Annotation Tools
-              </h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Web-based annotation platform enables researchers worldwide to contribute to standardized media analysis tools.
-              </p>
-              <div className="flex justify-between items-center">
-                <Link href="/research/annotation-tools" className="text-blue-600 text-sm font-medium hover:underline">
-                  Read More →
-                </Link>
-                <span className="text-xs text-gray-500">Oct 2024</span>
-              </div>
-            </div>
-          </article>
-
-          {/* Research Article 4 */}
-          <article className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-            <div className="aspect-video bg-gray-200">
-              <Image src={one} alt="Character recognition" className="w-full h-full object-cover" />
-            </div>
-            <div className="p-6">
-              <span className="inline-block px-3 py-1 text-xs font-semibold text-blue-600 bg-blue-100 rounded-full mb-3">
-                Neuroscience
-              </span>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                Character Recognition in Developing Brains
-              </h3>
-              <p className="text-gray-600 text-sm mb-4">
-                fMRI studies reveal how children's brains process familiar characters, providing insights into social cognition development.
-              </p>
-              <div className="flex justify-between items-center">
-                <Link href="/research/character-recognition" className="text-blue-600 text-sm font-medium hover:underline">
-                  Read More →
-                </Link>
-                <span className="text-xs text-gray-500">Sep 2024</span>
-              </div>
-            </div>
-          </article>
-
-          {/* Research Article 5 */}
-          <article className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-            <div className="aspect-video bg-gray-200">
-              <Image src={three} alt="Future research" className="w-full h-full object-cover" />
-            </div>
-            <div className="p-6">
-              <span className="inline-block px-3 py-1 text-xs font-semibold text-indigo-600 bg-indigo-100 rounded-full mb-3">
-                Future Work
-              </span>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                Next Generation Media Studies
-              </h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Exploring how emerging technologies like VR and interactive media can be analyzed using our frameworks.
-              </p>
-              <div className="flex justify-between items-center">
-                <Link href="/research/future-directions" className="text-blue-600 text-sm font-medium hover:underline">
-                  Read More →
-                </Link>
-                <span className="text-xs text-gray-500">Aug 2024</span>
-              </div>
-            </div>
-          </article>
-
-          {/* Research Article 6 */}
-          <article className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-            <div className="aspect-video bg-gray-200">
-              <Image src={four} alt="Dataset development" className="w-full h-full object-cover" />
-            </div>
-            <div className="p-6">
-              <span className="inline-block px-3 py-1 text-xs font-semibold text-green-600 bg-green-100 rounded-full mb-3">
-                Dataset
-              </span>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                Large-Scale Annotation Dataset
-              </h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Comprehensive dataset with 4,000+ manually annotated images for training computer vision models.
-              </p>
-              <div className="flex justify-between items-center">
-                <Link href="/research/dataset" className="text-blue-600 text-sm font-medium hover:underline">
-                  Read More →
-                </Link>
-                <span className="text-xs text-gray-500">Jul 2024</span>
-              </div>
-            </div>
-          </article>
-        </div>
-
+        <ResearchFilterSort />
         <div className="text-center mt-12">
           <Button asChild variant="outline">
             <Link href="/research/archive">View Research Archive</Link>

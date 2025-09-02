@@ -9,14 +9,34 @@ import {
   Disclosure,
   DisclosureButton,
   DisclosurePanel,
-  Menu,
-  MenuItem,
-  MenuButton,
-  MenuItems,
 } from "@headlessui/react";
-import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { useTranslations } from "next-intl";
 
 export default function Navigation({ session }) {
+  // Get navigation links from messages/en.json
+  const t = useTranslations("Navigation");
+
+  const navLinks = [
+    { label: t("links.home.label"), path: t("links.home.path") },
+    { label: t("links.explore.label"), path: t("links.explore.path") },
+    { label: t("links.about.label"), path: t("links.about.path") },
+    { label: t("links.guide.label"), path: t("links.guide.path") },
+    { label: t("links.team.label"), path: t("links.team.path") },
+    { label: t("links.dashboard.label"), path: t("links.dashboard.path") },
+    { label: t("links.annotate.label"), path: t("links.annotate.path") },
+    { label: t("links.signIn.label"), path: t("links.signIn.path") }
+  ];
+
+  console.log('NAV LINKS', navLinks);
+
+  // Filter links for session-specific logic
+  const filteredLinks = navLinks.filter(link => {
+    if (link.path === "/annotate" && !session?.user) return false;
+    if (link.path === "/auth/signin" && session?.user) return false;
+    return true;
+  });
+
   return (
     <Disclosure as="nav">
       <div className="w-full max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -50,65 +70,23 @@ export default function Navigation({ session }) {
             </div>
           </div>
           <div className="hidden sm:block">
-            <Button
-              asChild
-              variant="ghost"
-              className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
-            >
-              <Link href="/explore">Explore</Link>
-            </Button>
-            <Button
-              asChild
-              variant="ghost"
-              className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
-            >
-              <Link href="/about">About</Link>
-            </Button>
-            <Button
-              asChild
-              variant="ghost"
-              className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
-            >
-              <Link href="/guide">Guide</Link>
-            </Button>
-            <Button
-              asChild
-              variant="ghost"
-              className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
-            >
-              <Link href="/team">Team</Link>
-            </Button>
-            <Button
-              asChild
-              variant="ghost"
-              className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
-            >
-              <Link href="/dashboard">Dashboard</Link>
-            </Button>
-            {session?.user ? (
+            {filteredLinks.map(link => (
               <Button
                 asChild
+                key={link.path}
                 variant="ghost"
                 className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
               >
-                <Link href="/annotate">Annotate</Link>
+                <Link href={link.path}>{link.label}</Link>
               </Button>
-            ) : null}
-            {session?.user ? (
+            ))}
+            {session?.user && (
               <>
                 <span className="text-sm text-neutral-700">
                   Hi, {session.user.name}
                 </span>
                 <SignOutButton />
               </>
-            ) : (
-              <Button
-                asChild
-                variant="ghost"
-                className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
-              >
-                <Link href="/auth/signin">Sign In</Link>
-              </Button>
             )}
           </div>
         </div>
@@ -116,71 +94,19 @@ export default function Navigation({ session }) {
       <DisclosurePanel className="sm:hidden">
         {({ close }) => (
           <div className="grid space-y-1 px-2 pt-2 pb-3">
-            <Button
-              asChild
-              variant="ghost"
-              className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
-            >
-              <Link onNavigate={() => close()} href="/explore">
-                Explore
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="ghost"
-              className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
-            >
-              <Link onNavigate={() => close()} href="/about">
-                About
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="ghost"
-              className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
-            >
-              <Link onNavigate={() => close()} href="/guide">
-                Guide
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="ghost"
-              className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
-            >
-              <Link onNavigate={() => close()} href="/team">
-                Team
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="ghost"
-              className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
-            >
-              <Link onNavigate={() => close()} href="/dashboard">
-                Dashboard
-              </Link>
-            </Button>
-            {session?.user ? (
+            {filteredLinks.map(link => (
               <Button
                 asChild
+                key={link.path}
                 variant="ghost"
                 className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
               >
-                <Link onNavigate={() => close()} href="/annotate">Annotate</Link>
+                <Link onNavigate={() => close()} href={link.path}>
+                  {link.label}
+                </Link>
               </Button>
-            ) : null}
-            {session?.user ? (  
-              <SignOutButton />
-            ) : (
-              <Button
-                asChild
-                variant="ghost"
-                className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
-              >
-                <Link href="/auth/signin">Sign In</Link>
-              </Button>
-            )}
+            ))}
+            {session?.user && <SignOutButton />}
           </div>
         )}
       </DisclosurePanel>

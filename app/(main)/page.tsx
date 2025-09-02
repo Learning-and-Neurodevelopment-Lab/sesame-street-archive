@@ -13,7 +13,71 @@ import three from '@/app/(main)/assets/annotated-examples/S35-E4058_00212.png'
 import four from '@/app/(main)/assets/annotated-examples/S35-E4058_00332.png';
 import { researchArticles } from '@/lib/research-data';
 
+import { useTranslations } from 'next-intl';
+
 export default function HomePage() {
+  const t = useTranslations('HomePage');
+
+  const calloutItems = [
+    {
+      title: t('labeledStills.one.title'),
+      description: t('labeledStills.one.description'),
+      id: t('labeledStills.one.id'),
+      image: one,
+    },
+    {
+      title: t('labeledStills.two.title'),
+      description: t('labeledStills.two.description'),
+      id: t('labeledStills.two.id'),
+      image: two,
+    },
+    {
+      title: t('labeledStills.three.title'),
+      description: t('labeledStills.three.description'),
+      id: t('labeledStills.three.id'),
+      image: three,
+    },
+    {
+      title: t('labeledStills.four.title'),
+      description: t('labeledStills.four.description'),
+      id: t('labeledStills.four.id'),
+      image: four,
+    }
+  ];
+
+  const contributors = [
+    {
+      alt: t('contributors.landlab.alt'),
+      image: landlab,
+      link:  t('contributors.landlab.link')
+    },
+    {
+      alt: t('contributors.vanberbilt.alt'),
+      image: vanderbilt,
+      link:  t('contributors.vanderbilt.link')
+    },
+    {
+      alt: t('contributors.digitalLab.alt'),
+      image: digitalLab,
+      link:  t('contributors.digitallab.link')
+    },
+    {
+      alt: t('contributors.minnresota.alt'),
+      image: minnesota,
+      link: t('contributors.minnesota.link')
+    },
+    {
+      alt: t('contributors.texas.alt'),
+      image: texas,
+      link: t('contributors.texas.link')
+    },
+    {
+      alt: t('contributors.sesameworkshop.alt'),
+      image: sesameworkshop,
+      link:  t('contributors.sesameworkshop.link')
+    },
+  ];
+
   return (
     <div className="relative min-h-[calc(100vh-64px-64px)] flex flex-col bg-gray-50">
       {/* Hero Section */}
@@ -21,13 +85,15 @@ export default function HomePage() {
         <div className="w-full max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12">
           <div className="flex-1 text-left">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6 leading-tight">
-              Researching Brain Development Through Children's Media
+              <div>{t('heroTitle')}</div>
             </h1>
             <p className="text-lg text-gray-600 mb-8 font-bold"> 
-              MRI, Computer Vision, and 4,000+ Labeled <em>Sesame Street</em> images
+              {t.rich('heroSubTitle', {
+                em: (chunks) => <em>{chunks}</em>
+              })}
             </p>
             <Button asChild size="lg" className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-8 py-4">
-              <Link href="/explore">Explore the Archive</Link>
+              <Link href={t('heroCtaPath')}>{t('heroCta')}</Link>
             </Button>
           </div>
           <div className="flex-1 flex justify-center">
@@ -42,16 +108,25 @@ export default function HomePage() {
       <section className="w-full bg-white py-12 border-t border-b">
         <div className="max-w-6xl mx-auto flex justify-around text-center">
           <div>
-            <div className="text-4xl font-bold text-gray-800">4500+</div>
-            <div className="text-gray-600">episodes</div>
+            {t.rich('data.episodes', { 
+              title: (chunks) => <div className="text-4xl font-bold text-gray-800">{chunks}</div>,
+              description: (chunks) => <div className="text-gray-600">{chunks}</div>,
+              episodes: '4500+'
+            })}
           </div>
           <div>
-            <div className="text-4xl font-bold text-gray-800">5 research</div>
-            <div className="text-gray-600">labs</div>
+            {t.rich('data.labs', {
+              title: (chunks) => <div className="text-4xl font-bold text-gray-800">{chunks}</div>,
+              description: (chunks) => <div className="text-gray-600">{chunks}</div>,
+              labs: '5'
+            })}
           </div>
           <div>
-            <div className="text-4xl font-bold text-gray-800">4000+</div>
-            <div className="text-gray-600">labeled images</div>
+            {t.rich('data.labeledImages', {
+              title: (chunks) => <div className="text-4xl font-bold text-gray-800">{chunks}</div>,
+              description: (chunks) => <div className="text-gray-600">{chunks}</div>,
+              labeledImages: '4000+'
+            })}
           </div>
         </div>
       </section>
@@ -61,10 +136,10 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 mb-4">
-              Research Highlights
+              {t('researchTitle')}
             </h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Discover how our interdisciplinary research is advancing understanding of child development through innovative computer vision and neuroscience approaches.
+              {t('researchDescription')}
             </p>
           </div>
           
@@ -94,7 +169,7 @@ export default function HomePage() {
 
           <div className="text-center mt-12">
             <Button asChild variant="outline" size="lg">
-              <Link href="/research">View All Research</Link>
+              <Link href={t('researchCtaPath')}>{t('researchCta')}</Link>
             </Button>
           </div>
         </div>
@@ -104,12 +179,12 @@ export default function HomePage() {
       <section className="w-full py-16 px-4 patterned">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl font-semibold text-center text-gray-700 mb-12">
-            Labeled stills powered by YOLO ML Model
+            {t('stillsTitle')}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {[one,two,three,four,two,one,four,three].map((image, i) => (
-              <div key={i} className="aspect-square bg-gray-200 border border-gray-300 flex justify-center">
-                <Image src={image} alt={`Annotated example ${i + 1}`} className="object-cover" />
+            {calloutItems.map((item) => (
+              <div key={item.id} className="aspect-square bg-gray-200 border border-gray-300 flex justify-center">
+                <Image src={item.image} alt={item.title} className="object-cover" />
               </div>
             ))}
           </div>
@@ -122,34 +197,34 @@ export default function HomePage() {
           <div>
             <div className="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-gray-300 flex items-center justify-center">
               <div className="text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-brain-icon lucide-brain"><path d="M12 18V5"/><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4"/><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5"/><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77"/><path d="M18 18a4 4 0 0 0 2-7.464"/><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517"/><path d="M6 18a4 4 0 0 1-2-7.464"/><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-brain-icon lucide-brain"><path d="M12 18V5"/><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4"/><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5"/><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77"/><path d="M18 18a4 4 0 0 0 2-7.464"/><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517"/><path d="M6 18a4 4 0 0 1-2-7.464"/><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77"/></svg>
               </div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">Deep MRI Studies</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">{t('deepMRIStudies.title')}</h3>
             <p className="text-gray-600 text-sm">
-              Lorem ipsum dolor stamet consectetur adipiscing
+              {t('deepMRIStudies.description')}
             </p>
           </div>
           <div>
             <div className="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-gray-300 flex items-center justify-center">
               <div className="text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
               </div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">Multi-Lab Collaboration</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">{t('multiLabCollaboration.title')}</h3>
             <p className="text-gray-600 text-sm">
-              Lorem ipsum dolor sitam et, consectetur elit
+              {t('multiLabCollaboration.description')}
             </p>
           </div>
           <div>
             <div className="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-gray-300 flex items-center justify-center">
               <div className="text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-chart-column-icon lucide-chart-column"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chart-column-icon lucide-chart-column"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
               </div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">AI & Machine Learning</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">{t('aiAndMachineLearning.title')}</h3>
             <p className="text-gray-600 text-sm">
-              Lorem ipsum dolor sitam consectetur adipisci
+              {t('aiAndMachineLearning.description')}
             </p>
           </div>
         </div>
@@ -158,27 +233,13 @@ export default function HomePage() {
       {/* University Logos */}
       <section className="w-full py-12 border-t bg-gray-50">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-16 px-4">
-          {/* <div className="text-gray-600 font-semibold">VANDERBILT UNIVERSITY</div>
-          <div className="text-gray-600 font-semibold">UNIVERSITY OF MINNESOTA</div>
-          <div className="text-gray-600 font-semibold">THE UNIVERSITY OF TEXAS AT AUSTIN</div> */}
-          <div className="text-gray-600 font-semibold">
-            <Image src={landlab} width={300} alt="Landlab" className="" />
-          </div>
-          <div className="text-gray-600 font-semibold">
-            <Image src={vanderbilt} width={300} alt="Vanderbilt University" className="" />
-          </div>
-          <div className="text-gray-600 font-semibold">
-            <Image src={digitalLab} width={300} alt="Digital Lab" className="" />
-          </div>
-          <div className="text-gray-600 font-semibold">
-            <Image src={minnesota} width={300} alt="University of Minnesota" className="" />
-          </div>
-          <div className="text-gray-600 font-semibold">
-            <Image src={texas} width={300} alt="The University of Texas at Austin" className="" />
-          </div>
-          <div className="text-gray-600 font-semibold">
-            <Image src={sesameworkshop} width={300} alt="Joan Ganz Cooney Center at Sesame Workshop" className="" />
-          </div>
+          {contributors.map((entity) => (
+            <div className="text-gray-600 font-semibold">
+              <a href={entity.link} target="_blank">
+                <Image src={entity.image} width={300} alt={entity.alt} />
+              </a>
+            </div>
+          ))}
         </div>
       </section>
     </div>
