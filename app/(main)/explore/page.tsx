@@ -237,6 +237,8 @@ export default function ExplorePage() {
         // Convert year to string for compatibility
         const yearStr = image.air_year ? String(image.air_year) : "";
 
+        console.log("YEAR:", yearStr);
+
         // Use a placeholder image if StaticImageData is required and imageURL is not compatible
         // For now, use imageURL.url.href directly, but you may need to convert it to StaticImageData if needed
         const dataset = {
