@@ -9,20 +9,9 @@ import ImageSearch from "./ImageSearch";
 const Search: React.FC = () => {
   const [duaAccepted, setDuaAccepted] = useState(false);
 
-  const services = {
-    handleSignUp: async (formData: any) => {
-      formData.signUpAttributes = {
-        ...formData.signUpAttributes,
-        "custom:duaAccepted": "true",
-      };
-      return formData;
-    },
-  };
-
   return (
     <Authenticator
       hideSignUp={!duaAccepted}
-      services={services}
       className="authenticator-popup"
       components={{
         Header: () => (

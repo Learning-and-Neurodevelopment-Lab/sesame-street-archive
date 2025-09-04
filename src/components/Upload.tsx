@@ -10,18 +10,6 @@ const Upload: React.FC = () => {
   // ---- DUA / signup gating ----
   const [duaAccepted, setDuaAccepted] = useState(false);
 
-  // Stamp DUA acceptance and any extra metadata at signup
-  const services = {
-    handleSignUp: async (formData: any) => {
-      formData.signUpAttributes = {
-        ...formData.signUpAttributes,
-        "custom:duaAccepted": "true",
-      };
-      // optionally: formData.clientMetadata = { ...formData.clientMetadata, duaAccepted: "true" }
-      return formData;
-    },
-  };
-
   const components = {
     Header: () => (
       <CustomHeader
@@ -136,7 +124,6 @@ const Upload: React.FC = () => {
   return (
     <Authenticator
       hideSignUp={!duaAccepted}
-      services={services}
       className="authenticator-popup"
       components={components}
     >
