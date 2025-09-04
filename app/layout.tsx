@@ -1,5 +1,6 @@
 import "./global.css";
 import { NextIntlClientProvider } from 'next-intl';
+import ConfigureAmplifyClientSide from "@/components/ConfigureAmplifyClientSide";
 
 type Props = {
   children: React.ReactNode;
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: Props) {
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className="bg-neutral-50 text-neutral-900 min-h-screen font-inter flex flex-col w-full">
+        <ConfigureAmplifyClientSide />
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>

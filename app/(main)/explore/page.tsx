@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -6,6 +7,7 @@ import { SearchableCombobox } from "@/components/SearchableCombobox";
 import { Button } from "@/components/ui/button";
 
 import { useTranslations } from "next-intl";
+
 
 import type { Schema } from "@/amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
@@ -21,98 +23,111 @@ import one from '@/app/(main)/assets/annotated-examples/03212.png';
 import two from '@/app/(main)/assets/annotated-examples/S35-E4057_01283.png';
 import three from '@/app/(main)/assets/annotated-examples/S35-E4058_00212.png';
 import four from '@/app/(main)/assets/annotated-examples/S35-E4058_00332.png';
+import { url } from "inspector";
+
+type SearchData = {
+  id: number;
+  filename: string;
+  categories: string[];
+  url: string;
+  annotations: string[];
+  image: string;
+  hasAnnotations: boolean;
+  episode: string;
+  year: string;
+};
 
 // Simplified search data structure
-const searchData = [
-  {
-    id: 1,
-    filename: "03212.png",
-    categories: ["face"], // Only show categories if annotations exist
-    url: `/annotate?image=${one.src}`,
-    annotations: ["Big Bird", "Face", "Puppet"],
-    image: one,
-    hasAnnotations: true,
-    episode: "Episode 4550",
-    year: "2015"
-  },
-  {
-    id: 2,
-    filename: "S35-E4057_01283.png",
-    categories: ["face"],
-    url: `/annotate?image=${two.src}`,
-    annotations: ["Elmo", "Face", "Close-up"],
-    image: two,
-    hasAnnotations: true,
-    episode: "Episode 4421",
-    year: "2014"
-  },
-  {
-    id: 3,
-    filename: "S35-E4058_00212.png",
-    categories: ["place", "face"], // Multiple categories example
-    url: `/annotate?image=${three.src}`,
-    annotations: ["Main Street", "Outdoor", "Full View", "Big Bird", "Elmo"],
-    image: three,
-    hasAnnotations: true,
-    episode: "Episode 4601",
-    year: "2016"
-  },
-  {
-    id: 4,
-    filename: "S35-E4058_00332.png",
-    categories: ["place", "number"], // Multiple categories example
-    url: `/annotate?image=${four.src}`,
-    annotations: ["Kitchen", "Indoor", "Clear", "Number 5"],
-    image: four,
-    hasAnnotations: true,
-    episode: "Episode 4312",
-    year: "2013"
-  },
-  {
-    id: 5,
-    filename: "number_8_frame.png",
-    categories: ["number"],
-    url: `/annotate?image=${one.src}`,
-    annotations: ["Number 8", "Single Digit"],
-    image: one,
-    hasAnnotations: true,
-    episode: "Episode 4701",
-    year: "2017"
-  },
-  {
-    id: 6,
-    filename: "count_von_count.png",
-    categories: ["face", "number"], // Multiple categories example
-    url: `/annotate?image=${two.src}`,
-    annotations: ["Count", "Vampire", "Purple", "Numbers"],
-    image: two,
-    hasAnnotations: true,
-    episode: "Episode 4502",
-    year: "2015"
-  },
-  {
-    id: 7,
-    filename: "hoopers_store.png",
-    categories: [], // No categories when no annotations
-    url: `/annotate?image=${three.src}`,
-    annotations: [],
-    image: three,
-    hasAnnotations: false,
-    episode: "Episode 4625",
-    year: "2016"
-  },
-  {
-    id: 8,
-    filename: "number_3_segment.png",
-    categories: [], // No categories when no annotations
-    url: `/annotate?image=${four.src}`,
-    annotations: [],
-    image: four,
-    hasAnnotations: false,
-    episode: "Episode 4435",
-    year: "2014"
-  },
-];
+// const searchData = [
+//   {
+//     id: 1,
+//     filename: "03212.png",
+//     categories: ["face"], // Only show categories if annotations exist
+//     url: `/annotate?image=${one.src}`,
+//     annotations: ["Big Bird", "Face", "Puppet"],
+//     image: one,
+//     hasAnnotations: true,
+//     episode: "Episode 4550",
+//     year: "2015"
+//   },
+//   {
+//     id: 2,
+//     filename: "S35-E4057_01283.png",
+//     categories: ["face"],
+//     url: `/annotate?image=${two.src}`,
+//     annotations: ["Elmo", "Face", "Close-up"],
+//     image: two,
+//     hasAnnotations: true,
+//     episode: "Episode 4421",
+//     year: "2014"
+//   },
+//   {
+//     id: 3,
+//     filename: "S35-E4058_00212.png",
+//     categories: ["place", "face"], // Multiple categories example
+//     url: `/annotate?image=${three.src}`,
+//     annotations: ["Main Street", "Outdoor", "Full View", "Big Bird", "Elmo"],
+//     image: three,
+//     hasAnnotations: true,
+//     episode: "Episode 4601",
+//     year: "2016"
+//   },
+//   {
+//     id: 4,
+//     filename: "S35-E4058_00332.png",
+//     categories: ["place", "number"], // Multiple categories example
+//     url: `/annotate?image=${four.src}`,
+//     annotations: ["Kitchen", "Indoor", "Clear", "Number 5"],
+//     image: four,
+//     hasAnnotations: true,
+//     episode: "Episode 4312",
+//     year: "2013"
+//   },
+//   {
+//     id: 5,
+//     filename: "number_8_frame.png",
+//     categories: ["number"],
+//     url: `/annotate?image=${one.src}`,
+//     annotations: ["Number 8", "Single Digit"],
+//     image: one,
+//     hasAnnotations: true,
+//     episode: "Episode 4701",
+//     year: "2017"
+//   },
+//   {
+//     id: 6,
+//     filename: "count_von_count.png",
+//     categories: ["face", "number"], // Multiple categories example
+//     url: `/annotate?image=${two.src}`,
+//     annotations: ["Count", "Vampire", "Purple", "Numbers"],
+//     image: two,
+//     hasAnnotations: true,
+//     episode: "Episode 4502",
+//     year: "2015"
+//   },
+//   {
+//     id: 7,
+//     filename: "hoopers_store.png",
+//     categories: [], // No categories when no annotations
+//     url: `/annotate?image=${three.src}`,
+//     annotations: [],
+//     image: three,
+//     hasAnnotations: false,
+//     episode: "Episode 4625",
+//     year: "2016"
+//   },
+//   {
+//     id: 8,
+//     filename: "number_3_segment.png",
+//     categories: [], // No categories when no annotations
+//     url: `/annotate?image=${four.src}`,
+//     annotations: [],
+//     image: four,
+//     hasAnnotations: false,
+//     episode: "Episode 4435",
+//     year: "2014"
+//   },
+// ];
 
 const KEYWORD_OPTIONS = [
   { value: "puppet", label: "Puppet" },
@@ -155,11 +170,12 @@ const getTypeColor = (type: string) => {
 
 export default function ExplorePage() {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<typeof searchData>(searchData);
-  const [filteredResults, setFilteredResults] = useState<typeof searchData>(searchData);
+  const [results, setResults] = useState<SearchData[]>([]);
+  const [filteredResults, setFilteredResults] = useState<SearchData[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [showFullscreenResults, setShowFullscreenResults] = useState(false);
+  const [searchData, setSearchData] = useState<SearchData[]>([]);
 
   // Filter states
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
@@ -190,6 +206,68 @@ export default function ExplorePage() {
     return () => clearTimeout(timer);
   }, [query]);
 
+  useEffect(() => {
+    (async() => {
+      const client = generateClient<Schema>();
+
+      const { data: images, errors: imageErrors } = await client.models.Image.list({
+        filter: { season: { eq: 48 } } as any
+      });
+
+      const imagesWithAnnotations = await Promise.all(images?.map(async (image) => {
+        const compositeId = `S${image.season}-E${image.episode_id}_${image.image_id}`;
+
+        const { data: annotations, errors: annotationErrors } = await client.models.Annotation.list({
+          filter: {
+            and: [
+              { image_id: { beginsWith: `S${image.season}` } },
+              { image_id: { contains: `E${image.episode_id}` } }
+            ]
+          } as any
+        });
+
+        const imageURL = await getUrl({ path: `images/${image.image_id}` });
+
+        // Map annotation objects to string labels for compatibility
+        const annotationLabels = annotations.map(a => a.category ?? "");
+
+        // Use image.image_id as filename if available, otherwise fallback
+        const filename = image.image_id ?? compositeId;
+
+        // Convert year to string for compatibility
+        const yearStr = image.air_year ? String(image.air_year) : "";
+
+        // Use a placeholder image if StaticImageData is required and imageURL is not compatible
+        // For now, use imageURL.url.href directly, but you may need to convert it to StaticImageData if needed
+        const dataset = {
+          id: Number(image.image_id) || 0,
+          filename,
+          categories: annotations.map(annotation => annotation.category),
+          url: `/annotate?image=${imageURL.url.href}`,
+          annotations: annotationLabels,
+          image: imageURL.url.href,
+          hasAnnotations: annotations.length > 0,
+          episode: String(image.episode_id),
+          year: yearStr,
+        };
+
+        return dataset;
+      }));
+
+      setSearchData(imagesWithAnnotations);
+
+      const fetchImageUrl = async (imageId: string): Promise<string | undefined> => {
+        try {
+          const result = await getUrl({ path: `images/${imageId}` });  
+          return result.url.href;
+        } catch (error) {
+          console.error(`Failed to fetch URL for image ID: ${imageId}`, error);
+          return undefined;
+        }
+      };
+    })();
+  }, []);
+  
   // Filter functionality
   useEffect(() => {
     let filtered = results;
@@ -307,11 +385,11 @@ export default function ExplorePage() {
                     className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
                   >
                     <div className="w-12 h-12 bg-gray-200 rounded overflow-hidden flex-shrink-0">
-                      <Image
+                      {/* <Image
                         src={result.image}
                         alt={result.filename}
                         className="w-full h-full object-cover"
-                      />
+                      /> */}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-gray-900 truncate">
@@ -482,15 +560,15 @@ export default function ExplorePage() {
                   >
                     {/* Image */}
                     <div className="aspect-square bg-gray-200 overflow-hidden">
-                      <Image
+                      {/* <Image
                         src={result.image}
-                        alt={result.filename}
+                        alt={String(result.id)}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+                      /> */}
                     </div>
 
                     {/* Overlay Info */}
-                    <div className="absolute inset-0 bg-black bg-transparent group-hover:bg-opacity-60 transition-all duration-200 flex items-end">
+                    <div className="absolute inset-0 bg-transparent group-hover:bg-opacity-60 transition-all duration-200 flex items-end">
                       <div className="p-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-200 ">
                         <div className="text-sm font-medium truncate mb-1">
                           {result.filename}
