@@ -25,8 +25,9 @@ This Interim Data Use Agreement (DUA) establishes the terms and conditions for a
 
 Failure to do so in a timely manner could result in suspended access to the data. 
 This Interim Data Use Agreement expires one year from the signature date below and will need to be renewed in order for data access privileges to be maintained. 
-
-Clicking the button below indicates that you understand and agree to abide by the terms and conditions of this Interim Data Use Agreement. 
+<p>
+  Clicking the button below indicates that you understand and agree to abide by the terms and conditions of this Interim Data Use Agreement. 
+</p>
 
 </p>
         </div>
