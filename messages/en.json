@@ -102,7 +102,16 @@
     "browseCount": "{filteredResults.length} of {searchData.length} images",
     "criteriaLabel": "{count} of {total, plural, =0 {no images} =1 {# image} other {# images}} match your criteria",
     "noResults": "<primary>No images found</primary><secondary>Try adjusting your search terms or filters.</secondary>",
-    "browseTips": "Browse Tips"
+    "browseTips": {
+      "title": "Browse Tips",
+      "tips": {
+        "annotated": "Green dots indicate images with annotations",
+        "categories": "Images can have multiple category tags",
+        "filters": "Use filters to find specific types of content",
+        "search": "Search by filename or annotation keywords",
+        "image": "Click any image to start annotating"
+      }
+    }
   },
   "Navigation": {
     "links": {
