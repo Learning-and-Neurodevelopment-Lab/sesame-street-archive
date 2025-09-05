@@ -54,8 +54,30 @@ Annotation: a
   })
   .identifier(['image_id','annotation_id'] as const)
   .authorization((allow) => [allow.publicApiKey()]),
-});
 
+  Users: a.model({
+    userSub: a.id().required(),
+    acceptedAt: a.datetime().required(),
+    duaVersion: a.string().required(),
+    duaTextHash: a.string(),
+
+    first_name: a.string().required(),
+    last_name: a.string().required(),
+    organization: a.string().required(),
+    email: a.email().required(),
+    orcid: a.string(),
+    disciplines: a.string().array(),
+    interests: a.string().array(),
+    characters: a.string().array(),
+    username: a.string(),
+    secondaryEmail: a.email(),
+    phoneNumber: a.string(),
+    github: a.string()
+    })
+    .identifier(['email'])
+    .authorization((allow) => [allow.owner()])
+
+});
 
 export type Schema = ClientSchema<typeof schema>;
 
