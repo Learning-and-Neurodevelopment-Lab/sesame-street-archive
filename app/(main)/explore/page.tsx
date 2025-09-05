@@ -529,7 +529,7 @@ export default function ExplorePage() {
 
       {/* Fullscreen Results Grid */}
       {showFullscreenResults && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg w-full max-w-7xl h-full max-h-[90vh] flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -636,28 +636,28 @@ export default function ExplorePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 tracking-tight">{t("browseTips")}</h3>
+            <h3 className="text-xl font-semibold text-gray-900 tracking-tight">{t("browseTips.title")}</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
               <span className="inline-block w-3 h-3 rounded-full bg-green-500"></span>
-              <span className="text-gray-900 font-medium">Green dots indicate images with annotations</span>
+              <span className="text-gray-900 font-medium">{t('browseTips.tips.annotated')}</span>
             </div>
             <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
               <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="2" /></svg>
-              <span className="text-gray-900 font-medium">Images can have multiple category tags</span>
+              <span className="text-gray-900 font-medium">{t('browseTips.tips.categories')}</span>
             </div>
             <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="8" rx="2" /><path d="M8 8V6a4 4 0 1 1 8 0v2" /></svg>
-              <span className="text-gray-900 font-medium">Use filters to find specific types of content</span>
+              <span className="text-gray-900 font-medium">{t('browseTips.tips.filters')}</span>
             </div>
             <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z" /></svg>
-              <span className="text-gray-900 font-medium">Search by filename or annotation keywords</span>
+              <span className="text-gray-900 font-medium">{t('browseTips.tips.search')}</span>
             </div>
             <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M8 9h8M8 13h6" /></svg>
-              <span className="text-gray-900 font-medium">Click any image to start annotating</span>
+              <span className="text-gray-900 font-medium">{t('browseTips.tips.image')}</span>
             </div>
           </div>
         </div>
