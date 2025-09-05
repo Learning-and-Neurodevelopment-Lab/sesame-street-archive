@@ -28,9 +28,4 @@ dist-ssr
 amplify_outputs*
 amplifyconfiguration*
 
-# extra
-xmlConversion.py
-jsonConversion.py
-AttributeDetailsOG.tsx
-Hamburger.tsx
-HamburgerProps
+

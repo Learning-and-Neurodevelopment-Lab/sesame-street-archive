@@ -55,27 +55,47 @@ Annotation: a
   .identifier(['image_id','annotation_id'] as const)
   .authorization((allow) => [allow.publicApiKey()]),
 
-  Users: a.model({
-    userSub: a.id().required(),
-    acceptedAt: a.datetime().required(),
-    duaVersion: a.string().required(),
-    duaTextHash: a.string(),
+    // Minimal, stable user profile keyed by Cognito sub.
+  Users: a
+    .model({
+      userSub: a.id().required(),
+      email: a.email().required(),
+      username: a.string().required(),
 
-    first_name: a.string().required(),
-    last_name: a.string().required(),
-    organization: a.string().required(),
-    email: a.email().required(),
-    orcid: a.string(),
-    disciplines: a.string().array(),
-    interests: a.string().array(),
-    characters: a.string().array(),
-    username: a.string(),
-    secondaryEmail: a.email(),
-    phoneNumber: a.string(),
-    github: a.string()
+      
+      first_name: a.string().required(),
+      last_name: a.string().required(),
+      organization: a.string().required(),
+      // Optional extras (keep or remove as you like)
+      orcid: a.string(),
+      disciplines: a.string().array(),
+      interests: a.string().array(),
+      characters: a.string().array(),
+      secondaryEmail: a.email(),
+      phoneNumber: a.string(),
+      github: a.string()
+      })
+    .identifier(["userSub"])
+    .authorization((allow) => [
+      allow.owner(), // the signed-in owner can CRUD their own profile
+      // allow.groups(["Admin"]).to(["read", "update"]), // admins can help edit
+    ]),
+
+  // Append-only DUA acceptance history (minimal)
+  DuaConsent: a
+    .model({
+      userSub: a.id().required(),
+      acceptedAt: a.datetime().required(), // use new Date().toISOString()
+      duaVersion: a.string().required(),
+      // Snapshot for audit (keep minimal)
+      email: a.email().required(),
+      username: a.string().required(),
     })
-    .identifier(['email'])
-    .authorization((allow) => [allow.owner()])
+    .identifier(["userSub", "acceptedAt"])
+    .authorization((allow) => [
+      allow.owner().to(["create", "read"]), // users see their own consents
+      // allow.groups(["Admin"]).to(["read"]), // admins can audit
+    ])
 
 });
 
