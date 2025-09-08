@@ -27,3 +27,5 @@ amplifyconfiguration.json
 amplify_outputs.json
 
 .amplify
+*storybook.log
+storybook-static

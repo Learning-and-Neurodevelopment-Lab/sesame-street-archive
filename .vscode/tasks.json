@@ -1,0 +1,20 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Install Storybook and initialize",
+			"type": "shell",
+			"command": "npx storybook@latest init --builder vite",
+			"args": [],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Install Storybook and initialize",
+			"type": "shell",
+			"command": "npx storybook@latest init --builder vite",
+			"isBackground": false,
+			"group": "build"
+		}
+	]
+}
