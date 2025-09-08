@@ -40,3 +40,7 @@
 .amplify-authenticator__footer {
   @apply mt-6 text-center text-sm text-gray-500;
 }
+
+.authenticator-popup {
+  @apply my-4 p-6 bg-white rounded-lg;
+}

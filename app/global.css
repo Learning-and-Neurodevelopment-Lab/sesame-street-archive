@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400..900;1,400..900&display=swap');
+/* @import '@/app/amplify-auth.css'; */
 
 @theme {
   --font-inter: "Inter", sans-serif; 
@@ -21,7 +22,7 @@ main > div > .patterned {
 
 /* Custom styles for @aws-amplify/ui-react Authenticator to match the app's sign-in page */
 
-.amplify-authenticator {
+/* .amplify-authenticator {
   @apply max-w-sm mx-auto py-16 bg-white rounded-lg shadow space-y-6;
   font-family: var(--font-inter, 'Inter', sans-serif);
 }
@@ -60,4 +61,4 @@ main > div > .patterned {
 
 .amplify-authenticator__footer {
   @apply mt-6 text-center text-sm text-gray-500;
-}
+} */
