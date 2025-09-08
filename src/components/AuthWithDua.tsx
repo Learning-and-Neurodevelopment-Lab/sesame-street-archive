@@ -29,7 +29,7 @@ const DISCIPLINE_SUGGESTIONS = [
 
 const INTEREST_SUGGESTIONS = [
   "Literacy", "Numeracy", "Socio-emotional Learning", "Bilingualism",
-  "Accessibility", "Computer Vision", "NLP", "Annotation Quality",
+  "Accessibility", "Computer Vision", "AI",
 ];
 
 const SESAME_CHARACTERS = [
