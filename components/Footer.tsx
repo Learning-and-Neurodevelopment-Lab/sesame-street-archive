@@ -17,7 +17,9 @@ const Footer: React.FC = () => {
           {/* Navigation Sections */}
           {Object.entries(navSections).map(([sectionKey, section]) => (
             <div key={sectionKey}>
-              <h3 className="font-semibold text-neutral-700 mb-4">{section.label}</h3>
+              <h3 className="font-semibold text-neutral-700 mb-4">
+                {section.label}
+              </h3>
               <ul className="space-y-2">
                 {Object.entries(section.links).map(([linkKey, link]) => (
                   <li key={linkKey}>
@@ -34,35 +36,31 @@ const Footer: React.FC = () => {
           ))}
 
           {/* Newsletter Signup */}
-          <div>
+          {/* <div>
             <h3 className="font-semibold text-neutral-700 mb-4">
-              {t('subscribe.title')}
+              {t("subscribe.title")}
             </h3>
-            <p className="text-sm mb-4">
-              {t('subscribe.description')}
-            </p>
+            <p className="text-sm mb-4">{t("subscribe.description")}</p>
             <form className="space-y-3">
               <div>
                 <label htmlFor="email" className="sr-only">
-                  {t('subscribe.label')}
+                  {t("subscribe.label")}
                 </label>
                 <input
                   type="email"
                   id="email"
                   name="email"
-                  placeholder={t('subscribe.placeholder')}
+                  placeholder={t("subscribe.placeholder")}
                   className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
               </div>
               <Button type="submit" size="sm" className="w-full">
-                {t('subscribe.cta')}
+                {t("subscribe.cta")}
               </Button>
             </form>
-            <p className="text-xs mt-2 text-neutral-400">
-              {t('unsubscribe')}
-            </p>
-          </div>
+            <p className="text-xs mt-2 text-neutral-400">{t("unsubscribe")}</p>
+          </div> */}
         </div>
 
         {/* Bottom Footer */}
@@ -73,13 +71,13 @@ const Footer: React.FC = () => {
               <p className="text-xs font-medium text-neutral-600">
                 {t.rich("copyright", {
                   em: (chunks) => <em>{chunks}</em>,
-                  year: new Date().getFullYear()
-                })} 
+                  year: new Date().getFullYear(),
+                })}
               </p>
               <p className="text-xs leading-relaxed text-neutral-500">
                 {t.rich("disclaimer", {
-                  em: (chunks) => <em>{chunks}</em>
-                })} 
+                  em: (chunks) => <em>{chunks}</em>,
+                })}
               </p>
             </div>
             {/* Legal Links */}
@@ -88,19 +86,19 @@ const Footer: React.FC = () => {
                 href="/privacy"
                 className="text-xs hover:text-neutral-700 transition-colors"
               >
-                {t('privacy')}
+                {t("privacy")}
               </Link>
               <Link
                 href="/terms"
                 className="text-xs hover:text-neutral-700 transition-colors"
               >
-                {t('terms')}
+                {t("terms")}
               </Link>
               <Link
                 href="/accessibility"
                 className="text-xs hover:text-neutral-700 transition-colors"
               >
-                {t('accessibility')}
+                {t("accessibility")}
               </Link>
             </div>
           </div>
