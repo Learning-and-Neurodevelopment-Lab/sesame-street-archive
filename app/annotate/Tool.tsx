@@ -31,6 +31,7 @@ import Link from "next/link";
 import { SearchableCombobox } from "@/components/SearchableCombobox";
 
 import 'app/amplify-auth.css';
+import { useRouter } from "next/navigation";
 
 const MAX_WIDTH = 1024;
 const MAX_HEIGHT = 720;
@@ -81,6 +82,7 @@ function Shape({
 
 export default function Tool() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const imageUrl = searchParams.get("image");
 
   const [tool, setTool] = useAtom(toolAtom);
@@ -430,15 +432,11 @@ export default function Tool() {
           <Button variant="secondary">
             <Settings className="w-5 h-5 text-neutral-700" />
           </Button>
-          <Button variant="danger" asChild>
-            <Link href="/dashboard">
+          <Button variant="danger" onClick={() => router.back()}>
               <X className="w-5 h-5 text-neutral-700" />
-            </Link>
           </Button>
-          <Button variant="success" asChild>
-            <Link href="/dashboard">
-              <Check className="w-5 h-5 text-neutral-700" />
-            </Link>
+          <Button variant="success" onClick={() => alert('Annotations saved!')}>
+            <Check className="w-5 h-5 text-neutral-700" />
           </Button>
           <input
             ref={fileInputRef}

@@ -121,7 +121,6 @@
       "guide": { "label": "Guide", "path": "/guide" },
       "team": { "label": "Team", "path": "/team" },
       "dashboard": { "label": "Dashboard", "path": "/dashboard" },
-      "annotate": { "label": "Annotate", "path": "/annotate" },
       "signIn": { "label": "Sign In", "path": "/auth/signin" }
     }
   },
@@ -140,17 +139,13 @@
         "label": "Research",
         "links": {
           "research": { "label": "Publications", "path": "/research" },
-          "neuroscience": { "label": "Neuroscience", "path": "/research/neuroscience" },
-          "computerVision": { "label": "Computer Vision", "path": "/research/computer-vision" },
           "collaboration": { "label": "Collaboration", "path": "/research/collaboration" }
         }
       },
-      "tools": {
+      "resources": {
         "label": "Tools & Resources",
         "links": {
-          "annotate": { "label": "Annotate", "path": "/annotate" },
-          "dataset": { "label": "Dataset", "path": "/dataset" },
-          "documentation": { "label": "Documentation", "path": "/documentation" },
+          "documentation": { "label": "Documentation", "path": "#" },
           "contact": { "label": "Team", "path": "/team" }
         }
       }

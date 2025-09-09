@@ -1,5 +1,3 @@
-import { authOptions } from "@/lib/authOptions";
-import { getServerSession } from "next-auth";
 import Link from "next/link";
 
 const placeholderImages = [
@@ -12,8 +10,6 @@ const placeholderImages = [
 ];
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
-
   // if (!session?.user) {
   //   return (
   //     <div className="max-w-xl mx-auto py-16 text-center">

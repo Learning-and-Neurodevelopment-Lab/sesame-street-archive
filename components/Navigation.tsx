@@ -1,8 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import {  signOut } from 'aws-amplify/auth';
+import { getCurrentUser } from "aws-amplify/auth";
+
 import { Button } from "@/components/ui/button";
 import { SignOutButton } from "@/components/SignOutButton";
 import logo from "@/assets/sesame-street-archive-logo.png";
@@ -14,9 +17,30 @@ import {
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useTranslations } from "next-intl";
 
-export default function Navigation({ session }) {
+export default function Navigation() {
   // Get navigation links from messages/en.json
   const t = useTranslations("Navigation");
+  
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const refreshAndSignOut = () => {
+    signOut();
+    setTimeout(() => {
+      window.location.replace('/');
+    }, 300);
+  }
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const user = await getCurrentUser();
+        setIsAuthenticated(!!user);
+      } catch {
+        setIsAuthenticated(false);
+      }
+    };
+    checkAuth();
+  }, []);
 
   const navLinks = [
     { label: t("links.home.label"), path: t("links.home.path") },
@@ -25,14 +49,15 @@ export default function Navigation({ session }) {
     { label: t("links.guide.label"), path: t("links.guide.path") },
     { label: t("links.team.label"), path: t("links.team.path") },
     { label: t("links.dashboard.label"), path: t("links.dashboard.path") },
-    { label: t("links.annotate.label"), path: t("links.annotate.path") },
     { label: t("links.signIn.label"), path: t("links.signIn.path") }
   ];
 
   // Filter links for session-specific logic
   const filteredLinks = navLinks.filter(link => {
-    if (link.path === "/annotate" && !session?.user) return false;
-    if (link.path === "/auth/signin" && session?.user) return false;
+    if (link.path === "/dashboard" && !isAuthenticated) return false;
+    if (link.path === "/explore" && !isAuthenticated) return false;
+    if (link.path === "/annotate" && !isAuthenticated) return false;
+    if (link.path === "/auth/signin" && isAuthenticated) return false;
     return true;
   });
 
@@ -79,14 +104,9 @@ export default function Navigation({ session }) {
                 <Link href={link.path}>{link.label}</Link>
               </Button>
             ))}
-            {session?.user && (
-              <>
-                <span className="text-sm text-neutral-700">
-                  Hi, {session.user.name}
-                </span>
-                <SignOutButton />
-              </>
-            )}
+            {isAuthenticated ? (
+              <SignOutButton signOut={refreshAndSignOut} />
+            ) : (null)}
           </div>
         </div>
       </div>
@@ -98,14 +118,16 @@ export default function Navigation({ session }) {
                 asChild
                 key={link.path}
                 variant="ghost"
-                className="text-base px-4 py-2 rounded-md hover:bg-neutral-100"
+                className="text-base px-4 py-2 rounded-md cursor-pointer hover:bg-neutral-100"
               >
                 <Link onNavigate={() => close()} href={link.path}>
                   {link.label}
                 </Link>
               </Button>
             ))}
-            {session?.user && <SignOutButton />}
+            {isAuthenticated ? (
+              <SignOutButton signOut={refreshAndSignOut} />
+            ) : (null)}
           </div>
         )}
       </DisclosurePanel>
