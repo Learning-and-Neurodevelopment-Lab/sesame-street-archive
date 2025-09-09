@@ -1,7 +1,7 @@
 // lib/research-data.ts
-import one from '@/app/(main)/assets/annotated-examples/03212.png';
-import two from '@/app/(main)/assets/annotated-examples/S35-E4057_01283.png';
-import three from '@/app/(main)/assets/annotated-examples/S35-E4058_00212.png';
+import one from '@/assets/annotated-examples/03212.png';
+import two from '@/assets/annotated-examples/S35-E4057_01283.png';
+import three from '@/assets/annotated-examples/S35-E4058_00212.png';
 
 export interface ResearchArticle {
   id: string;

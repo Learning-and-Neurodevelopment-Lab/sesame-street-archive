@@ -1,10 +1,11 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { SignOutButton } from "@/components/SignOutButton";
-import logo from "@/app/(main)/assets/sesame-street-archive-logo.png";
+import logo from "@/assets/sesame-street-archive-logo.png";
 import {
   Disclosure,
   DisclosureButton,

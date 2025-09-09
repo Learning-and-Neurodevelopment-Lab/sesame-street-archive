@@ -1,16 +1,16 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import vanderbilt from '@/app/(main)/assets/vanderbilt.png';
-import minnesota from '@/app/(main)/assets/minnesota.png';
-import texas from '@/app/(main)/assets/texas.png';
-import landlab from '@/app/(main)/assets/landlab.png';
-import digitalLab from '@/app/(main)/assets/digital-lab-hz.png';
-import sesameworkshop from '@/app/(main)/assets/sesame-workshop-cooney-center.png';
-import one from '@/app/(main)/assets/annotated-examples/03212.png';
-import two from '@/app/(main)/assets/annotated-examples/S35-E4057_01283.png';
-import three from '@/app/(main)/assets/annotated-examples/S35-E4058_00212.png'
-import four from '@/app/(main)/assets/annotated-examples/S35-E4058_00332.png';
+import vanderbilt from '@/assets/vanderbilt.png';
+import minnesota from '@/assets/minnesota.png';
+import texas from '@/assets/texas.png';
+import landlab from '@/assets/landlab.png';
+import digitalLab from '@/assets/digital-lab-hz.png';
+import sesameworkshop from '@/assets/sesame-workshop-cooney-center.png';
+import one from '@/assets/annotated-examples/03212.png';
+import two from '@/assets/annotated-examples/S35-E4057_01283.png';
+import three from '@/assets/annotated-examples/S35-E4058_00212.png'
+import four from '@/assets/annotated-examples/S35-E4058_00332.png';
 import { researchArticles } from '@/lib/research-data';
 
 import { useTranslations } from 'next-intl';

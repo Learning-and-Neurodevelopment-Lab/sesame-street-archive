@@ -21,7 +21,7 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react",
     "plugins": [
       {
         "name": "next"
@@ -36,5 +36,6 @@
   ],
   "exclude": [
     "node_modules"
-  ]
+  ],
+  "types": ["node", "jest", "@testing-library/jest-dom"],
 }

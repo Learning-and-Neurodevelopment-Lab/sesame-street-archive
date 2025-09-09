@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { SearchableCombobox } from "@/components/SearchableCombobox";
 import Image from "next/image";
 import Link from "next/link";
-import one from '@/app/(main)/assets/annotated-examples/03212.png';
-import two from '@/app/(main)/assets/annotated-examples/S35-E4057_01283.png';
-import three from '@/app/(main)/assets/annotated-examples/S35-E4058_00212.png';
-import four from '@/app/(main)/assets/annotated-examples/S35-E4058_00332.png';
+import one from '/annotated-examples/03212.png';
+import two from '@/assets/annotated-examples/S35-E4057_01283.png';
+import three from '@/assets/annotated-examples/S35-E4058_00212.png';
+import four from '@/assets/annotated-examples/S35-E4058_00332.png';
 
 const articles = [
   {
