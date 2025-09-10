@@ -9,7 +9,7 @@ export default async function TeamPage({ params }: { params: Promise<{ locale: s
   const { locale = 'en' } = await params;
 
     try {
-    const Content = (await import(`./${locale}.mdx`)).default;
+    const Content = (await import(`@/markdown/team/${locale}.mdx`)).default;
 
     return (
       <div className="max-w-3xl mx-auto px-4 py-12">

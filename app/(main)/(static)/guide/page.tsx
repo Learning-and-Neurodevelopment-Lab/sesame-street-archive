@@ -9,7 +9,7 @@ export default async function GuidePage({ params }: { params: Promise<{ locale: 
   const { locale = "en" } = await params;
 
   try {
-    const Content = (await import(`./${locale}.mdx`)).default;
+    const Content = (await import(`@/markdown/guide/${locale}.mdx`)).default;
 
     return (
       <div className="max-w-5xl mx-auto px-4 py-12 flex flex-col md:flex-row gap-8">

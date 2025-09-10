@@ -9,7 +9,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
   const { locale = 'en' } = await params;
 
    try {
-    const Content = (await import(`./${locale}.mdx`)).default;
+    const Content = (await import(`@/markdown/about/${locale}.mdx`)).default;
 
     return (
       <div className="max-w-3xl mx-auto px-4 py-12">
