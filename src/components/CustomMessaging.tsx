@@ -1,6 +1,6 @@
 // CustomMessaging.tsx
 import { View, useTheme } from "@aws-amplify/ui-react";
-import AuthWithDua from "./AuthWithDua";
+import AuthWithoutDua from "./AuthWithoutDua";
 
 export default function CustomHeader({
   onDuaAgreed,
@@ -16,8 +16,8 @@ export default function CustomHeader({
 
   return (
     <View textAlign="center" padding={tokens.space.large}>
-      <AuthWithDua onAgreed={onDuaAgreed} />
-      <h2>Account creation requires a Data Use Agreement.</h2>
+      <AuthWithoutDua onAgreed={onDuaAgreed} />
+      <h4>Access to the complete dataset requires a data use agreement.</h4>
     </View>
   );
 }

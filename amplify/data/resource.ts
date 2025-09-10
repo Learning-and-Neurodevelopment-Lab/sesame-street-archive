@@ -61,8 +61,21 @@ Annotation: a
       userSub: a.id().required(),
       email: a.email().required(),
       username: a.string().required(),
+      first_name: a.string().required(),
+      last_name: a.string().required(),
+      })
+    .identifier(["userSub"])
+    .authorization((allow) => [
+      allow.owner(), // the signed-in owner can CRUD their own profile
+      // allow.groups(["Admin"]).to(["read", "update"]), // admins can help edit
+    ]),
+    // Minimal, stable user profile keyed by Cognito sub.
+  DuaUsers: a
+    .model({
+      userSub: a.id().required(),
+      email: a.email().required(),
+      username: a.string().required(),
 
-      
       first_name: a.string().required(),
       last_name: a.string().required(),
       organization: a.string().required(),
@@ -80,7 +93,6 @@ Annotation: a
       allow.owner(), // the signed-in owner can CRUD their own profile
       // allow.groups(["Admin"]).to(["read", "update"]), // admins can help edit
     ]),
-
   // Append-only DUA acceptance history (minimal)
   DuaConsent: a
     .model({
