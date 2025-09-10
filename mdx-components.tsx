@@ -1,5 +1,6 @@
  import type { MDXComponents } from 'mdx/types';
  import Image from 'next/image';
+ import { format } from 'date-fns';
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
@@ -39,7 +40,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ),
     Meta: ({ date, readingTime, authors = [] }) => (
       <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8">
-        {date && <span>{date}</span>}
+        {date && <span>{format(new Date(date), 'MMM dd, yyyy')}</span>}
         {readingTime && <span>{readingTime} min read</span>}
         {authors.length > 0 && <span>By {authors.join(', ')}</span>}
       </div>

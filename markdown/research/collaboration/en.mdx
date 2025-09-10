@@ -1,12 +1,24 @@
+export const metadata = {
+  title: "Cross-University Research Initiative",
+  description: "This guide will help you understand how to participate in the archive's collaborative features.",
+  category: "Collaboration",
+  authors: ["Jane Doe", "John Smith"],
+  tags: ["collaboration", "community", "annotations"],
+  date: "2024-01-01",
+  heroImage: "/images/placeholder1.jpg",
+};
+
+
 <Header>
-<Category color="blue">Collaboration</Category>
-# Collaboration in the *Sesame Street* Archive
+<Category color="blue">{metadata.category}</Category>
+# {metadata.title}
 #### This guide will help you understand how to participate in the archive's collaborative features.
-<Meta authors={props.authors} />
-<Image src="/images/placeholder1.jpg" />
-<Tags items={['collaboration', 'community', 'annotations']} />
+<Meta authors={metadata.authors} date={metadata.date} />
+<Image src={metadata.heroImage} />
+<Tags items={metadata.tags} />
 </Header>
 <Article>
+{/* Content goes here */}
 <Section>
 ## Overview
 The Vision, Hands, Sesame 2026 hackathon represents a groundbreaking initiative that brings together researchers, developers, and educators from around the world to advance our understanding of how children process and learn from educational media. This collaborative event focuses on developing innovative computer vision and neuroscience tools for analyzing children's responses to visual content in educational programming.

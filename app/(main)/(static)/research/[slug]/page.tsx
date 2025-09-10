@@ -1,13 +1,27 @@
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { getResearchArticle, getRelatedArticles, getAllResearchIds } from '@/lib/research-data';
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  getResearchArticle,
+  getRelatedArticles,
+  getAllResearchIds,
+} from "@/lib/research-data";
 
 interface Props {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
 }
+
+type MDXMetadata = {
+  title: string;
+  description: string;
+  category: string;
+  authors: string[];
+  tags: string[];
+  date: string;
+  heroImage: string;
+};
 
 export async function generateStaticParams() {
   const ids = getAllResearchIds();
@@ -16,56 +30,101 @@ export async function generateStaticParams() {
   }));
 }
 
+async function getArticleMetadata(slug: string, locale = "en") {
+  const { metadata } = await import(
+    `@/markdown/research/${slug}/${locale}.mdx`
+  );
+  return metadata;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const article = getResearchArticle(slug);
-  
+
   if (!article) {
     return {
-      title: 'Research Article Not Found',
+      title: "Research Article Not Found",
     };
   }
 
-  return {
-    title: `${article.title} | Sesame Street Archive Research`,
-    description: article.excerpt,
-    openGraph: {
-      title: article.title,
-      description: article.excerpt,
-      type: 'article',
-      publishedTime: article.publishDate,
-      authors: article.authors,
-      tags: article.tags,
-    },
-  };
-}
- 
-const components = {
-  h1: ({ children }) => <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">{children}</h1>,
-  h2: ({ children }) => <h2 className="text-2xl font-bold text-gray-900 mb-4">{children}</h2>,
-  h4: ({ children }) => <h4 className="text-xl text-gray-600 mb-6">{children}</h4>,
+  try {
+    // Default to 'en' locale if not available in params
+    const { locale = "en" } = await params;
+    const metadata: MDXMetadata = await getArticleMetadata(slug, locale);
+    console.log("METADATA", metadata);
+
+    return {
+      title: `${metadata.title} • Sesame Street Archive`,
+      description: metadata.description,
+      openGraph: {
+        title: metadata.title,
+        description: metadata.description,
+        type: "article",
+        publishedTime: article.publishDate,
+        authors: article.authors,
+        tags: article.tags,
+      },
+    };
+  } catch (error) {
+    return {
+      title: "Research Article Not Found",
+    };
+  }
 }
 
-export default async function ResearchArticlePage({ params }: { params: Promise<{ locale: string, slug: string }> }) {
-  const { locale = 'en', slug } = await params;
-  
+const components = {
+  h1: ({ children }) => (
+    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+      {children}
+    </h1>
+  ),
+  h2: ({ children }) => (
+    <h2 className="text-2xl font-bold text-gray-900 mb-4">{children}</h2>
+  ),
+  h4: ({ children }) => (
+    <h4 className="text-xl text-gray-600 mb-6">{children}</h4>
+  ),
+};
+
+export default async function ResearchArticlePage({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}) {
+  const { locale = "en", slug } = await params;
+
   try {
-    const Content = (await import(`@/markdown/research/${slug}/${locale}.mdx`)).default;
+    const Content = (await import(`@/markdown/research/${slug}/${locale}.mdx`))
+      .default;
 
     return (
       <div className="max-w-4xl mx-auto px-4 py-12">
-       <nav className="flex items-center gap-2 text-sm text-gray-600 mb-8">
-         <Link href="/" className="hover:text-gray-900 transition-colors">Home</Link>
-         <span>/</span>
-         <Link href="/research" className="hover:text-gray-900 transition-colors">Research</Link>
-         <span>/</span>
-         <span className="text-gray-900">{slug}</span>
-       </nav>
-        <Content components={components} authors={['Dr. Sarah Johnson', 'Dr. Michael Chen', 'Dr. Emily Rodriguez']} />
+        <nav className="flex items-center gap-2 text-sm text-gray-600 mb-8">
+          <Link href="/" className="hover:text-gray-900 transition-colors">
+            Home
+          </Link>
+          <span>/</span>
+          <Link
+            href="/research"
+            className="hover:text-gray-900 transition-colors"
+          >
+            Research
+          </Link>
+          <span>/</span>
+          <span className="text-gray-900">{slug}</span>
+        </nav>
+        <Content
+          components={components}
+          authors={[
+            "Dr. Sarah Johnson",
+            "Dr. Michael Chen",
+            "Dr. Emily Rodriguez",
+          ]}
+        />
       </div>
     );
   } catch (error) {
-    console.log('ERROR', error);
+    console.log("ERROR", error);
     return notFound();
   }
 
@@ -96,18 +155,18 @@ export default async function ResearchArticlePage({ params }: { params: Promise<
   //       </div>
 
   //       <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8">
-  //         <span>{new Date(article.publishDate).toLocaleDateString('en-US', { 
-  //           year: 'numeric', 
-  //           month: 'long', 
-  //           day: 'numeric' 
+  //         <span>{new Date(article.publishDate).toLocaleDateString('en-US', {
+  //           year: 'numeric',
+  //           month: 'long',
+  //           day: 'numeric'
   //         })}</span>
   //         <span>{article.readTime}</span>
   //         <span>By {article.authors.join(', ')}</span>
   //       </div>
 
   //       <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden mb-8">
-  //         <Image 
-  //           src={article.image} 
+  //         <Image
+  //           src={article.image}
   //           alt={article.title}
   //           className="w-full h-full object-cover"
   //           priority
@@ -116,7 +175,7 @@ export default async function ResearchArticlePage({ params }: { params: Promise<
 
   //       <div className="flex flex-wrap gap-2">
   //         {article.tags.map((tag) => (
-  //           <span 
+  //           <span
   //             key={tag}
   //             className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full"
   //           >
@@ -167,7 +226,7 @@ export default async function ResearchArticlePage({ params }: { params: Promise<
   //             {article.references.map((ref, index) => (
   //               <div key={index} className="p-4 bg-gray-50 rounded-lg">
   //                 <p className="text-sm text-gray-700">
-  //                   <strong>{ref.authors}</strong> ({ref.year}). {ref.title}. 
+  //                   <strong>{ref.authors}</strong> ({ref.year}). {ref.title}.
   //                   <em> {ref.journal}</em>.
   //                   {ref.doi && (
   //                     <span className="ml-2 text-blue-600">
@@ -189,8 +248,8 @@ export default async function ResearchArticlePage({ params }: { params: Promise<
   //           {relatedArticles.map((relatedArticle) => (
   //             <article key={relatedArticle.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
   //               <div className="aspect-video bg-gray-200">
-  //                 <Image 
-  //                   src={relatedArticle.image} 
+  //                 <Image
+  //                   src={relatedArticle.image}
   //                   alt={relatedArticle.title}
   //                   className="w-full h-full object-cover"
   //                 />
@@ -205,7 +264,7 @@ export default async function ResearchArticlePage({ params }: { params: Promise<
   //                 <p className="text-gray-600 text-sm mb-4 line-clamp-3">
   //                   {relatedArticle.excerpt}
   //                 </p>
-  //                 <Link 
+  //                 <Link
   //                   href={`/research/${relatedArticle.id}`}
   //                   className="text-blue-600 text-sm font-medium hover:underline"
   //                 >
