@@ -32,6 +32,7 @@
     "@payloadcms/richtext-lexical": "^3.53.0",
     "@payloadcms/ui": "^3.53.0",
     "@radix-ui/react-slot": "^1.2.3",
+    "@react-spring/konva": "^10.0.2",
     "@tailwindcss/postcss": "^4.1.8",
     "aws-amplify": "^6.15.5",
     "aws-cdk": "^2.138.0",
