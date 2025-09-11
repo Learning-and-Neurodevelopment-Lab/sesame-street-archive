@@ -625,100 +625,386 @@ export default function ExplorePage() {
       : [];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-4">{t("exploreTitle")}</h1>
-        <p className="text-lg text-neutral-600">{t("exploreDescription")}</p>
-      </div>
-
-      {/* Search Input Container */}
-      <div className="relative mb-8">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder={t("explorePlaceholder")}
-            value={query}
-            onChange={(e) => {
-              setSearchParams({
-                q: e.target.value,
-                keywords: selectedKeywords,
-                categories: selectedCategories,
-                years: selectedYears,
-                annotated: showAnnotatedOnly,
-                fullscreen: showFullscreenResults,
-                image:
-                  modalOpen && selectedImage
-                    ? selectedImage.imagePath
-                    : undefined,
-              });
-            }}
-            onFocus={() => setShowResults(true)}
-            className="w-full px-4 py-3 pl-12 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-            <svg
-              className="w-5 h-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
+    <Suspense fallback={<>...</>}>
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-4">{t("exploreTitle")}</h1>
+          <p className="text-lg text-neutral-600">{t("exploreDescription")}</p>
         </div>
 
-        {/* Quick Preview Results */}
-        {query.length > 0 &&
-          (showResults || isSearching) &&
-          !showFullscreenResults && (
-            <div
-              className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto"
-              tabIndex={-1}
-              ref={(el) => {
-                if (!el) return;
-                // Attach click outside handler
-                const handleClick = (e: MouseEvent) => {
-                  if (!el.contains(e.target as Node)) {
-                    setShowResults(false);
-                  }
-                };
-                document.addEventListener("mousedown", handleClick);
-                return () =>
-                  document.removeEventListener("mousedown", handleClick);
+        {/* Search Input Container */}
+        <div className="relative mb-8">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder={t("explorePlaceholder")}
+              value={query}
+              onChange={(e) => {
+                setSearchParams({
+                  q: e.target.value,
+                  keywords: selectedKeywords,
+                  categories: selectedCategories,
+                  years: selectedYears,
+                  annotated: showAnnotatedOnly,
+                  fullscreen: showFullscreenResults,
+                  image:
+                    modalOpen && selectedImage
+                      ? selectedImage.imagePath
+                      : undefined,
+                });
               }}
-            >
-              {isSearching && (
-                <div className="p-4 text-center text-gray-500">
-                  <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                  <span className="ml-2">Searching…</span>
-                </div>
-              )}
+              onFocus={() => setShowResults(true)}
+              className="w-full px-4 py-3 pl-12 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+              <svg
+                className="w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+          </div>
 
-              {!isSearching && filteredResults.length > 0 && (
-                <div className="py-2">
-                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b flex justify-between items-center">
-                    <span>Images ({filteredResults.length} results)</span>
-                    <button
-                      onClick={handleSearch}
-                      className="text-blue-600 text-xs hover:text-blue-800"
-                    >
-                      View All →
-                    </button>
+          {/* Quick Preview Results */}
+          {query.length > 0 &&
+            (showResults || isSearching) &&
+            !showFullscreenResults && (
+              <div
+                className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto"
+                tabIndex={-1}
+                ref={(el) => {
+                  if (!el) return;
+                  // Attach click outside handler
+                  const handleClick = (e: MouseEvent) => {
+                    if (!el.contains(e.target as Node)) {
+                      setShowResults(false);
+                    }
+                  };
+                  document.addEventListener("mousedown", handleClick);
+                  return () =>
+                    document.removeEventListener("mousedown", handleClick);
+                }}
+              >
+                {isSearching && (
+                  <div className="p-4 text-center text-gray-500">
+                    <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                    <span className="ml-2">Searching…</span>
                   </div>
-                  {filteredResults.slice(0, 5).map((result) => {
+                )}
+
+                {!isSearching && filteredResults.length > 0 && (
+                  <div className="py-2">
+                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b flex justify-between items-center">
+                      <span>Images ({filteredResults.length} results)</span>
+                      <button
+                        onClick={handleSearch}
+                        className="text-blue-600 text-xs hover:text-blue-800"
+                      >
+                        View All →
+                      </button>
+                    </div>
+                    {filteredResults.slice(0, 5).map((result) => {
+                      return (
+                        <button
+                          key={result.url || result.imagePath}
+                          type="button"
+                          onClick={() => {
+                            setSearchParams({
+                              image: result.imagePath,
+                              fullscreen: showFullscreenResults,
+                              q: query,
+                              keywords: selectedKeywords,
+                              categories: selectedCategories,
+                              years: selectedYears,
+                              annotated: showAnnotatedOnly,
+                            });
+                          }}
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 w-full text-left"
+                        >
+                          <div className="w-12 h-12 bg-gray-200 rounded overflow-hidden flex-shrink-0">
+                            {result.id ? (
+                              <Image
+                                src={imageUrls[result.id] || "/placeholder.png"}
+                                alt={result.filename}
+                                width={100}
+                                height={100}
+                                className="w-full h-full object-cover pointer-events-none select-none"
+                                loading="lazy"
+                                draggable="false"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                Loading…
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-gray-900 truncate">
+                              {result.filename} • {result.episodeTitle} •{" "}
+                              {result.episode} • {result.year}
+                            </div>
+                            <div className="text-sm text-gray-500 flex items-center gap-2 flex-wrap">
+                              {/* Show multiple category pills only if annotations exist */}
+                              {result.hasAnnotations &&
+                                result?.categories?.map((category, index) => (
+                                  <span
+                                    key={`${category}-${index}`}
+                                    className={`px-2 py-0.5 text-xs rounded-full ${getTypeColor(category)}`}
+                                  >
+                                    {category}
+                                  </span>
+                                ))}
+                              {result.hasAnnotations && (
+                                <span className="text-xs text-green-600">
+                                  {result.annotations.length} annotations
+                                </span>
+                              )}
+                              {!result.hasAnnotations && (
+                                <span className="text-xs text-gray-400">
+                                  No annotations
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {!isSearching && filteredResults.length === 0 && (
+                  <div className="p-4 text-center text-gray-500">
+                    No images found for "{query}"
+                  </div>
+                )}
+              </div>
+            )}
+        </div>
+
+        {/* Advanced Filters */}
+        <Suspense fallback={<div>Loading filters...</div>}>
+          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {t("filterTitle")}
+              </h2>
+              <div className="flex items-center gap-4">
+                {activeFiltersCount > 0 && (
+                  <span className="text-sm text-gray-600">
+                    {t.rich("activeFilters", { count: activeFiltersCount })}
+                  </span>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearAllFilters}
+                  disabled={activeFiltersCount === 0}
+                >
+                  {t("filterClearCta")}
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Category Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t("categoryFilter.label")}
+                </label>
+                <SearchableCombobox
+                  value={selectedCategories}
+                  onChange={(value) => {
+                    setSearchParams({
+                      categories: value as string[],
+                      keywords: selectedKeywords,
+                      years: selectedYears,
+                      annotated: showAnnotatedOnly,
+                      q: query,
+                      fullscreen: showFullscreenResults,
+                    });
+                  }}
+                  options={CATEGORY_OPTIONS}
+                  placeholder={t("categoryFilter.placeholder")}
+                  className="w-full"
+                  multiple={true}
+                />
+              </div>
+
+              {/* Keywords Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t("keywordFilter.label")}
+                </label>
+                <SearchableCombobox
+                  options={keywordOptions}
+                  value={selectedKeywords}
+                  onChange={(value) => {
+                    setSearchParams({
+                      keywords: value as string[],
+                      categories: selectedCategories,
+                      years: selectedYears,
+                      annotated: showAnnotatedOnly,
+                      q: query,
+                      fullscreen: showFullscreenResults,
+                    });
+                  }}
+                  placeholder={t("keywordFilter.placeholder")}
+                  className="w-full"
+                  multiple={true}
+                />
+              </div>
+
+              {/* Year Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t("yearFilter.label")}
+                </label>
+                <SearchableCombobox
+                  options={yearOptions}
+                  value={selectedYears}
+                  onChange={(value) => {
+                    setSearchParams({
+                      years: value as string[],
+                      categories: selectedCategories,
+                      keywords: selectedKeywords,
+                      annotated: showAnnotatedOnly,
+                      q: query,
+                      fullscreen: showFullscreenResults,
+                    });
+                  }}
+                  placeholder={t("yearFilter.placeholder")}
+                  className="w-full"
+                  multiple={true}
+                />
+              </div>
+
+              {/* Annotation Status */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t("annotationStatus.label")}
+                </label>
+                <label className="flex items-center gap-2 p-3 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="checkbox"
+                    checked={showAnnotatedOnly}
+                    onChange={(e) => {
+                      setSearchParams({
+                        annotated: e.target.checked,
+                        categories: selectedCategories,
+                        keywords: selectedKeywords,
+                        years: selectedYears,
+                        q: query,
+                        fullscreen: showFullscreenResults,
+                      });
+                    }}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm">{t("annotationStatus.option")}</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Search Button */}
+            <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center">
+              <div>
+                <p className="text-sm text-gray-600">
+                  {t("criteriaLabel", {
+                    count: filteredResults.length,
+                    total: searchData.length,
+                  })}
+                </p>
+              </div>
+              <Button onClick={handleSearch} className="min-w-[120px]">
+                {t.rich("browseCta", { count: filteredResults.length })}
+              </Button>
+            </div>
+          </div>
+        </Suspense>
+        {/* Fullscreen Results Grid */}
+        {showFullscreenResults && (
+          <div
+            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setSearchParams({
+                  fullscreen: undefined,
+                  image: undefined,
+                  q: query,
+                  keywords: selectedKeywords,
+                  categories: selectedCategories,
+                  years: selectedYears,
+                  annotated: showAnnotatedOnly,
+                });
+              }
+            }}
+            aria-modal="true"
+            role="dialog"
+          >
+            <div
+              className="bg-white rounded-lg w-full max-w-7xl h-full max-h-[90vh] flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Images</h2>
+                  <p className="text-gray-600 mt-1">
+                    {filteredResults.length} images
+                    {query.trim().length > 0 && ` matching "${query}"`}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setSearchParams({
+                      fullscreen: undefined,
+                      image: undefined,
+                      q: query,
+                      keywords: selectedKeywords,
+                      categories: selectedCategories,
+                      years: selectedYears,
+                      annotated: showAnnotatedOnly,
+                    });
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Image Grid */}
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {filteredResults.map((result) => {
+                    const imgUrl = imageUrls[result.id] || "";
                     return (
                       <button
-                        key={result.url || result.imagePath}
+                        key={`${result.id}-${result.episode}`}
                         type="button"
+                        className="group relative bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200 focus:outline-none"
                         onClick={() => {
                           setSearchParams({
                             image: result.imagePath,
-                            fullscreen: showFullscreenResults,
+                            fullscreen: true,
                             q: query,
                             keywords: selectedKeywords,
                             categories: selectedCategories,
@@ -726,16 +1012,16 @@ export default function ExplorePage() {
                             annotated: showAnnotatedOnly,
                           });
                         }}
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 w-full text-left"
                       >
-                        <div className="w-12 h-12 bg-gray-200 rounded overflow-hidden flex-shrink-0">
-                          {result.id ? (
+                        {/* Image */}
+                        <div className="aspect-square bg-gray-200 overflow-hidden">
+                          {imgUrl ? (
                             <Image
-                              src={imageUrls[result.id] || "/placeholder.png"}
-                              alt={result.filename}
+                              src={imgUrl}
+                              alt={String(result.id)}
                               width={100}
                               height={100}
-                              className="w-full h-full object-cover pointer-events-none select-none"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none pointer-events-none"
                               loading="lazy"
                               draggable="false"
                             />
@@ -745,226 +1031,113 @@ export default function ExplorePage() {
                             </div>
                           )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 truncate">
-                            {result.filename} • {result.episodeTitle} •{" "}
-                            {result.episode} • {result.year}
-                          </div>
-                          <div className="text-sm text-gray-500 flex items-center gap-2 flex-wrap">
-                            {/* Show multiple category pills only if annotations exist */}
-                            {result.hasAnnotations &&
-                              result?.categories?.map((category, index) => (
-                                <span
-                                  key={`${category}-${index}`}
-                                  className={`px-2 py-0.5 text-xs rounded-full ${getTypeColor(category)}`}
-                                >
-                                  {category}
+
+                        {/* Overlay Info */}
+                        <div className="absolute inset-0 bg-transparent group-hover:bg-opacity-60 transition-all duration-200 flex items-end">
+                          <div className="p-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-200 ">
+                            <div className="text-sm font-medium truncate mb-1 text-shadow-sm">
+                              {result.filename}
+                            </div>
+                            <div className="flex items-center gap-1 text-xs flex-wrap">
+                              {/* Show multiple category pills only if annotations exist */}
+
+                              {result.hasAnnotations &&
+                                result.categories.map((category, index) => (
+                                  <span
+                                    key={`${category}-${index}`}
+                                    className={`px-2 py-0.5 rounded-full ${getTypeColor(category)} text-gray-800 mb-1 shadow-sm`}
+                                  >
+                                    {category}
+                                  </span>
+                                ))}
+
+                              {result.hasAnnotations && (
+                                <span className="bg-green-500 px-2 py-0.5 rounded-full mb-1 shadow-sm">
+                                  {result.annotations.length} annotations
                                 </span>
-                              ))}
-                            {result.hasAnnotations && (
-                              <span className="text-xs text-green-600">
-                                {result.annotations.length} annotations
-                              </span>
-                            )}
-                            {!result.hasAnnotations && (
-                              <span className="text-xs text-gray-400">
-                                No annotations
-                              </span>
-                            )}
+                              )}
+                              {!result.hasAnnotations && (
+                                <span className="bg-gray-500 px-2 py-0.5 rounded-full mb-1 shadow-sm">
+                                  No annotations
+                                </span>
+                              )}
+                            </div>
                           </div>
+                        </div>
+
+                        {/* Top-right status indicator */}
+                        <div className="absolute top-2 right-2">
+                          {result.hasAnnotations ? (
+                            <div className="w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                          ) : (
+                            <div className="w-3 h-3 bg-gray-400 rounded-full border-2 border-white"></div>
+                          )}
                         </div>
                       </button>
                     );
                   })}
                 </div>
-              )}
 
-              {!isSearching && filteredResults.length === 0 && (
-                <div className="p-4 text-center text-gray-500">
-                  No images found for "{query}"
-                </div>
-              )}
-            </div>
-          )}
-      </div>
-
-      {/* Advanced Filters */}
-      <Suspense fallback={<div>Loading filters...</div>}>
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">
-              {t("filterTitle")}
-            </h2>
-            <div className="flex items-center gap-4">
-              {activeFiltersCount > 0 && (
-                <span className="text-sm text-gray-600">
-                  {t.rich("activeFilters", { count: activeFiltersCount })}
-                </span>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={clearAllFilters}
-                disabled={activeFiltersCount === 0}
-              >
-                {t("filterClearCta")}
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Category Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t("categoryFilter.label")}
-              </label>
-              <SearchableCombobox
-                value={selectedCategories}
-                onChange={(value) => {
-                  setSearchParams({
-                    categories: value as string[],
-                    keywords: selectedKeywords,
-                    years: selectedYears,
-                    annotated: showAnnotatedOnly,
-                    q: query,
-                    fullscreen: showFullscreenResults,
-                  });
-                }}
-                options={CATEGORY_OPTIONS}
-                placeholder={t("categoryFilter.placeholder")}
-                className="w-full"
-                multiple={true}
-              />
-            </div>
-
-            {/* Keywords Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t("keywordFilter.label")}
-              </label>
-              <SearchableCombobox
-                options={keywordOptions}
-                value={selectedKeywords}
-                onChange={(value) => {
-                  setSearchParams({
-                    keywords: value as string[],
-                    categories: selectedCategories,
-                    years: selectedYears,
-                    annotated: showAnnotatedOnly,
-                    q: query,
-                    fullscreen: showFullscreenResults,
-                  });
-                }}
-                placeholder={t("keywordFilter.placeholder")}
-                className="w-full"
-                multiple={true}
-              />
-            </div>
-
-            {/* Year Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t("yearFilter.label")}
-              </label>
-              <SearchableCombobox
-                options={yearOptions}
-                value={selectedYears}
-                onChange={(value) => {
-                  setSearchParams({
-                    years: value as string[],
-                    categories: selectedCategories,
-                    keywords: selectedKeywords,
-                    annotated: showAnnotatedOnly,
-                    q: query,
-                    fullscreen: showFullscreenResults,
-                  });
-                }}
-                placeholder={t("yearFilter.placeholder")}
-                className="w-full"
-                multiple={true}
-              />
-            </div>
-
-            {/* Annotation Status */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t("annotationStatus.label")}
-              </label>
-              <label className="flex items-center gap-2 p-3 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
-                <input
-                  type="checkbox"
-                  checked={showAnnotatedOnly}
-                  onChange={(e) => {
-                    setSearchParams({
-                      annotated: e.target.checked,
-                      categories: selectedCategories,
-                      keywords: selectedKeywords,
-                      years: selectedYears,
-                      q: query,
-                      fullscreen: showFullscreenResults,
-                    });
-                  }}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                />
-                <span className="text-sm">{t("annotationStatus.option")}</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Search Button */}
-          <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center">
-            <div>
-              <p className="text-sm text-gray-600">
-                {t("criteriaLabel", {
-                  count: filteredResults.length,
-                  total: searchData.length,
-                })}
-              </p>
-            </div>
-            <Button onClick={handleSearch} className="min-w-[120px]">
-              {t.rich("browseCta", { count: filteredResults.length })}
-            </Button>
-          </div>
-        </div>
-      </Suspense>
-      {/* Fullscreen Results Grid */}
-      {showFullscreenResults && (
-        <div
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setSearchParams({
-                fullscreen: undefined,
-                image: undefined,
-                q: query,
-                keywords: selectedKeywords,
-                categories: selectedCategories,
-                years: selectedYears,
-                annotated: showAnnotatedOnly,
-              });
-            }
-          }}
-          aria-modal="true"
-          role="dialog"
-        >
-          <div
-            className="bg-white rounded-lg w-full max-w-7xl h-full max-h-[90vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Images</h2>
-                <p className="text-gray-600 mt-1">
-                  {filteredResults.length} images
-                  {query.trim().length > 0 && ` matching "${query}"`}
-                </p>
+                {filteredResults.length === 0 && (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 mx-auto mb-4 text-gray-300">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                    {t.rich("noResults", {
+                      primary: (chunks) => (
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          {chunks}
+                        </h3>
+                      ),
+                      secondary: (chunks) => (
+                        <p className="text-gray-600">{chunks}</p>
+                      ),
+                    })}
+                  </div>
+                )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal for image details and annotation actions */}
+        {modalOpen && selectedImage && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+            onClick={(e) => {
+              // Only close if click is on the overlay, not inside the modal
+              if (e.target === e.currentTarget) {
+                setSearchParams({
+                  image: undefined,
+                  fullscreen: showFullscreenResults,
+                  q: query,
+                  keywords: selectedKeywords,
+                  categories: selectedCategories,
+                  years: selectedYears,
+                  annotated: showAnnotatedOnly,
+                });
+              }
+            }}
+            aria-modal="true"
+            role="dialog"
+          >
+            <div
+              className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 relative"
+              onClick={(e) => e.stopPropagation()}
+            >
               <button
+                className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
                 onClick={() => {
                   setSearchParams({
-                    fullscreen: undefined,
                     image: undefined,
+                    fullscreen: showFullscreenResults,
                     q: query,
                     keywords: selectedKeywords,
                     categories: selectedCategories,
@@ -972,7 +1145,7 @@ export default function ExplorePage() {
                     annotated: showAnnotatedOnly,
                   });
                 }}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="Close"
               >
                 <svg
                   className="w-6 h-6"
@@ -988,326 +1161,155 @@ export default function ExplorePage() {
                   />
                 </svg>
               </button>
-            </div>
-
-            {/* Image Grid */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {filteredResults.map((result) => {
-                  const imgUrl = imageUrls[result.id] || "";
-                  return (
-                    <button
-                      key={`${result.id}-${result.episode}`}
-                      type="button"
-                      className="group relative bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200 focus:outline-none"
-                      onClick={() => {
-                        setSearchParams({
-                          image: result.imagePath,
-                          fullscreen: true,
-                          q: query,
-                          keywords: selectedKeywords,
-                          categories: selectedCategories,
-                          years: selectedYears,
-                          annotated: showAnnotatedOnly,
-                        });
-                      }}
-                    >
-                      {/* Image */}
-                      <div className="aspect-square bg-gray-200 overflow-hidden">
-                        {imgUrl ? (
-                          <Image
-                            src={imgUrl}
-                            alt={String(result.id)}
-                            width={100}
-                            height={100}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none pointer-events-none"
-                            loading="lazy"
-                            draggable="false"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            Loading…
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Overlay Info */}
-                      <div className="absolute inset-0 bg-transparent group-hover:bg-opacity-60 transition-all duration-200 flex items-end">
-                        <div className="p-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-200 ">
-                          <div className="text-sm font-medium truncate mb-1 text-shadow-sm">
-                            {result.filename}
-                          </div>
-                          <div className="flex items-center gap-1 text-xs flex-wrap">
-                            {/* Show multiple category pills only if annotations exist */}
-
-                            {result.hasAnnotations &&
-                              result.categories.map((category, index) => (
-                                <span
-                                  key={`${category}-${index}`}
-                                  className={`px-2 py-0.5 rounded-full ${getTypeColor(category)} text-gray-800 mb-1 shadow-sm`}
-                                >
-                                  {category}
-                                </span>
-                              ))}
-
-                            {result.hasAnnotations && (
-                              <span className="bg-green-500 px-2 py-0.5 rounded-full mb-1 shadow-sm">
-                                {result.annotations.length} annotations
-                              </span>
-                            )}
-                            {!result.hasAnnotations && (
-                              <span className="bg-gray-500 px-2 py-0.5 rounded-full mb-1 shadow-sm">
-                                No annotations
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Top-right status indicator */}
-                      <div className="absolute top-2 right-2">
-                        {result.hasAnnotations ? (
-                          <div className="w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                        ) : (
-                          <div className="w-3 h-3 bg-gray-400 rounded-full border-2 border-white"></div>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {filteredResults.length === 0 && (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 mx-auto mb-4 text-gray-300">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
-                  {t.rich("noResults", {
-                    primary: (chunks) => (
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        {chunks}
-                      </h3>
-                    ),
-                    secondary: (chunks) => (
-                      <p className="text-gray-600">{chunks}</p>
-                    ),
-                  })}
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-full aspect-video bg-gray-200 rounded overflow-hidden flex items-center justify-center m-4 relative">
+                  {imageUrls[selectedImage.id] ? (
+                    <KonvaImageWithBoxes
+                      imageUrl={imageUrls[selectedImage.id]}
+                      boxes={allBoundingBoxes}
+                    />
+                  ) : (
+                    <span className="text-gray-400">Loading…</span>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal for image details and annotation actions */}
-      {modalOpen && selectedImage && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-          onClick={(e) => {
-            // Only close if click is on the overlay, not inside the modal
-            if (e.target === e.currentTarget) {
-              setSearchParams({
-                image: undefined,
-                fullscreen: showFullscreenResults,
-                q: query,
-                keywords: selectedKeywords,
-                categories: selectedCategories,
-                years: selectedYears,
-                annotated: showAnnotatedOnly,
-              });
-            }
-          }}
-          aria-modal="true"
-          role="dialog"
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-              onClick={() => {
-                setSearchParams({
-                  image: undefined,
-                  fullscreen: showFullscreenResults,
-                  q: query,
-                  keywords: selectedKeywords,
-                  categories: selectedCategories,
-                  years: selectedYears,
-                  annotated: showAnnotatedOnly,
-                });
-              }}
-              aria-label="Close"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-full aspect-video bg-gray-200 rounded overflow-hidden flex items-center justify-center m-4 relative">
-                {imageUrls[selectedImage.id] ? (
-                  <KonvaImageWithBoxes
-                    imageUrl={imageUrls[selectedImage.id]}
-                    boxes={allBoundingBoxes}
-                  />
-                ) : (
-                  <span className="text-gray-400">Loading…</span>
-                )}
-              </div>
-              <div className="w-full">
-                <h3 className="text-lg font-semibold mb-2">Image Details</h3>
-                <ul className="mb-4">
-                  {getExifInfo(selectedImage).map((item, index) => (
-                    <li
-                      key={`${item.label}-${index}`}
-                      className="flex justify-between text-sm py-0.5"
-                    >
-                      <span className="font-medium text-gray-700">
-                        {item.label}:
-                      </span>
-                      <span className="text-gray-900">{item.value}</span>
-                    </li>
-                  ))}
-                </ul>
-                <h4 className="font-medium mb-1">Annotations</h4>
-                {selectedImage.hasAnnotations ? (
-                  <ul className="mb-2">
-                    {selectedImage.annotations.map((ann, index) => (
-                      <li key={index} className="text-sm text-gray-800">
-                        {ann.category} - Keywords: {ann.keywords.join(", ")}
+                <div className="w-full">
+                  <h3 className="text-lg font-semibold mb-2">Image Details</h3>
+                  <ul className="mb-4">
+                    {getExifInfo(selectedImage).map((item, index) => (
+                      <li
+                        key={`${item.label}-${index}`}
+                        className="flex justify-between text-sm py-0.5"
+                      >
+                        <span className="font-medium text-gray-700">
+                          {item.label}:
+                        </span>
+                        <span className="text-gray-900">{item.value}</span>
                       </li>
                     ))}
                   </ul>
-                ) : (
-                  <div className="text-sm text-gray-500 mb-2">
-                    No annotations available.
+                  <h4 className="font-medium mb-1">Annotations</h4>
+                  {selectedImage.hasAnnotations ? (
+                    <ul className="mb-2">
+                      {selectedImage.annotations.map((ann, index) => (
+                        <li key={index} className="text-sm text-gray-800">
+                          {ann.category} - Keywords: {ann.keywords.join(", ")}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="text-sm text-gray-500 mb-2">
+                      No annotations available.
+                    </div>
+                  )}
+                  <div className="flex gap-2 mt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleDownloadAnnotations(selectedImage)}
+                      disabled={!selectedImage.hasAnnotations}
+                    >
+                      Download Annotations
+                    </Button>
+                    <Button onClick={() => handleEditAnnotations(selectedImage)}>
+                      Edit Annotations
+                    </Button>
                   </div>
-                )}
-                <div className="flex gap-2 mt-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => handleDownloadAnnotations(selectedImage)}
-                    disabled={!selectedImage.hasAnnotations}
-                  >
-                    Download Annotations
-                  </Button>
-                  <Button onClick={() => handleEditAnnotations(selectedImage)}>
-                    Edit Annotations
-                  </Button>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Help Information */}
-      <section className="mt-12">
-        <div className="bg-white border border-gray-200 rounded-xl p-6">
-          <div className="flex items-center mb-6">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 text-gray-500 mr-4">
-              <svg
-                className="w-7 h-7"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="12" cy="12" r="10" strokeWidth="2" />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+        {/* Help Information */}
+        <section className="mt-12">
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <div className="flex items-center mb-6">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 text-gray-500 mr-4">
+                <svg
+                  className="w-7 h-7"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <circle cx="12" cy="12" r="10" strokeWidth="2" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 8v4m0 4h.01"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 tracking-tight">
+                {t("browseTips.title")}
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
+                <span className="inline-block w-3 h-3 rounded-full bg-green-500"></span>
+                <span className="text-gray-900 font-medium">
+                  {t("browseTips.tips.annotated")}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <circle cx="10" cy="10" r="2" />
+                </svg>
+                <span className="text-gray-900 font-medium">
+                  {t("browseTips.tips.categories")}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
                   strokeWidth="2"
-                  d="M12 8v4m0 4h.01"
-                />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 tracking-tight">
-              {t("browseTips.title")}
-            </h3>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
-              <span className="inline-block w-3 h-3 rounded-full bg-green-500"></span>
-              <span className="text-gray-900 font-medium">
-                {t("browseTips.tips.annotated")}
-              </span>
-            </div>
-            <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
-              <svg
-                className="w-5 h-5 text-gray-400"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <circle cx="10" cy="10" r="2" />
-              </svg>
-              <span className="text-gray-900 font-medium">
-                {t("browseTips.tips.categories")}
-              </span>
-            </div>
-            <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
-              <svg
-                className="w-5 h-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <rect x="4" y="8" width="16" height="8" rx="2" />
-                <path d="M8 8V6a4 4 0 1 1 8 0v2" />
-              </svg>
-              <span className="text-gray-900 font-medium">
-                {t("browseTips.tips.filters")}
-              </span>
-            </div>
-            <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
-              <svg
-                className="w-5 h-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z" />
-              </svg>
-              <span className="text-gray-900 font-medium">
-                {t("browseTips.tips.search")}
-              </span>
-            </div>
-            <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
-              <svg
-                className="w-5 h-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <path d="M8 9h8M8 13h6" />
-              </svg>
-              <span className="text-gray-900 font-medium">
-                {t("browseTips.tips.image")}
-              </span>
+                  viewBox="0 0 24 24"
+                >
+                  <rect x="4" y="8" width="16" height="8" rx="2" />
+                  <path d="M8 8V6a4 4 0 1 1 8 0v2" />
+                </svg>
+                <span className="text-gray-900 font-medium">
+                  {t("browseTips.tips.filters")}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z" />
+                </svg>
+                <span className="text-gray-900 font-medium">
+                  {t("browseTips.tips.search")}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M8 9h8M8 13h6" />
+                </svg>
+                <span className="text-gray-900 font-medium">
+                  {t("browseTips.tips.image")}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
-    </div>
+        </section>
+      </div>
+    </Suspense>
   );
 }
