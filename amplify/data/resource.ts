@@ -53,7 +53,7 @@ Annotation: a
     height: a.float(),
     width: a.float()
   })
-  .identifier(['image_id','annotation_id','user_id'] as const)
+  .identifier(['image_id','annotation_id'] as const)
   .authorization((allow) => [allow.publicApiKey()]),
 });
 
