@@ -271,7 +271,8 @@ export default function AuthWithoutDua({ onAgreed }: { onAgreed: () => void }) {
                         <input
                           className="mt-1 w-full rounded-md border px-3 py-2"
                           value={username}
-                          onChange={(e)=>setUsername(e.target.value)}
+                          readOnly                 
+                          placeholder="Click 'Make a username for me'"
                         />
                         {username && isToxic(username) && <p className="text-xs text-red-600 mt-1">Please choose a different username (failed safety check).</p>}
                       </div>
