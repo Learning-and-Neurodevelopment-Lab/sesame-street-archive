@@ -19,7 +19,7 @@ Annotation: a
   .model({
     image_id: a.string().required(),
     annotation_id: a.integer().required(),
-    user_id: a.string(),
+    user_id: a.id(),
     deleted: a.boolean(),
     occluded: a.boolean(),
     restricted: a.boolean(),
