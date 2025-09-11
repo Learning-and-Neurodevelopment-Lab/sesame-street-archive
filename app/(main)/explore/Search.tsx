@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, Suspense, Key } from "react";
+import { useState, useEffect, useMemo, useRef, Key } from "react";
+import { useQuery, useQueries } from "@tanstack/react-query";
 import { Stage, Layer, Rect, Image as KonvaImage } from "react-konva";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Spring, animated } from "@react-spring/konva";
@@ -174,41 +175,29 @@ export default function Search() {
   // Modal state
   const [selectedImage, setSelectedImage] = useState<SearchData | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchData[]>([]);
-  const [filteredResults, setFilteredResults] = useState<SearchData[]>([]);
-  const [imageUrls, setImageUrls] = useState<ImageUrlMap>({});
-  const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [showFullscreenResults, setShowFullscreenResults] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  // Data state
   const [searchData, setSearchData] = useState<SearchData[]>([]);
-  const [yearOptions, setYearOptions] =
-    useState<typeof YEAR_OPTIONS>(YEAR_OPTIONS);
-  const [keywordOptions, setKeywordOptions] =
-    useState<typeof KEYWORD_OPTIONS>(KEYWORD_OPTIONS);
+  const [yearOptions, setYearOptions] = useState<typeof YEAR_OPTIONS>(YEAR_OPTIONS);
+  const [keywordOptions, setKeywordOptions] = useState<typeof KEYWORD_OPTIONS>(KEYWORD_OPTIONS);
+  // Helper to parse comma-separated params
+  const parseArray = (val: string | null) => (val ? val.split(",").filter(Boolean) : []);
+  // Use searchParams.toString() for reactivity
+  const searchParamsString = searchParams.toString();
 
-  const [konvaImage] = useImage(selectedImage?.url || "");
+  const query = useMemo(() => new URLSearchParams(searchParamsString).get("q") ?? "", [searchParamsString]);
+  const selectedKeywords = useMemo(() => parseArray(new URLSearchParams(searchParamsString).get("keywords")), [searchParamsString]);
+  const selectedCategories = useMemo(() => parseArray(new URLSearchParams(searchParamsString).get("categories")), [searchParamsString]);
+  const selectedYears = useMemo(() => parseArray(new URLSearchParams(searchParamsString).get("years")), [searchParamsString]);
+  const showAnnotatedOnly = useMemo(() => new URLSearchParams(searchParamsString).get("annotated") === "1", [searchParamsString]);
+  const showFullscreenResults = useMemo(() => new URLSearchParams(searchParamsString).get("fullscreen") === "1", [searchParamsString]);
 
-  // Sync state from search params on mount and when params change
-  useEffect(() => {
-    console.log("Syncing state from search params");
-    const parseArray = (val: string | null) =>
-      val ? val.split(",").filter(Boolean) : [];
-    setQuery(searchParams.get("q") || "");
-    setSelectedKeywords(parseArray(searchParams.get("keywords")));
-    setSelectedCategories(parseArray(searchParams.get("categories")));
-    setSelectedYears(parseArray(searchParams.get("years")));
-    setShowAnnotatedOnly(searchParams.get("annotated") === "1");
-    setShowFullscreenResults(searchParams.get("fullscreen") === "1");
-  }, [searchParams]);
-
-  // Modal state from search params
   useEffect(() => {
     const imageParam = searchParams.get("image");
     if (imageParam && searchData.length > 0) {
       const found = searchData.find((img) => img.imagePath === imageParam);
       if (found) {
-        // HEREHERE
         (async () => {
           const imageUrl = await getUrl({ path: `images/${found.imagePath}` });
           setSelectedImage({ ...found, url: imageUrl.url.href });
@@ -222,13 +211,9 @@ export default function Search() {
       setModalOpen(false);
       setSelectedImage(null);
     }
-  }, [searchParams, searchData]);
+  }, [searchParamsString, searchData]);
 
-  // Filter states
-  const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedYears, setSelectedYears] = useState<string[]>([]);
-  const [showAnnotatedOnly, setShowAnnotatedOnly] = useState(false);
+  // Remove local filter state, now derived from searchParams
 
   // Helper to update search params in URL
   const setSearchParams = (
@@ -250,39 +235,8 @@ export default function Search() {
         sp.set(key, value);
       }
     });
-    router.replace(`?${sp.toString()}`);
+    router.push(`?${sp.toString()}`);
   };
-
-  // Sync state from search params on mount and when params change
-  useEffect(() => {
-    // Helper to parse comma-separated params
-    const parseArray = (val: string | null) =>
-      val ? val.split(",").filter(Boolean) : [];
-    setQuery(searchParams.get("q") || "");
-    setSelectedKeywords(parseArray(searchParams.get("keywords")));
-    setSelectedCategories(parseArray(searchParams.get("categories")));
-    setSelectedYears(parseArray(searchParams.get("years")));
-    setShowAnnotatedOnly(searchParams.get("annotated") === "1");
-    setShowFullscreenResults(searchParams.get("fullscreen") === "1");
-  }, [searchParams]);
-
-  // Modal state from search params
-  useEffect(() => {
-    const imageParam = searchParams.get("image");
-    if (imageParam && searchData.length > 0) {
-      const found = searchData.find((img) => img.imagePath === imageParam);
-      if (found) {
-        setSelectedImage(found);
-        setModalOpen(true);
-      } else {
-        setModalOpen(false);
-        setSelectedImage(null);
-      }
-    } else {
-      setModalOpen(false);
-      setSelectedImage(null);
-    }
-  }, [searchParams, searchData]);
 
   const t = useTranslations("ExplorePage");
 
@@ -300,152 +254,140 @@ export default function Search() {
     checkAuth();
   }, []);
 
-  // Search functionality
-  useEffect(() => {
+  // Memoized filteredResults based on searchParams and searchData
+  const filteredResults = useMemo(() => {
     setIsSearching(true);
-    const timer = setTimeout(() => {
-      const q = query.trim().toLowerCase();
-      let searchResults = searchData;
-      if (q.length > 0) {
-        searchResults = searchData.filter((item) => {
-          return (
-            (item.filename && item.filename.toLowerCase().includes(q)) ||
-            (item.episodeTitle &&
-              item.episodeTitle.toLowerCase().includes(q)) ||
-            (item.episode && item.episode.toLowerCase().includes(q)) ||
-            (item.year && item.year.toLowerCase().includes(q)) ||
-            (item.id && String(item.id).toLowerCase().includes(q)) ||
-            (item.annotations &&
-              item.annotations.some((annotation) => {
-                if (typeof annotation?.keywords) {
-                  return annotation?.keywords
-                    ?.map((s) => s.toLowerCase())
-                    .includes(q);
-                } else if (annotation?.category) {
-                  return annotation.category.toLowerCase().includes(q);
-                }
-                return false;
-              }))
-          );
-        });
-      }
-      setResults(searchResults);
-      setIsSearching(false);
-      setShowResults(true);
-    }, 200);
-    return () => clearTimeout(timer);
-  }, [query, searchData]);
+    const q = query.trim().toLowerCase();
+    let filtered = searchData;
+    if (q.length > 0) {
+      filtered = filtered.filter((item) => {
+        return (
+          (item.filename && item.filename.toLowerCase().includes(q)) ||
+          (item.episodeTitle && item.episodeTitle.toLowerCase().includes(q)) ||
+          (item.episode && item.episode.toLowerCase().includes(q)) ||
+          (item.year && item.year.toLowerCase().includes(q)) ||
+          (item.id && String(item.id).toLowerCase().includes(q)) ||
+          (item.annotations &&
+            item.annotations.some((annotation) => {
+              if (typeof annotation?.keywords) {
+                return annotation?.keywords
+                  ?.map((s) => s.toLowerCase())
+                  .includes(q);
+              } else if (annotation?.category) {
+                return annotation.category.toLowerCase().includes(q);
+              }
+              return false;
+            }))
+        );
+      });
+    }
+    // Apply filters
+    filtered = filtered.filter((item) =>
+      (selectedYears.length === 0 || selectedYears.includes(item.year)) &&
+      (selectedCategories.length === 0 || selectedCategories.some((category) => item.categories.includes(category))) &&
+      (selectedKeywords.length === 0 || selectedKeywords.some((kw) => item.annotations.some((annotation) => annotation?.keywords.includes(kw)))) &&
+      (!showAnnotatedOnly || item.hasAnnotations)
+    );
+    setIsSearching(false);
+    return filtered;
+  }, [query, selectedKeywords, selectedCategories, selectedYears, showAnnotatedOnly, searchData]);
+
+  // --- TanStack Query for Images and Annotations ---
+  const client = useMemo(() => generateClient<Schema>(), []);
+
+  const concatenateImageIdForFiltering = (image) =>
+    `S${image.season}-E${image.episode_id}_${image.image_id}.png`;
+
+  const { data: images, isLoading: imagesLoading } = useQuery({
+    queryKey: ["images", isAuthenticated],
+    queryFn: async () => {
+      const { data } = await client.models.Image.list({ limit: 3000 });
+      return data || [];
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // Deduplicate images by image_id before annotation queries
+  const uniqueImages = useMemo(
+    () => images ? Array.from(new Map(images.map(img => [img.image_id, img])).values()) : [],
+    [images]
+  );
+
+  const uniqueImageIds = useMemo(
+    () => uniqueImages.map(img => ({ image_id: { eq: img.image_id } })),
+    [uniqueImages]
+  );
+
+  const { data: annotations, isLoading: annotationsLoaded } = useQuery({
+    queryKey: ["annotations", isAuthenticated],
+    queryFn: async () => {
+      const { data } = await client.models.Annotation.list({
+        filter: {
+          or: uniqueImageIds,
+        } as any,
+      });
+      return data || [];
+    },
+    staleTime: 1000 * 60 * 5,
+  });
 
   useEffect(() => {
-    const client = generateClient<Schema>();
-
-    const concatenateImageIdForAnnotations = (
-      image: Schema["Image"]["type"]
-    ) => {
-      return (
-        "S" +
-        String(image.season) +
-        "-E" +
-        String(image.episode_id) +
-        "_" +
-        String(image.image_id)
-      );
-    };
-
-    const concatenateImageIdForFiltering = (image: Schema["Image"]["type"]) => {
-      return (
-        "S" +
-        String(image.season) +
-        "-E" +
-        String(image.episode_id) +
-        "_" +
-        String(image.image_id) +
-        ".png"
-      );
-    };
-
-    (async () => {
-      let imageOptions = { limit: 3000 };
-
-      if (isAuthenticated) {
-        imageOptions = { limit: 3000 };
-      }
-
-      const { data: images } = await client.models.Image.list(imageOptions);
-
-      const yearsSet = new Set<string>();
-      images?.forEach((image) => {
-        if (image.air_year) {
-          yearsSet.add(String(image.air_year));
+    if (!images) return;
+    const yearsSet = new Set<string>();
+    const allKeywords = new Set<string>();
+    const imagesWithAnnotations = images.map((image) => {
+      const data = annotations?.filter((a) => {
+        // console.log('Comparing', a.image_id, concatenateImageIdForFiltering(image));
+        return a.image_id === concatenateImageIdForFiltering(image);
+      }) || [];
+      const imagePath = concatenateImageIdForFiltering(image);
+      const annotationItems = data.map((a) => {
+        let polygon: any[] = [];
+        if (typeof a.polygon === "string") {
+          try {
+            const parsed = JSON.parse(a.polygon);
+            polygon = Array.isArray(parsed) ? parsed : [];
+          } catch {
+            polygon = [];
+          }
+        } else if (Array.isArray(a.polygon)) {
+          polygon = a.polygon;
         }
+        if (a.keywords) {
+          a.keywords.split(" ").forEach((kw) => allKeywords.add(kw));
+        }
+        return {
+          category: a.category ?? "",
+          keywords: a.keywords ? a.keywords.split(" ") : [],
+          polygon,
+          annotationId: a.annotation_id,
+        };
       });
-
-      setYearOptions(
-        Array.from(yearsSet)
-          .sort((a, b) => Number(b) - Number(a))
-          .map((year) => ({ value: year, label: year }))
-      );
-
-      // Collect all keywords in a set
-      const allKeywords = new Set<string>();
-      const imagesWithAnnotations = await Promise.all(
-        images?.map(async (image) => {
-          const { data: annotations } = await client.models.Annotation.list({
-            filter: {
-              image_id: { beginsWith: concatenateImageIdForAnnotations(image) },
-            },
-          });
-
-          const imagePath = concatenateImageIdForFiltering(image);
-
-          const annotationItems = annotations.map((a) => {
-            let polygon: string | any[] = "[]";
-            if (typeof a.polygon === "string") {
-              try {
-                const parsed = JSON.parse(a.polygon);
-                polygon = Array.isArray(parsed) ? parsed : a.polygon;
-              } catch {
-                polygon = a.polygon;
-              }
-            } else if (Array.isArray(a.polygon)) {
-              polygon = a.polygon;
-            } else {
-              polygon = [];
-            }
-            // Collect keywords for global set
-            if (a.keywords) {
-              a.keywords.split(" ").forEach((kw) => allKeywords.add(kw));
-            }
-            return {
-              category: a.category ?? "",
-              keywords: a.keywords.split(" ") ?? [],
-              polygon,
-              annotationId: a.annotation_id,
-            };
-          });
-          const filename =
-            image.image_id ?? concatenateImageIdForFiltering(image);
-          const yearStr = image.air_year ? String(image.air_year) : "";
-
-          return {
-            id: String(image.image_id).padStart(5, "0") || 0,
-            filename,
-            categories: annotations.map((annotation) => annotation.category),
-            annotations: annotationItems,
-            imagePath,
-            hasAnnotations: annotations.length > 0,
-            episode: String(image.episode_id),
-            episodeTitle: image.episode_title || "",
-            year: yearStr,
-          };
-        })
-      );
-      setSearchData(imagesWithAnnotations);
-      setKeywordOptions(
-        Array.from(allKeywords).map((kw) => ({ value: kw, label: kw }))
-      );
-    })();
-  }, []);
+      if (image.air_year) yearsSet.add(String(image.air_year));
+      const filename = image.image_id ?? imagePath;
+      const yearStr = image.air_year ? String(image.air_year) : "";
+      return {
+        id: String(image.image_id).padStart(5, "0") || 0,
+        filename,
+        categories: data.map((annotation) => annotation.category),
+        annotations: annotationItems,
+        imagePath,
+        hasAnnotations: data.length > 0,
+        episode: String(image.episode_id),
+        episodeTitle: image.episode_title || "",
+        year: yearStr,
+      };
+    });
+    setSearchData(imagesWithAnnotations);
+    setYearOptions(
+      Array.from(yearsSet)
+        .sort((a, b) => Number(b) - Number(a))
+        .map((year) => ({ value: year, label: year }))
+    );
+    setKeywordOptions(
+      Array.from(allKeywords).map((kw) => ({ value: kw, label: kw }))
+    );
+  }, [annotations, images]);
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -453,22 +395,11 @@ export default function Search() {
         if (modalOpen) {
           setSearchParams({
             image: undefined,
-            fullscreen: showFullscreenResults,
-            q: query,
-            keywords: selectedKeywords,
-            categories: selectedCategories,
-            years: selectedYears,
-            annotated: showAnnotatedOnly,
           });
         } else if (showFullscreenResults) {
           setSearchParams({
             fullscreen: undefined,
             image: undefined,
-            q: query,
-            keywords: selectedKeywords,
-            categories: selectedCategories,
-            years: selectedYears,
-            annotated: showAnnotatedOnly,
           });
         }
         setShowResults(false);
@@ -476,61 +407,18 @@ export default function Search() {
     };
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
-  }, [
-    modalOpen,
-    showFullscreenResults,
-    query,
-    selectedKeywords,
-    selectedCategories,
-    selectedYears,
-    showAnnotatedOnly,
-  ]);
-
-  // Filter functionality
-  useEffect(() => {
-    if (searchData.length > 0) {
-      let filtered = [];
-
-      for (const item of searchData) {
-        if (
-          (selectedYears?.includes(item.year) || selectedYears.length === 0) &&
-          (selectedCategories?.some((category) =>
-            item.categories.includes(category)
-          ) ||
-            selectedCategories.length === 0) &&
-          (selectedKeywords?.some((keywords) =>
-            item.annotations.some((annotation) =>
-              annotation?.keywords.includes(keywords)
-            )
-          ) ||
-            selectedKeywords.length === 0) &&
-          (!showAnnotatedOnly || item.hasAnnotations)
-        ) {
-          filtered.push(item);
-        }
-      }
-
-      console.log("Filtered results:", filtered);
-
-      setFilteredResults(filtered);
-    }
-  }, [
-    searchData,
-    selectedCategories,
-    selectedKeywords,
-    selectedYears,
-    showAnnotatedOnly,
-  ]);
+  }, [modalOpen, showFullscreenResults]);
 
   const clearAllFilters = () => {
-    setSelectedKeywords([]);
-    setSelectedCategories([]);
-    setSelectedYears([]);
-    setShowAnnotatedOnly(false);
+    setSearchParams({
+      keywords: undefined,
+      categories: undefined,
+      years: undefined,
+      annotated: undefined,
+    });
   };
 
   const handleSearch = () => {
-    setShowFullscreenResults(true);
     setSearchParams({
       categories: selectedCategories,
       keywords: selectedKeywords,
@@ -541,33 +429,33 @@ export default function Search() {
     });
   };
 
-  // Fetch image URLs when popup is opened
-  useEffect(() => {
-    if (!showFullscreenResults) return;
-    const fetchUrls = async () => {
-      const missingPaths = filteredResults
-        .filter((r) => !imageUrls[r.imagePath])
-        .map((r) => ({ path: r.imagePath, id: r.id }));
-      if (missingPaths.length > 0) {
-        const newUrls: ImageUrlMap = { ...imageUrls };
-        await Promise.all(
-          missingPaths.map(async ({ path, id }) => {
-            try {
-              const s3Path = `images/${path}`;
-              const urlObj = await getUrl({ path: s3Path });
-              newUrls[id] = urlObj.url.href;
-            } catch (err) {
-              console.error("Error fetching image URL for", path, err);
-              newUrls[id] = "";
-            }
-          })
-        );
-        setImageUrls(newUrls);
-      }
-    };
-    fetchUrls();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showFullscreenResults, filteredResults]);
+  // Deduplicate filteredResults by imagePath before imageUrl queries
+  const uniqueFilteredResults = useMemo(
+    () => Array.from(new Map(filteredResults.map(r => [r.imagePath, r])).values()),
+    [filteredResults]
+  );
+
+  // TanStack Query for image URLs (getUrl)
+  const imageUrlQueries = useQueries({
+    queries:
+      uniqueFilteredResults.map((r) => ({
+        queryKey: ["imageUrl", r.imagePath],
+        queryFn: async () => {
+          const urlObj = await getUrl({ path: `images/${r.imagePath}` });
+          return urlObj.url.href;
+        },
+        enabled: !!r.imagePath,
+        staleTime: 1000 * 60 * 10,
+      })) || [],
+  });
+  // Memoize imageUrls
+  const imageUrls = useMemo(() => {
+    const newUrls: ImageUrlMap = {};
+    uniqueFilteredResults.forEach((r, idx) => {
+      newUrls[r.id] = imageUrlQueries[idx]?.data || "";
+    });
+    return newUrls;
+  }, [imageUrlQueries, uniqueFilteredResults]);
 
   const activeFiltersCount =
     selectedKeywords.length +
@@ -636,7 +524,7 @@ export default function Search() {
             type="text"
             placeholder={t("explorePlaceholder")}
             value={query}
-            onChange={(e) => {
+            onChange={e => {
               setSearchParams({
                 q: e.target.value,
                 keywords: selectedKeywords,
@@ -651,6 +539,8 @@ export default function Search() {
               });
             }}
             onFocus={() => setShowResults(true)}
+            inputMode="search"
+            ref={input => { /* Optionally expose ref for focus management */ }}
             className="w-full px-4 py-3 pl-12 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -918,7 +808,11 @@ export default function Search() {
               })}
             </p>
           </div>
-          <Button onClick={handleSearch} disabled={filteredResults.length === 0} className="min-w-[120px] w-full md:w-auto">
+          <Button
+            onClick={handleSearch}
+            disabled={filteredResults.length === 0}
+            className="min-w-[120px] w-full md:w-auto"
+          >
             {t.rich("browseCta", { count: filteredResults.length })}
           </Button>
         </div>
@@ -1196,17 +1090,20 @@ export default function Search() {
                     No annotations available.
                   </div>
                 )}
-                <div className="flex gap-4 mt-4 flex-wrap w-full sm:w-auto">
+                <div className="flex gap-4 mt-4 flex-wrap w-full sm:w-auto justify-end">
                   {/* <Button
-                    variant="outline"
-                    onClick={() => handleDownloadAnnotations(selectedImage)}
-                    disabled={!selectedImage.hasAnnotations}
+                      variant="outline"
+                      onClick={() => handleDownloadAnnotations(selectedImage)}
+                      disabled={!selectedImage.hasAnnotations}
+                      className="w-full sm:w-auto"
+                    >
+                      Download Annotations
+                    </Button> */}
+                  <Button
+                    onClick={() => handleEditAnnotations(selectedImage)}
                     className="w-full sm:w-auto"
                   >
-                    Download Annotations
-                  </Button> */}
-                  <Button onClick={() => handleEditAnnotations(selectedImage)} className="w-full sm:w-auto">
-                    Edit Annotations
+                    {selectedImage.hasAnnotations ? 'Edit Annotations' : 'Annotate' } 
                   </Button>
                 </div>
               </div>
