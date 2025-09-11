@@ -17,6 +17,9 @@ function getExifInfo(image: SearchData) {
   ].filter((item) => item.value); // Only include if value exists
 }
 
+import { connection } from 'next/server';
+
+
 const MAX_WIDTH = 464;
 const MAX_HEIGHT = 261;
 
@@ -168,7 +171,8 @@ const getTypeColor = (type: string) => {
   }
 };
 
-export default function ExplorePage() {
+export default async function ExplorePage() {
+  await connection();
   const router = useRouter();
   const searchParams = useSearchParams();
   // Modal state
