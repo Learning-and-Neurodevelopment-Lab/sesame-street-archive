@@ -188,24 +188,33 @@ export default function ExplorePage() {
   useEffect(() => {
     setIsSearching(true);
     const timer = setTimeout(() => {
-      const searchResults =
-        query.trim().length > 0
-          ? searchData.filter(
-              (item) =>
-                item.filename.toLowerCase().includes(query.toLowerCase()) ||
-                item.annotations.some((annotation) =>
-                  annotation?.category.toLowerCase().includes(query.toLowerCase())
-                )
-            )
-          : searchData;
-
+      const q = query.trim().toLowerCase();
+      let searchResults = searchData;
+      if (q.length > 0) {
+        searchResults = searchData.filter((item) => {
+          return (
+            (item.filename && item.filename.toLowerCase().includes(q)) ||
+            (item.episodeTitle && item.episodeTitle.toLowerCase().includes(q)) ||
+            (item.episode && item.episode.toLowerCase().includes(q)) ||
+            (item.year && item.year.toLowerCase().includes(q)) ||
+            (item.id && String(item.id).toLowerCase().includes(q)) ||
+            (item.annotations && item.annotations.some((annotation) => {
+              if (typeof annotation?.keywords) {
+                return annotation?.keywords?.map(s => s.toLowerCase()).includes(q);
+              } else if (annotation?.category) {
+                return annotation.category.toLowerCase().includes(q);
+              }
+              return false;
+            }))
+          );
+        });
+      }
       setResults(searchResults);
       setIsSearching(false);
       setShowResults(true);
     }, 200);
-
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, searchData]);
 
   useEffect(() => {
     const client = generateClient<Schema>();
@@ -430,7 +439,17 @@ export default function ExplorePage() {
             type="text"
             placeholder={t("explorePlaceholder")}
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchParams({
+                q: e.target.value,
+                keywords: selectedKeywords,
+                categories: selectedCategories,
+                years: selectedYears,
+                annotated: showAnnotatedOnly,
+                fullscreen: showFullscreenResults,
+                image: modalOpen && selectedImage ? selectedImage.imagePath : undefined,
+              });
+            }}
             onFocus={() => setShowResults(true)}
             className="w-full px-4 py-3 pl-12 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
@@ -455,7 +474,21 @@ export default function ExplorePage() {
         {query.length > 0 &&
           (showResults || isSearching) &&
           !showFullscreenResults && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+            <div
+              className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto"
+              tabIndex={-1}
+              ref={el => {
+                if (!el) return;
+                // Attach click outside handler
+                const handleClick = (e: MouseEvent) => {
+                  if (!el.contains(e.target as Node)) {
+                    setShowResults(false);
+                  }
+                };
+                document.addEventListener('mousedown', handleClick);
+                return () => document.removeEventListener('mousedown', handleClick);
+              }}
+            >
               {isSearching && (
                 <div className="p-4 text-center text-gray-500">
                   <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
@@ -475,21 +508,27 @@ export default function ExplorePage() {
                     </button>
                   </div>
                   {filteredResults.slice(0, 5).map((result) => {
-                    const imgUrl = imageUrls[result.id] || "";
                     return (
-                      <Link
+                      <button
                         key={result.id}
-                        href={
-                          imgUrl
-                            ? `/annotate?image=${encodeURIComponent(imgUrl)}`
-                            : result.url
-                        }
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                        type="button"
+                        onClick={() => {
+                          setSearchParams({
+                            image: result.imagePath,
+                            fullscreen: showFullscreenResults,
+                            q: query,
+                            keywords: selectedKeywords,
+                            categories: selectedCategories,
+                            years: selectedYears,
+                            annotated: showAnnotatedOnly,
+                          });
+                        }}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 w-full text-left"
                       >
                         <div className="w-12 h-12 bg-gray-200 rounded overflow-hidden flex-shrink-0">
-                          {imgUrl ? (
+                          {result.url ? (
                             <Image
-                              src={imgUrl}
+                              src={result.url}
                               alt={result.filename}
                               width={100}
                               height={100}
@@ -505,14 +544,14 @@ export default function ExplorePage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-gray-900 truncate">
-                            {result.filename}
+                            {result.filename} • {result.episodeTitle} • {result.episode} • {result.year}
                           </div>
                           <div className="text-sm text-gray-500 flex items-center gap-2 flex-wrap">
                             {/* Show multiple category pills only if annotations exist */}
                             {result.hasAnnotations &&
-                              result?.categories?.map((category) => (
+                              result?.categories?.map((category, index) => (
                                 <span
-                                  key={category}
+                                  key={`${category}-${index}`}
                                   className={`px-2 py-0.5 text-xs rounded-full ${getTypeColor(category)}`}
                                 >
                                   {category}
@@ -530,7 +569,7 @@ export default function ExplorePage() {
                             )}
                           </div>
                         </div>
-                      </Link>
+                      </button>
                     );
                   })}
                 </div>
@@ -778,9 +817,9 @@ export default function ExplorePage() {
                             {/* Show multiple category pills only if annotations exist */}
 
                             {result.hasAnnotations &&
-                              result.categories.map((category) => (
+                              result.categories.map((category, index) => (
                                 <span
-                                  key={category}
+                                  key={`${category}-${index}`}
                                   className={`px-2 py-0.5 rounded-full ${getTypeColor(category)} text-gray-800 mb-1 shadow-sm`}
                                 >
                                   {category}
@@ -894,9 +933,9 @@ export default function ExplorePage() {
               <div className="w-full">
                 <h3 className="text-lg font-semibold mb-2">Image Details</h3>
                 <ul className="mb-4">
-                  {getExifInfo(selectedImage).map((item) => (
+                  {getExifInfo(selectedImage).map((item, index) => (
                     <li
-                      key={item.label}
+                      key={`${item.label}-${index}`}
                       className="flex justify-between text-sm py-0.5"
                     >
                       <span className="font-medium text-gray-700">
@@ -909,8 +948,8 @@ export default function ExplorePage() {
                 <h4 className="font-medium mb-1">Annotations</h4>
                 {selectedImage.hasAnnotations ? (
                   <ul className="mb-2">
-                    {selectedImage.annotations.map((ann, idx) => (
-                      <li key={idx} className="text-sm text-gray-800">
+                    {selectedImage.annotations.map((ann, index) => (
+                      <li key={index} className="text-sm text-gray-800">
                         {ann.category} - Keywords: {ann.keywords.join(", ")}
                       </li>
                     ))}
