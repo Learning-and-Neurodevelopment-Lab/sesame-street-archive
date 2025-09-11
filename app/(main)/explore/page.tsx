@@ -25,11 +25,11 @@ import { SearchableCombobox } from "@/components/SearchableCombobox";
 import { Button } from "@/components/ui/button";
 
 type SearchData = {
-  id: number;
+  id: string | number;
   filename: string;
   categories: string[];
   url: string;
-  annotations: string[];
+  annotations: { category: string; keywords: string[] }[];
   imagePath: string; // store S-E_ID.png path, not URL
   hasAnnotations: boolean;
   episode: string;
@@ -39,20 +39,7 @@ type SearchData = {
 
 type ImageUrlMap = Record<string, string>; // key: imagePath, value: url
 
-const KEYWORD_OPTIONS = [
-  { value: "puppet", label: "Puppet" },
-  { value: "human", label: "Human" },
-  { value: "animal", label: "Animal" },
-  { value: "face", label: "Face" },
-  { value: "close-up", label: "Close-up" },
-  { value: "full-view", label: "Full View" },
-  { value: "indoor", label: "Indoor" },
-  { value: "outdoor", label: "Outdoor" },
-  { value: "clear", label: "Clear" },
-  { value: "blurry", label: "Blurry" },
-  { value: "single-digit", label: "Single Digit" },
-  { value: "multi-digit", label: "Multi Digit" },
-];
+const KEYWORD_OPTIONS = [];
 
 const CATEGORY_OPTIONS = [
   { value: "FACE", label: "Face", color: "#3b82f6" },
@@ -207,7 +194,7 @@ export default function ExplorePage() {
               (item) =>
                 item.filename.toLowerCase().includes(query.toLowerCase()) ||
                 item.annotations.some((annotation) =>
-                  annotation.toLowerCase().includes(query.toLowerCase())
+                  annotation?.category.toLowerCase().includes(query.toLowerCase())
                 )
             )
           : searchData;
@@ -226,7 +213,8 @@ export default function ExplorePage() {
     const concatenateImageIdForAnnotations = (
       image: Schema["Image"]["type"]
     ) => {
-      return "S" + String(image.season) + "-E" + String(image.episode_id);
+      console.log('image', String(image.image_id));
+      return "S" + String(image.season) + "-E" + String(image.episode_id) + "_" + String(image.image_id);
     };
 
     const concatenateImageIdForFiltering = (
@@ -261,14 +249,15 @@ export default function ExplorePage() {
         images?.map(async (image) => {
           const { data: annotations } = await client.models.Annotation.list({
             filter: {
-              image_id: { eq: concatenateImageIdForAnnotations(image) },
+              image_id: { beginsWith: concatenateImageIdForAnnotations(image) },
             },
           });
           
-
           // Only store the image path, not the URL
           const imagePath = concatenateImageIdForFiltering(image);
-          const annotationLabels = annotations.map((a) => a.category ?? "");
+          const annotationItems = annotations.map((a) => (
+            { category: a.category ?? "", keywords: a.keywords.split(' ') ?? [] }
+          ));
           const filename =
             image.image_id ?? concatenateImageIdForFiltering(image);
           const yearStr = image.air_year ? String(image.air_year) : "";
@@ -286,11 +275,11 @@ export default function ExplorePage() {
           const imageUrl = await getUrl({ path: `images/${imagePath}` });
 
           return {
-            id: Number(image.image_id) || 0,
+            id: String(image.image_id).padStart(5, '0') || 0,
             filename,
             categories: annotations.map((annotation) => annotation.category),
             url: imageUrl.url.href,
-            annotations: annotationLabels,
+            annotations: annotationItems,
             imagePath,
             hasAnnotations: annotations.length > 0,
             episode: String(image.episode_id),
@@ -305,60 +294,22 @@ export default function ExplorePage() {
 
   // Filter functionality
   useEffect(() => {
-    // const filtered = results.filter((item) => {
-    //   // Category filter
-    //   if (selectedCategories.length > 0 && !selectedCategories.some(category => item.categories.includes(category))) {
-    //     return false;
-    //   }
-    //   // Keyword filter
-    //   if (selectedKeywords.length > 0 && !selectedKeywords.some(keyword =>
-    //     item.annotations.some(annotation => annotation.toLowerCase().includes(keyword.toLowerCase()))
-    //   )) {
-    //     return false;
-    //   }
-    //   // Year filter
-    //   if (selectedYears.length > 0 && !selectedYears.includes(item.year)) {
-    //     return false;
-    //   }
-    //   // Annotated only filter
-    //   if (showAnnotatedOnly && !item.hasAnnotations) {
-    //     return false;
-    //   }
-    //   return true;
-    // });
-    // setFilteredResults(filtered);
-
     if (searchData.length > 0) {
       let filtered = [];
       
       for (const item of searchData) {
-        // if (
-        //   selectedCategories.some((category) =>
-        //     item.categories.includes(category)
-        //   )
-        // ) {
-        //   filtered.push(item);
-        // }
-        
-        if (selectedYears?.includes(item.year)) {
-          filtered.push(item);
+        if (
+          (selectedYears?.includes(item.year) || selectedYears.length === 0) &&
+          (selectedCategories?.some((category) => item.categories.includes(category)) || selectedCategories.length === 0) &&
+          (selectedKeywords?.some((keywords) => item.annotations.some((annotation) => annotation?.keywords.includes(keywords))) || selectedKeywords.length === 0) &&
+          (!showAnnotatedOnly || item.hasAnnotations)
+        ) {
+            filtered.push(item);
         }
-
-        if (item.hasAnnotations || !showAnnotatedOnly) {
-        }
-
-
-        // if (selectedKeywords?.includes(item.year)) {
-        //   filtered.push(item);
-        // }
-
       }
-
 
       if (filtered.length) {
         setFilteredResults(filtered);
-      } else {
-        setFilteredResults(searchData);
       }
     }
   }, [
@@ -378,6 +329,14 @@ export default function ExplorePage() {
 
   const handleSearch = () => {
     setShowFullscreenResults(true);
+    setSearchParams({
+      categories: selectedCategories,
+      keywords: selectedKeywords,
+      years: selectedYears,
+      annotated: showAnnotatedOnly,
+      q: query,
+      fullscreen: true,
+    });
   };
 
   const handleCategoryChange = (value: string[]) => {
@@ -397,18 +356,18 @@ export default function ExplorePage() {
     const fetchUrls = async () => {
       const missingPaths = filteredResults
         .filter((r) => !imageUrls[r.imagePath])
-        .map((r) => r.imagePath);
+        .map((r) => ({ path: r.imagePath, id: r.id }));
       if (missingPaths.length > 0) {
         const newUrls: ImageUrlMap = { ...imageUrls };
         await Promise.all(
-          missingPaths.map(async (path) => {
+          missingPaths.map(async ({ path, id }) => {
             try {
               const s3Path = `images/${path}`;
               const urlObj = await getUrl({ path: s3Path });
-              newUrls[path] = urlObj.url.href;
+              newUrls[id] = urlObj.url.href;
             } catch (err) {
               console.error("Error fetching image URL for", path, err);
-              newUrls[path] = "";
+              newUrls[id] = "";
             }
           })
         );
@@ -516,7 +475,7 @@ export default function ExplorePage() {
                     </button>
                   </div>
                   {filteredResults.slice(0, 5).map((result) => {
-                    const imgUrl = imageUrls[result.url] || "";
+                    const imgUrl = imageUrls[result.id] || "";
                     return (
                       <Link
                         key={result.id}
@@ -742,7 +701,7 @@ export default function ExplorePage() {
                 onClick={() => {
                   setSearchParams({
                     fullscreen: undefined,
-                    // preserve all other filters/search state
+                    image: undefined,
                     q: query,
                     keywords: selectedKeywords,
                     categories: selectedCategories,
@@ -772,7 +731,7 @@ export default function ExplorePage() {
             <div className="flex-1 overflow-y-auto p-6">
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {filteredResults.map((result) => {
-                  const imgUrl = imageUrls[result.imagePath] || "";
+                  const imgUrl = imageUrls[result.id] || "";
                   return (
                     <button
                       key={`${result.id}-${result.episode}`}
@@ -919,9 +878,9 @@ export default function ExplorePage() {
             </button>
             <div className="flex flex-col items-center gap-4">
               <div className="w-full aspect-video bg-gray-200 rounded overflow-hidden flex items-center justify-center m-4">
-                {imageUrls[selectedImage.imagePath] ? (
+                {imageUrls[selectedImage.id] ? (
                   <Image
-                    src={imageUrls[selectedImage.imagePath]}
+                    src={imageUrls[selectedImage.id]}
                     alt={selectedImage.filename}
                     width={192}
                     height={192}
@@ -952,7 +911,7 @@ export default function ExplorePage() {
                   <ul className="mb-2">
                     {selectedImage.annotations.map((ann, idx) => (
                       <li key={idx} className="text-sm text-gray-800">
-                        {ann}
+                        {ann.category} - Keywords: {ann.keywords.join(", ")}
                       </li>
                     ))}
                   </ul>

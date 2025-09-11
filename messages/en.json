@@ -79,7 +79,7 @@
     "exploreTitle": "Explore Images",
     "exploreDescription": "Browse and search through annotated images from the Sesame Street Archive.",
     "explorePlaceholder": "Search images, annotations, characters…",
-    "filterTitle": "Filter Images",
+    "filterTitle": "Filter Images & Annotations",
     "filterClearCta": "Clear Filters",
     "browseCta": "Browse {count, plural, =0 {no images} =1 {# image} other {# images}}",
     "activeFilters": "{count, plural, =0 {no filters} =1 {# filter} other {# filters}} applied",
