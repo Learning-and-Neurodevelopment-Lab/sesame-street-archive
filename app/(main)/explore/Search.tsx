@@ -909,8 +909,8 @@ export default function Search() {
         </div>
 
         {/* Search Button */}
-        <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center">
-          <div>
+        <div className="grid md:grid-cols-[1fr_auto] gap-4 mt-6 pt-4 border-t border-gray-200">
+          <div className="w-full">
             <p className="text-sm text-gray-600">
               {t("criteriaLabel", {
                 count: filteredResults.length,
@@ -918,7 +918,7 @@ export default function Search() {
               })}
             </p>
           </div>
-          <Button onClick={handleSearch} className="min-w-[120px]">
+          <Button onClick={handleSearch} disabled={filteredResults.length === 0} className="min-w-[120px] w-full md:w-auto">
             {t.rich("browseCta", { count: filteredResults.length })}
           </Button>
         </div>
@@ -1105,7 +1105,7 @@ export default function Search() {
       {/* Modal for image details and annotation actions */}
       {modalOpen && selectedImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-8"
           onClick={(e) => {
             // Only close if click is on the overlay, not inside the modal
             if (e.target === e.currentTarget) {
@@ -1196,15 +1196,16 @@ export default function Search() {
                     No annotations available.
                   </div>
                 )}
-                <div className="flex gap-2 mt-4">
-                  <Button
+                <div className="flex gap-4 mt-4 flex-wrap w-full sm:w-auto">
+                  {/* <Button
                     variant="outline"
                     onClick={() => handleDownloadAnnotations(selectedImage)}
                     disabled={!selectedImage.hasAnnotations}
+                    className="w-full sm:w-auto"
                   >
                     Download Annotations
-                  </Button>
-                  <Button onClick={() => handleEditAnnotations(selectedImage)}>
+                  </Button> */}
+                  <Button onClick={() => handleEditAnnotations(selectedImage)} className="w-full sm:w-auto">
                     Edit Annotations
                   </Button>
                 </div>
