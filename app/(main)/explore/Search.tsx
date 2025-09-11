@@ -9,25 +9,21 @@ import useImage from "use-image";
 // Helper to extract EXIF-like info (mocked for now)
 function getExifInfo(image: SearchData) {
   return [
-    { label: "Filename", value: image.filename },
-    { label: "Year", value: image.year },
-    { label: "Episode", value: image.episode },
-    { label: "Categories", value: image.categories.join(", ") },
     { label: "Title", value: image.episodeTitle },
+    { label: "Episode", value: image.episode },
+    { label: "Year", value: image.year },
+    { label: "Categories", value: image.categories.join(", ") },
     // Add more fields as needed
   ].filter((item) => item.value); // Only include if value exists
 }
-
-const MAX_WIDTH = 464;
-const MAX_HEIGHT = 261;
 
 // Helper component for Konva image with bounding boxes
 
 function KonvaImageWithBoxes({ imageUrl, boxes }) {
   const [image] = useImage(imageUrl);
   const [stageSize, setStageSize] = useState({
-    width: MAX_WIDTH,
-    height: MAX_HEIGHT,
+    width: 0,
+    height: 0,
   });
   const stageRef = useRef(null);
 
@@ -35,17 +31,12 @@ function KonvaImageWithBoxes({ imageUrl, boxes }) {
     if (image && image.width && image.height) {
       const imgW = image.width;
       const imgH = image.height;
-      let width = MAX_WIDTH;
-      let height = (imgH / imgW) * MAX_WIDTH;
-      if (height > MAX_HEIGHT) {
-        height = MAX_HEIGHT;
-        width = (imgW / imgH) * MAX_HEIGHT;
-      }
+      let width = imgW;
+      let height = imgH;
+      
       setStageSize({ width, height });
     }
   }, [image]);
-
-  const width = 480;
 
   const AnimatedKonvaImage = animated(KonvaImage);
 
@@ -53,8 +44,8 @@ function KonvaImageWithBoxes({ imageUrl, boxes }) {
     <Stage
       width={stageSize.width}
       height={stageSize.height}
-      style={{ width: "100%", height: "100%" }}
       ref={stageRef}
+      style={{ width: "fit-content", height: "fit-content" }}
       onContextMenu={(evt) => evt.evt.preventDefault()}
     >
       <Layer>
@@ -63,8 +54,8 @@ function KonvaImageWithBoxes({ imageUrl, boxes }) {
             // @ts-ignore
             <AnimatedKonvaImage
               image={image}
-              width={width}
-              height={270}
+              width={stageSize.width}
+              height={stageSize.height}
               opacity={opacity}
             />
           )}
@@ -1051,7 +1042,7 @@ export default function Search() {
               </svg>
             </button>
             <div className="flex flex-col items-center gap-4">
-              <div className="w-full aspect-video bg-gray-200 rounded overflow-hidden flex items-center justify-center m-4 relative">
+              <div className="w-full bg-gray-200 rounded overflow-hidden flex items-center justify-center m-4 relative">
                 {imageUrls[selectedImage.id] ? (
                   <KonvaImageWithBoxes
                     imageUrl={imageUrls[selectedImage.id]}
@@ -1071,7 +1062,7 @@ export default function Search() {
                     >
                       <span className="font-medium text-gray-700">
                         {item.label}:
-                      </span>
+                      </span>{' '}
                       <span className="text-gray-900">{item.value}</span>
                     </li>
                   ))}
