@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 import footerMessages from "@/messages/en.json";
+import { cn } from "@/lib/utils";
 
 const Footer: React.FC = () => {
   const t = useTranslations("Footer");
@@ -13,14 +14,14 @@ const Footer: React.FC = () => {
   return (
     <footer className="border-t bg-white text-neutral-500 py-12">
       <div className="max-w-6xl mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-8 gap-x-24 gap-y-8 mb-8">
           {/* Navigation Sections */}
           {Object.entries(navSections).map(([sectionKey, section]) => (
-            <div key={sectionKey}>
+            <div key={sectionKey} className={cn(sectionKey === "general" && "col-span-3", sectionKey !== "general" && "col-span-2")}>
               <h3 className="font-semibold text-neutral-700 mb-4">
                 {section.label}
               </h3>
-              <ul className="space-y-2">
+              <ul className={cn("space-y-2", sectionKey === "general" && "grid md:grid-cols-2 gap-x-2")}>
                 {Object.entries(section.links).map(([linkKey, link]) => (
                   <li key={linkKey}>
                     <Link
