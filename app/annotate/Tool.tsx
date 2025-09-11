@@ -1,7 +1,7 @@
 // app/annotate/page.tsx
 "use client";
 
-import { useState, useRef, useMemo, useEffect, Fragment } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import {
   Stage,
   Layer,
