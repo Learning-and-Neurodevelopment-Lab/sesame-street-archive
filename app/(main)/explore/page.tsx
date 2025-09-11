@@ -1,13 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+// Helper to extract EXIF-like info (mocked for now)
+function getExifInfo(image: SearchData) {
+  return [
+    { label: "Filename", value: image.filename },
+    { label: "Year", value: image.year },
+    { label: "Episode", value: image.episode },
+    { label: "Categories", value: image.categories.join(", ") },
+    { label: "Title", value: image.episodeTitle },
+    // Add more fields as needed
+  ].filter((item) => item.value); // Only include if value exists
+}
 import Link from "next/link";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { Schema } from "@/amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
 import { getCurrentUser } from "aws-amplify/auth";
-import { getUrl } from 'aws-amplify/storage';
+import { getUrl } from "aws-amplify/storage";
 
 import { SearchableCombobox } from "@/components/SearchableCombobox";
 import { Button } from "@/components/ui/button";
@@ -22,6 +34,7 @@ type SearchData = {
   hasAnnotations: boolean;
   episode: string;
   year: string;
+  episodeTitle: string;
 };
 
 type ImageUrlMap = Record<string, string>; // key: imagePath, value: url
@@ -42,9 +55,10 @@ const KEYWORD_OPTIONS = [
 ];
 
 const CATEGORY_OPTIONS = [
-  { value: "face", label: "Face", color: "#3b82f6" },
-  { value: "place", label: "Place", color: "#22c55e" },
-  { value: "number", label: "Number", color: "#a855f7" },
+  { value: "FACE", label: "Face", color: "#3b82f6" },
+  { value: "PLACE", label: "Place", color: "#22c55e" },
+  { value: "NUMBER", label: "Number", color: "#a855f7" },
+  { value: "WORD", label: "Word", color: "#a42a04" },
 ];
 
 const YEAR_OPTIONS = Array.from({ length: 25 }, (_, i) => ({
@@ -66,6 +80,11 @@ const getTypeColor = (type: string) => {
 };
 
 export default function ExplorePage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // Modal state
+  const [selectedImage, setSelectedImage] = useState<SearchData | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchData[]>([]);
   const [filteredResults, setFilteredResults] = useState<SearchData[]>([]);
@@ -74,12 +93,93 @@ export default function ExplorePage() {
   const [showResults, setShowResults] = useState(false);
   const [showFullscreenResults, setShowFullscreenResults] = useState(false);
   const [searchData, setSearchData] = useState<SearchData[]>([]);
+  const [yearOptions, setYearOptions] = useState<typeof YEAR_OPTIONS>(YEAR_OPTIONS);
+  const [keywordOptions, setKeywordOptions] = useState<typeof KEYWORD_OPTIONS>(KEYWORD_OPTIONS);
+
+
+
+  // Sync state from search params on mount and when params change
+  useEffect(() => {
+    // Helper to parse comma-separated params
+    const parseArray = (val: string | null) => val ? val.split(",").filter(Boolean) : [];
+    setQuery(searchParams.get("q") || "");
+    setSelectedKeywords(parseArray(searchParams.get("keywords")));
+    setSelectedCategories(parseArray(searchParams.get("categories")));
+    setSelectedYears(parseArray(searchParams.get("years")));
+    setShowAnnotatedOnly(searchParams.get("annotated") === "1");
+    setShowFullscreenResults(searchParams.get("fullscreen") === "1");
+  }, [searchParams]);
+
+  // Modal state from search params
+  useEffect(() => {
+    const imageParam = searchParams.get("image");
+    if (imageParam && searchData.length > 0) {
+      const found = searchData.find(img => img.imagePath === imageParam);
+      if (found) {
+        setSelectedImage(found);
+        setModalOpen(true);
+      } else {
+        setModalOpen(false);
+        setSelectedImage(null);
+      }
+    } else {
+      setModalOpen(false);
+      setSelectedImage(null);
+    }
+  }, [searchParams, searchData]);
 
   // Filter states
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedYears, setSelectedYears] = useState<string[]>([]);
   const [showAnnotatedOnly, setShowAnnotatedOnly] = useState(false);
+
+  // Helper to update search params in URL
+  const setSearchParams = (params: Record<string, string | string[] | boolean | undefined>) => {
+    const sp = new URLSearchParams(searchParams.toString());
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === undefined || value === false || (Array.isArray(value) && value.length === 0)) {
+        sp.delete(key);
+      } else if (Array.isArray(value)) {
+        sp.set(key, value.join(","));
+      } else if (typeof value === "boolean") {
+        sp.set(key, value ? "1" : "0");
+      } else {
+        sp.set(key, value);
+      }
+    });
+    router.replace(`?${sp.toString()}`);
+  };
+
+  // Sync state from search params on mount and when params change
+  useEffect(() => {
+    // Helper to parse comma-separated params
+    const parseArray = (val: string | null) => val ? val.split(",").filter(Boolean) : [];
+    setQuery(searchParams.get("q") || "");
+    setSelectedKeywords(parseArray(searchParams.get("keywords")));
+    setSelectedCategories(parseArray(searchParams.get("categories")));
+    setSelectedYears(parseArray(searchParams.get("years")));
+    setShowAnnotatedOnly(searchParams.get("annotated") === "1");
+    setShowFullscreenResults(searchParams.get("fullscreen") === "1");
+  }, [searchParams]);
+
+  // Modal state from search params
+  useEffect(() => {
+    const imageParam = searchParams.get("image");
+    if (imageParam && searchData.length > 0) {
+      const found = searchData.find(img => img.imagePath === imageParam);
+      if (found) {
+        setSelectedImage(found);
+        setModalOpen(true);
+      } else {
+        setModalOpen(false);
+        setSelectedImage(null);
+      }
+    } else {
+      setModalOpen(false);
+      setSelectedImage(null);
+    }
+  }, [searchParams, searchData]);
 
   const t = useTranslations("ExplorePage");
 
@@ -101,15 +201,17 @@ export default function ExplorePage() {
   useEffect(() => {
     setIsSearching(true);
     const timer = setTimeout(() => {
-      const searchResults = query.trim().length > 0 
-        ? searchData.filter((item) =>
-            item.filename.toLowerCase().includes(query.toLowerCase()) ||
-            item.annotations.some(annotation => 
-              annotation.toLowerCase().includes(query.toLowerCase())
+      const searchResults =
+        query.trim().length > 0
+          ? searchData.filter(
+              (item) =>
+                item.filename.toLowerCase().includes(query.toLowerCase()) ||
+                item.annotations.some((annotation) =>
+                  annotation.toLowerCase().includes(query.toLowerCase())
+                )
             )
-          )
-        : searchData;
-      
+          : searchData;
+
       setResults(searchResults);
       setIsSearching(false);
       setShowResults(true);
@@ -120,71 +222,152 @@ export default function ExplorePage() {
 
   useEffect(() => {
     const client = generateClient<Schema>();
-    
-    const concatenateImageIdForAnnotations = (image: Schema["Image"]["type"]) => {
+
+    const concatenateImageIdForAnnotations = (
+      image: Schema["Image"]["type"]
+    ) => {
       return "S" + String(image.season) + "-E" + String(image.episode_id);
-    }; 
+    };
+
+    const concatenateImageIdForFiltering = (
+      image: Schema["Image"]["type"]
+    ) => {
+      return "S" + String(image.season) + "-E" + String(image.episode_id) + "_" + String(image.image_id) + ".png";
+    };
 
     (async () => {
-      let imageOptions = { limit: 100 };
+      let imageOptions = { limit: 1000 };
 
       if (isAuthenticated) {
-        imageOptions = { limit: 100 };
+        imageOptions = { limit: 1000 };
       }
 
       const { data: images } = await client.models.Image.list(imageOptions);
-       
-      const imagesWithAnnotations = await Promise.all(images?.map(async (image) => {
-        const { data: annotations } = await client.models.Annotation.list({
-          filter: { image_id: { eq: concatenateImageIdForAnnotations(image) } }
-        });
-        // Only store the image path, not the URL
-        const imagePath = concatenateImageIdForAnnotations(image);
-        const annotationLabels = annotations.map(a => a.category ?? "");
-        const filename = image.image_id ?? concatenateImageIdForAnnotations(image);
-        const yearStr = image.air_year ? String(image.air_year) : "";
-        return {
-          id: Number(image.image_id) || 0,
-          filename,
-          categories: annotations.map(annotation => annotation.category),
-          url: `/annotate?image=${imagePath}`,
-          annotations: annotationLabels,
-          imagePath,
-          hasAnnotations: annotations.length > 0,
-          episode: String(image.episode_id),
-          year: yearStr,
-        };
-      }));
+
+      const yearsSet = new Set<string>();
+      images?.forEach((image) => {
+        if (image.air_year) {
+          yearsSet.add(String(image.air_year));
+        }
+      });
+
+      setYearOptions(
+        Array.from(yearsSet).
+          sort((a, b) => Number(b) - Number(a))
+          .map((year) => ({ value: year, label: year }))
+      );
+
+      const imagesWithAnnotations = await Promise.all(
+        images?.map(async (image) => {
+          const { data: annotations } = await client.models.Annotation.list({
+            filter: {
+              image_id: { eq: concatenateImageIdForAnnotations(image) },
+            },
+          });
+          
+
+          // Only store the image path, not the URL
+          const imagePath = concatenateImageIdForFiltering(image);
+          const annotationLabels = annotations.map((a) => a.category ?? "");
+          const filename =
+            image.image_id ?? concatenateImageIdForFiltering(image);
+          const yearStr = image.air_year ? String(image.air_year) : "";
+
+          setKeywordOptions((prev) => {
+            const keywords = new Set(prev.map((opt) => opt.value));
+            annotations?.forEach((annotation) => {
+              if (annotation.keywords) {
+                annotation.keywords.split(' ').forEach((kw) => keywords.add(kw));
+              }
+            });
+            return Array.from(keywords).map((kw) => ({ value: kw, label: kw }));
+          });
+
+          const imageUrl = await getUrl({ path: `images/${imagePath}` });
+
+          return {
+            id: Number(image.image_id) || 0,
+            filename,
+            categories: annotations.map((annotation) => annotation.category),
+            url: imageUrl.url.href,
+            annotations: annotationLabels,
+            imagePath,
+            hasAnnotations: annotations.length > 0,
+            episode: String(image.episode_id),
+            episodeTitle: image.episode_title || "",
+            year: yearStr,
+          };
+        })
+      );
       setSearchData(imagesWithAnnotations);
-      setFilteredResults(imagesWithAnnotations);
     })();
-  }, [isAuthenticated]);
+  }, []);
 
   // Filter functionality
   useEffect(() => {
-    const filtered = results.filter((item) => {
-      // Category filter
-      if (selectedCategories.length > 0 && !selectedCategories.some(category => item.categories.includes(category))) {
-        return false;
+    // const filtered = results.filter((item) => {
+    //   // Category filter
+    //   if (selectedCategories.length > 0 && !selectedCategories.some(category => item.categories.includes(category))) {
+    //     return false;
+    //   }
+    //   // Keyword filter
+    //   if (selectedKeywords.length > 0 && !selectedKeywords.some(keyword =>
+    //     item.annotations.some(annotation => annotation.toLowerCase().includes(keyword.toLowerCase()))
+    //   )) {
+    //     return false;
+    //   }
+    //   // Year filter
+    //   if (selectedYears.length > 0 && !selectedYears.includes(item.year)) {
+    //     return false;
+    //   }
+    //   // Annotated only filter
+    //   if (showAnnotatedOnly && !item.hasAnnotations) {
+    //     return false;
+    //   }
+    //   return true;
+    // });
+    // setFilteredResults(filtered);
+
+    if (searchData.length > 0) {
+      let filtered = [];
+      
+      for (const item of searchData) {
+        // if (
+        //   selectedCategories.some((category) =>
+        //     item.categories.includes(category)
+        //   )
+        // ) {
+        //   filtered.push(item);
+        // }
+        
+        if (selectedYears?.includes(item.year)) {
+          filtered.push(item);
+        }
+
+        if (item.hasAnnotations || !showAnnotatedOnly) {
+        }
+
+
+        // if (selectedKeywords?.includes(item.year)) {
+        //   filtered.push(item);
+        // }
+
       }
-      // Keyword filter
-      if (selectedKeywords.length > 0 && !selectedKeywords.some(keyword =>
-        item.annotations.some(annotation => annotation.toLowerCase().includes(keyword.toLowerCase()))
-      )) {
-        return false;
+
+
+      if (filtered.length) {
+        setFilteredResults(filtered);
+      } else {
+        setFilteredResults(searchData);
       }
-      // Year filter
-      if (selectedYears.length > 0 && !selectedYears.includes(item.year)) {
-        return false;
-      }
-      // Annotated only filter
-      if (showAnnotatedOnly && !item.hasAnnotations) {
-        return false;
-      }
-      return true;
-    });
-    setFilteredResults(filtered);
-  }, [results, selectedCategories, selectedKeywords, selectedYears, showAnnotatedOnly]);
+    }
+  }, [
+    searchData,
+    selectedCategories,
+    selectedKeywords,
+    selectedYears,
+    showAnnotatedOnly,
+  ]);
 
   const clearAllFilters = () => {
     setSelectedKeywords([]);
@@ -197,20 +380,35 @@ export default function ExplorePage() {
     setShowFullscreenResults(true);
   };
 
+  const handleCategoryChange = (value: string[]) => {
+    setSearchParams({
+      categories: value,
+      keywords: selectedKeywords,
+      years: selectedYears,
+      annotated: showAnnotatedOnly,
+      q: query,
+      fullscreen: showFullscreenResults,
+    });
+  };
+
   // Fetch image URLs when popup is opened
   useEffect(() => {
     if (!showFullscreenResults) return;
     const fetchUrls = async () => {
-      const missingPaths = filteredResults.filter(r => !imageUrls[r.imagePath]).map(r => r.imagePath);
+      const missingPaths = filteredResults
+        .filter((r) => !imageUrls[r.imagePath])
+        .map((r) => r.imagePath);
       if (missingPaths.length > 0) {
         const newUrls: ImageUrlMap = { ...imageUrls };
         await Promise.all(
           missingPaths.map(async (path) => {
             try {
-              const urlObj = await getUrl({ path: `images/${path}` });
+              const s3Path = `images/${path}`;
+              const urlObj = await getUrl({ path: s3Path });
               newUrls[path] = urlObj.url.href;
-            } catch {
-              newUrls[path] = '';
+            } catch (err) {
+              console.error("Error fetching image URL for", path, err);
+              newUrls[path] = "";
             }
           })
         );
@@ -228,13 +426,42 @@ export default function ExplorePage() {
     selectedYears.length +
     (showAnnotatedOnly ? 1 : 0);
 
+  // Download annotations as JSON
+  const handleDownloadAnnotations = (image: SearchData) => {
+    const data = JSON.stringify(image.annotations, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${image.filename}-annotations.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Navigate to /annotate with current search/query params
+  const handleEditAnnotations = (image: SearchData) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("image", image.url);
+    router.push(`/annotate?${params.toString()}`);
+  };
+
+  // Open modal with selected image
+  const openImageModal = (image: SearchData) => {
+    setSelectedImage(image);
+    setModalOpen(true);
+  };
+
+  // Close modal
+  const closeModal = () => {
+    setModalOpen(false);
+    setSelectedImage(null);
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-4">{t("exploreTitle")}</h1>
-        <p className="text-lg text-neutral-600">
-          {t("exploreDescription")}
-        </p>
+        <p className="text-lg text-neutral-600">{t("exploreDescription")}</p>
       </div>
 
       {/* Search Input Container */}
@@ -266,183 +493,238 @@ export default function ExplorePage() {
         </div>
 
         {/* Quick Preview Results */}
-        {query.length > 0 && (showResults || isSearching) && !showFullscreenResults && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
-            {isSearching && (
-              <div className="p-4 text-center text-gray-500">
-                <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                <span className="ml-2">Searching…</span>
-              </div>
-            )}
-
-            {!isSearching && filteredResults.length > 0 && (
-              <div className="py-2">
-                <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b flex justify-between items-center">
-                  <span>Images ({filteredResults.length} results)</span>
-                  <button
-                    onClick={handleSearch}
-                    className="text-blue-600 text-xs hover:text-blue-800"
-                  >
-                    View All →
-                  </button>
+        {query.length > 0 &&
+          (showResults || isSearching) &&
+          !showFullscreenResults && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+              {isSearching && (
+                <div className="p-4 text-center text-gray-500">
+                  <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                  <span className="ml-2">Searching…</span>
                 </div>
-                {filteredResults.slice(0, 5).map((result) => {
-                  const imgUrl = imageUrls[result.imagePath] || '';
-                  return (
-                    <Link
-                      key={result.id}
-                      href={imgUrl ? `/annotate?image=${encodeURIComponent(imgUrl)}` : result.url}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-                    >
-                      <div className="w-12 h-12 bg-gray-200 rounded overflow-hidden flex-shrink-0">
-                        {imgUrl ? (
-                          <Image
-                            src={imgUrl}
-                            alt={result.filename}
-                            width={100}
-                            height={100}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400">Loading…</div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-900 truncate">
-                          {result.filename}
-                        </div>
-                        <div className="text-sm text-gray-500 flex items-center gap-2 flex-wrap">
-                          {/* Show multiple category pills only if annotations exist */}
-                          {result.hasAnnotations && result?.categories?.map((category) => (
-                            <span key={category} className={`px-2 py-0.5 text-xs rounded-full ${getTypeColor(category)}`}>
-                              {category}
-                            </span>
-                          ))}
-                          {result.hasAnnotations && (
-                            <span className="text-xs text-green-600">
-                              {result.annotations.length} annotations
-                            </span>
-                          )}
-                          {!result.hasAnnotations && (
-                            <span className="text-xs text-gray-400">
-                              No annotations
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
+              )}
 
-            {!isSearching && filteredResults.length === 0 && (
-              <div className="p-4 text-center text-gray-500">
-                No images found for "{query}"
-              </div>
-            )}
-          </div>
-        )}
+              {!isSearching && filteredResults.length > 0 && (
+                <div className="py-2">
+                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b flex justify-between items-center">
+                    <span>Images ({filteredResults.length} results)</span>
+                    <button
+                      onClick={handleSearch}
+                      className="text-blue-600 text-xs hover:text-blue-800"
+                    >
+                      View All →
+                    </button>
+                  </div>
+                  {filteredResults.slice(0, 5).map((result) => {
+                    const imgUrl = imageUrls[result.url] || "";
+                    return (
+                      <Link
+                        key={result.id}
+                        href={
+                          imgUrl
+                            ? `/annotate?image=${encodeURIComponent(imgUrl)}`
+                            : result.url
+                        }
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                      >
+                        <div className="w-12 h-12 bg-gray-200 rounded overflow-hidden flex-shrink-0">
+                          {imgUrl ? (
+                            <Image
+                              src={imgUrl}
+                              alt={result.filename}
+                              width={100}
+                              height={100}
+                              className="w-full h-full object-cover pointer-events-none select-none"
+                              loading="lazy"
+                              draggable="false"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              Loading…
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-gray-900 truncate">
+                            {result.filename}
+                          </div>
+                          <div className="text-sm text-gray-500 flex items-center gap-2 flex-wrap">
+                            {/* Show multiple category pills only if annotations exist */}
+                            {result.hasAnnotations &&
+                              result?.categories?.map((category) => (
+                                <span
+                                  key={category}
+                                  className={`px-2 py-0.5 text-xs rounded-full ${getTypeColor(category)}`}
+                                >
+                                  {category}
+                                </span>
+                              ))}
+                            {result.hasAnnotations && (
+                              <span className="text-xs text-green-600">
+                                {result.annotations.length} annotations
+                              </span>
+                            )}
+                            {!result.hasAnnotations && (
+                              <span className="text-xs text-gray-400">
+                                No annotations
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+
+              {!isSearching && filteredResults.length === 0 && (
+                <div className="p-4 text-center text-gray-500">
+                  No images found for "{query}"
+                </div>
+              )}
+            </div>
+          )}
       </div>
 
       {/* Advanced Filters */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">{t("filterTitle")}</h2>
-          <div className="flex items-center gap-4">
-            {activeFiltersCount > 0 && (
-              <span className="text-sm text-gray-600">
-                {t.rich("activeFilters", { count: activeFiltersCount })}
-              </span>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearAllFilters}
-              disabled={activeFiltersCount === 0}
-            >
-              {t("filterClearCta")}
+      <Suspense fallback={<div>Loading filters...</div>}>
+        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">
+              {t("filterTitle")}
+            </h2>
+            <div className="flex items-center gap-4">
+              {activeFiltersCount > 0 && (
+                <span className="text-sm text-gray-600">
+                  {t.rich("activeFilters", { count: activeFiltersCount })}
+                </span>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearAllFilters}
+                disabled={activeFiltersCount === 0}
+              >
+                {t("filterClearCta")}
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Category Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t("categoryFilter.label")}
+              </label>
+              <SearchableCombobox
+                value={selectedCategories}
+                onChange={(value) => {
+                  setSearchParams({
+                    categories: value as string[],
+                    keywords: selectedKeywords,
+                    years: selectedYears,
+                    annotated: showAnnotatedOnly,
+                    q: query,
+                    fullscreen: showFullscreenResults,
+                  });
+                }}
+                options={CATEGORY_OPTIONS}
+                placeholder={t("categoryFilter.placeholder")}
+                className="w-full"
+                multiple={true}
+              />
+            </div>
+
+            {/* Keywords Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t("keywordFilter.label")}
+              </label>
+              <SearchableCombobox
+                options={keywordOptions}
+                value={selectedKeywords}
+                onChange={(value) => {
+                  setSearchParams({
+                    keywords: value as string[],
+                    categories: selectedCategories,
+                    years: selectedYears,
+                    annotated: showAnnotatedOnly,
+                    q: query,
+                    fullscreen: showFullscreenResults,
+                  });
+                }}
+                placeholder={t("keywordFilter.placeholder")}
+                className="w-full"
+                multiple={true}
+              />
+            </div>
+
+            {/* Year Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t("yearFilter.label")}
+              </label>
+              <SearchableCombobox
+                options={yearOptions}
+                value={selectedYears}
+                onChange={(value) => {
+                  setSearchParams({
+                    years: value as string[],
+                    categories: selectedCategories,
+                    keywords: selectedKeywords,
+                    annotated: showAnnotatedOnly,
+                    q: query,
+                    fullscreen: showFullscreenResults,
+                  });
+                }}
+                placeholder={t("yearFilter.placeholder")}
+                className="w-full"
+                multiple={true}
+              />
+            </div>
+
+            {/* Annotation Status */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t("annotationStatus.label")}
+              </label>
+              <label className="flex items-center gap-2 p-3 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
+                <input
+                  type="checkbox"
+                  checked={showAnnotatedOnly}
+                  onChange={(e) => {
+                    setSearchParams({
+                      annotated: e.target.checked,
+                      categories: selectedCategories,
+                      keywords: selectedKeywords,
+                      years: selectedYears,
+                      q: query,
+                      fullscreen: showFullscreenResults,
+                    });
+                  }}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm">{t("annotationStatus.option")}</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Search Button */}
+          <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center">
+            <div>
+              <p className="text-sm text-gray-600">
+                {t("criteriaLabel", {
+                  count: filteredResults.length,
+                  total: searchData.length,
+                })}
+              </p>
+            </div>
+            <Button onClick={handleSearch} className="min-w-[120px]">
+              {t.rich("browseCta", { count: filteredResults.length })}
             </Button>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Category Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('categoryFilter.label')}
-            </label>
-            <SearchableCombobox
-              options={CATEGORY_OPTIONS}
-              value={selectedCategories}
-              onChange={(value) => setSelectedCategories(value as string[])}
-              placeholder={t("categoryFilter.placeholder")}
-              className="w-full"
-              multiple={true}
-            />
-          </div>
-
-          {/* Keywords Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('keywordFilter.label')}
-            </label>
-            <SearchableCombobox
-              options={KEYWORD_OPTIONS}
-              value={selectedKeywords}
-              onChange={(value) => setSelectedKeywords(value as string[])}
-              placeholder={t("keywordFilter.placeholder")}
-              className="w-full"
-              multiple={true}
-            />
-          </div>
-
-          {/* Year Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('yearFilter.label')}
-            </label>
-            <SearchableCombobox
-              options={YEAR_OPTIONS}
-              value={selectedYears}
-              onChange={(value) => setSelectedYears(value as string[])}
-              placeholder={t("yearFilter.placeholder")}
-              className="w-full"
-              multiple={true}
-            />
-          </div>
-
-          {/* Annotation Status */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('annotationStatus.label')}
-            </label>
-            <label className="flex items-center gap-2 p-3 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
-              <input
-                type="checkbox"
-                checked={showAnnotatedOnly}
-                onChange={(e) => setShowAnnotatedOnly(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-              />
-              <span className="text-sm">{t('annotationStatus.option')}</span>
-            </label>
-          </div>
-        </div>
-
-        {/* Search Button */}
-        <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center">
-          <div>
-            <p className="text-sm text-gray-600">
-              {t('criteriaLabel', { count: filteredResults.length, total: searchData.length })}
-            </p>
-          </div>
-          <Button onClick={handleSearch} className="min-w-[120px]">
-            {t.rich("browseCta", { count: filteredResults.length })}
-          </Button>
-        </div>
-      </div>
-
+      </Suspense>
       {/* Fullscreen Results Grid */}
       {showFullscreenResults && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
@@ -457,11 +739,31 @@ export default function ExplorePage() {
                 </p>
               </div>
               <button
-                onClick={() => setShowFullscreenResults(false)}
+                onClick={() => {
+                  setSearchParams({
+                    fullscreen: undefined,
+                    // preserve all other filters/search state
+                    q: query,
+                    keywords: selectedKeywords,
+                    categories: selectedCategories,
+                    years: selectedYears,
+                    annotated: showAnnotatedOnly,
+                  });
+                }}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -470,13 +772,23 @@ export default function ExplorePage() {
             <div className="flex-1 overflow-y-auto p-6">
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {filteredResults.map((result) => {
-                  const imgUrl = imageUrls[result.imagePath] || '';
+                  const imgUrl = imageUrls[result.imagePath] || "";
                   return (
-                    <Link
+                    <button
                       key={`${result.id}-${result.episode}`}
-                      href={imgUrl ? `/annotate?image=${encodeURIComponent(imgUrl)}` : result.url}
-                      className="group relative bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200"
-                      onClick={() => setShowFullscreenResults(false)}
+                      type="button"
+                      className="group relative bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200 focus:outline-none"
+                      onClick={() => {
+                        setSearchParams({
+                          image: result.imagePath,
+                          fullscreen: true,
+                          q: query,
+                          keywords: selectedKeywords,
+                          categories: selectedCategories,
+                          years: selectedYears,
+                          annotated: showAnnotatedOnly,
+                        });
+                      }}
                     >
                       {/* Image */}
                       <div className="aspect-square bg-gray-200 overflow-hidden">
@@ -486,36 +798,43 @@ export default function ExplorePage() {
                             alt={String(result.id)}
                             width={100}
                             height={100}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none pointer-events-none"
                             loading="lazy"
+                            draggable="false"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400">Loading…</div>
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            Loading…
+                          </div>
                         )}
                       </div>
 
                       {/* Overlay Info */}
                       <div className="absolute inset-0 bg-transparent group-hover:bg-opacity-60 transition-all duration-200 flex items-end">
                         <div className="p-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-200 ">
-                          <div className="text-sm font-medium truncate mb-1">
+                          <div className="text-sm font-medium truncate mb-1 text-shadow-sm">
                             {result.filename}
                           </div>
                           <div className="flex items-center gap-1 text-xs flex-wrap">
                             {/* Show multiple category pills only if annotations exist */}
 
-                            {result.hasAnnotations && result.categories.map((category) => (
-                              <span key={category} className={`px-2 py-0.5 rounded-full ${getTypeColor(category)} text-gray-800 mb-1`}>
-                                {category}
-                              </span>
-                            ))}
-                            
+                            {result.hasAnnotations &&
+                              result.categories.map((category) => (
+                                <span
+                                  key={category}
+                                  className={`px-2 py-0.5 rounded-full ${getTypeColor(category)} text-gray-800 mb-1 shadow-sm`}
+                                >
+                                  {category}
+                                </span>
+                              ))}
+
                             {result.hasAnnotations && (
-                              <span className="bg-green-500 px-2 py-0.5 rounded-full mb-1">
+                              <span className="bg-green-500 px-2 py-0.5 rounded-full mb-1 shadow-sm">
                                 {result.annotations.length} annotations
                               </span>
                             )}
                             {!result.hasAnnotations && (
-                              <span className="bg-gray-500 px-2 py-0.5 rounded-full mb-1">
+                              <span className="bg-gray-500 px-2 py-0.5 rounded-full mb-1 shadow-sm">
                                 No annotations
                               </span>
                             )}
@@ -531,7 +850,7 @@ export default function ExplorePage() {
                           <div className="w-3 h-3 bg-gray-400 rounded-full border-2 border-white"></div>
                         )}
                       </div>
-                    </Link>
+                    </button>
                   );
                 })}
               </div>
@@ -540,15 +859,121 @@ export default function ExplorePage() {
                 <div className="text-center py-12">
                   <div className="w-16 h-16 mx-auto mb-4 text-gray-300">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
                     </svg>
                   </div>
                   {t.rich("noResults", {
-                    primary: (chunks) => <h3 className="text-lg font-medium text-gray-900 mb-2">{chunks}</h3>,
-                    secondary: (chunks) => <p className="text-gray-600">{chunks}</p>
+                    primary: (chunks) => (
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        {chunks}
+                      </h3>
+                    ),
+                    secondary: (chunks) => (
+                      <p className="text-gray-600">{chunks}</p>
+                    ),
                   })}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for image details and annotation actions */}
+      {modalOpen && selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 relative">
+            <button
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+              onClick={() => {
+                setSearchParams({
+                  image: undefined,
+                  fullscreen: showFullscreenResults,
+                  q: query,
+                  keywords: selectedKeywords,
+                  categories: selectedCategories,
+                  years: selectedYears,
+                  annotated: showAnnotatedOnly,
+                });
+              }}
+              aria-label="Close"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-full aspect-video bg-gray-200 rounded overflow-hidden flex items-center justify-center m-4">
+                {imageUrls[selectedImage.imagePath] ? (
+                  <Image
+                    src={imageUrls[selectedImage.imagePath]}
+                    alt={selectedImage.filename}
+                    width={192}
+                    height={192}
+                    className="object-contain w-full h-full pointer-events-none select-none"
+                    draggable="false"
+                  />
+                ) : (
+                  <span className="text-gray-400">Loading…</span>
+                )}
+              </div>
+              <div className="w-full">
+                <h3 className="text-lg font-semibold mb-2">Image Details</h3>
+                <ul className="mb-4">
+                  {getExifInfo(selectedImage).map((item) => (
+                    <li
+                      key={item.label}
+                      className="flex justify-between text-sm py-0.5"
+                    >
+                      <span className="font-medium text-gray-700">
+                        {item.label}:
+                      </span>
+                      <span className="text-gray-900">{item.value}</span>
+                    </li>
+                  ))}
+                </ul>
+                <h4 className="font-medium mb-1">Annotations</h4>
+                {selectedImage.hasAnnotations ? (
+                  <ul className="mb-2">
+                    {selectedImage.annotations.map((ann, idx) => (
+                      <li key={idx} className="text-sm text-gray-800">
+                        {ann}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-sm text-gray-500 mb-2">
+                    No annotations available.
+                  </div>
+                )}
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleDownloadAnnotations(selectedImage)}
+                    disabled={!selectedImage.hasAnnotations}
+                  >
+                    Download Annotations
+                  </Button>
+                  <Button onClick={() => handleEditAnnotations(selectedImage)}>
+                    Edit Annotations
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -559,33 +984,87 @@ export default function ExplorePage() {
         <div className="bg-white border border-gray-200 rounded-xl p-6">
           <div className="flex items-center mb-6">
             <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 text-gray-500 mr-4">
-              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-7 h-7"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <circle cx="12" cy="12" r="10" strokeWidth="2" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 8v4m0 4h.01"
+                />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 tracking-tight">{t("browseTips.title")}</h3>
+            <h3 className="text-xl font-semibold text-gray-900 tracking-tight">
+              {t("browseTips.title")}
+            </h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
               <span className="inline-block w-3 h-3 rounded-full bg-green-500"></span>
-              <span className="text-gray-900 font-medium">{t('browseTips.tips.annotated')}</span>
+              <span className="text-gray-900 font-medium">
+                {t("browseTips.tips.annotated")}
+              </span>
             </div>
             <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
-              <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="2" /></svg>
-              <span className="text-gray-900 font-medium">{t('browseTips.tips.categories')}</span>
+              <svg
+                className="w-5 h-5 text-gray-400"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <circle cx="10" cy="10" r="2" />
+              </svg>
+              <span className="text-gray-900 font-medium">
+                {t("browseTips.tips.categories")}
+              </span>
             </div>
             <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="8" rx="2" /><path d="M8 8V6a4 4 0 1 1 8 0v2" /></svg>
-              <span className="text-gray-900 font-medium">{t('browseTips.tips.filters')}</span>
+              <svg
+                className="w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <rect x="4" y="8" width="16" height="8" rx="2" />
+                <path d="M8 8V6a4 4 0 1 1 8 0v2" />
+              </svg>
+              <span className="text-gray-900 font-medium">
+                {t("browseTips.tips.filters")}
+              </span>
             </div>
             <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z" /></svg>
-              <span className="text-gray-900 font-medium">{t('browseTips.tips.search')}</span>
+              <svg
+                className="w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z" />
+              </svg>
+              <span className="text-gray-900 font-medium">
+                {t("browseTips.tips.search")}
+              </span>
             </div>
             <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-4">
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M8 9h8M8 13h6" /></svg>
-              <span className="text-gray-900 font-medium">{t('browseTips.tips.image')}</span>
+              <svg
+                className="w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M8 9h8M8 13h6" />
+              </svg>
+              <span className="text-gray-900 font-medium">
+                {t("browseTips.tips.image")}
+              </span>
             </div>
           </div>
         </div>
