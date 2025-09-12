@@ -458,7 +458,7 @@ export default function Search() {
   const { data: images, isLoading: imagesLoading } = useQuery({
     queryKey: ["images", isAuthenticated],
     queryFn: async () => {
-      const { data } = await client.models.Image.list();
+      const { data } = await client.models.Image.list({ limit: 5000});
       return data || [];
     },
     staleTime: 1000 * 60 * 5,
@@ -484,6 +484,7 @@ export default function Search() {
         filter: {
           or: uniqueImageIds,
         } as any,
+        limit: 1000000,
       });
       return data || [];
     },
