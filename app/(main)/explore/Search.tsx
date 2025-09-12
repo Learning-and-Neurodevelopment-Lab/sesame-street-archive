@@ -476,7 +476,7 @@ export default function Search() {
     [uniqueImages]
   );
 
-  const { data: annotations, isLoading: annotationsLoaded } = useQuery({
+  const { data: annotations, isLoading: annotationsLoading } = useQuery({
     queryKey: ["annotations", isAuthenticated],
     queryFn: async () => {
       const { data } = await client.models.Annotation.list({
@@ -638,10 +638,10 @@ export default function Search() {
   const handleEditAnnotations = async (image: SearchData) => {
     const params = new URLSearchParams(searchParams.toString());
     const imageUrl = await getUrl({ path: `images/${image.imagePath}` });
-    params.set("image", imageUrl.url.href);
+    params.set("image", btoa(imageUrl.url.href));
     if (image.annotations && image.annotations.length > 0) {
       try {
-        const encoded = encodeURIComponent(JSON.stringify(image.annotations));
+        const encoded = btoa(JSON.stringify(image.annotations));
         params.set("annotations", encoded);
       } catch {}
     }
@@ -675,6 +675,10 @@ export default function Search() {
           })
           .filter(Boolean) as BoundingBox[])
       : [];
+
+  if (annotationsLoading && imagesLoading && searchData.length === 0) {
+    return <h1 className="text-center text-6xl h-full w-full">Loading…</h1>
+  }
 
   return (
     <>
