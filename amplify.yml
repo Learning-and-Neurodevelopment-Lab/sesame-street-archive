@@ -1,18 +1,31 @@
 version: 1
+env:
+  runtime-versions:
+    nodejs: 20 
 
 backend:
   phases:
     install:
       commands:
-        - export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-        - nvm install 20.19.3 && nvm use 20.19.3
         - node -v && npm -v
+        - export NPM_CONFIG_PRODUCTION=false
+
         - npm ci --no-audit --no-fund
     build:
       commands:
-        - npx -y @aws-amplify/backend-cli@1.8.0 --version
-        - npx -y @aws-amplify/backend-cli@1.8.0 pipeline-deploy --branch "$AWS_BRANCH" --app-id "$AWS_APP_ID"
+        - node -v && npm -v
+        - echo "AWS_APP_ID=${AWS_APP_ID}  AWS_BRANCH=${AWS_BRANCH}"
+        - [ -z "$AWS_APP_ID" ] 
+        - [ -z "$AWS_BRANCH" ] 
+        - ls node_modules/@aws-amplify | cat
 
+        - npx -y @aws-amplify/backend-cli@1.8.0 --version
+        - npx -y @aws-amplify/backend-cli@1.8.0 pipeline-deploy \
+            --branch "$AWS_BRANCH" \
+            --app-id "$AWS_APP_ID" \
+            --outputs-out-dir ./src \
+            --outputs-version 1.4 \
+            --outputs-format json
 frontend:
   phases:
     install:

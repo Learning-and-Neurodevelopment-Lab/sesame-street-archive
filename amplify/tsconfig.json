@@ -13,5 +13,7 @@
         "../.amplify/generated/*"
       ]
     }
-  }
+  },
+  "include": ["**/*.ts"]
+
 }
