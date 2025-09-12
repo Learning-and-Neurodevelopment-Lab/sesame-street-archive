@@ -1,7 +1,7 @@
 version: 1
 
 backend:
-phases:
+  phases:
     install:
       commands:
         - echo "Skipping backend npm install"
