@@ -30,20 +30,32 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 import { RectangleContextMenu } from "@/components/RectangleContextMenu";
-import { SearchableCombobox } from "@/components/SearchableCombobox";
+import { AnnotationDrawer } from "@/components/AnnotationDrawer";
 
 import "app/amplify-auth.css";
 import { useRouter } from "next/navigation";
 
-const MAX_WIDTH = 1024;
-const MAX_HEIGHT = 720;
+import type { Schema } from "@/amplify/data/resource";
+import { a } from "vitest/dist/chunks/suite.d.FvehnV49";
+
+interface BoundingBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  id: number;
+  annotation: Schema["Annotation"]["type"];
+}
+
+const MAX_WIDTH = 800;
+const MAX_HEIGHT = 600;
 
 // Annotation categories
 const ANNOTATION_CATEGORIES = [
-  { value: "PLACE", label: "Places", color: "#22c55e" },
-  { value: "FACE", label: "Faces", color: "#3b82f6" },
-  { value: "NUMBER", label: "Numbers", color: "#a855f7" },
-  { value: "WORD", label: "Words", color: "#f59e0b" },
+  { value: "PLACE", label: "Place", color: "#16a34a" }, // medium-dark green
+  { value: "FACE", label: "Face", color: "#2563eb" }, // medium-dark blue
+  { value: "NUMBER", label: "Number", color: "#7c3aed" }, // medium-dark purple
+  { value: "WORD", label: "Word", color: "#d97706" }, // medium-dark orange
 ];
 
 function Shape({
@@ -83,11 +95,21 @@ function Shape({
   }
 }
 
+const isBase64 = (str: string) => {
+  const base64RegExp =
+    /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$/;
+  return base64RegExp.test(str);
+};
+
 export default function Tool() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const imageUrl = searchParams.get("image");
-  const annotationsParam = searchParams.get("annotations");
+  const imageUrl = isBase64(searchParams.get("image"))
+    ? atob(searchParams.get("image"))
+    : searchParams.get("image");
+  const annotationsParam = isBase64(searchParams.get("annotations"))
+    ? atob(searchParams.get("annotations"))
+    : searchParams.get("annotations");
 
   const [tool, setTool] = useAtom(toolAtom);
   const [image, setImage] = useState<string | null>(imageUrl || null);
@@ -99,9 +121,11 @@ export default function Tool() {
   const [ellipses, setEllipses] = useState<any[]>([]);
   const [newRect, setNewRect] = useState<any | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [showLabelCombobox, setShowLabelCombobox] = useState(false);
-  const [comboboxPosition, setComboboxPosition] = useState({ x: 0, y: 0 });
-  const [pendingRectIndex, setPendingRectIndex] = useState<number | null>(null);
+  // Drawer state
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerAnnotationIndex, setDrawerAnnotationIndex] = useState<
+    number | null
+  >(null);
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -112,52 +136,51 @@ export default function Tool() {
   const transformerRef = useRef<any>();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  console.log('Current rectangles:', rectangles);
-
-  useEffect(() => {
-    if (!contextMenu) return;
-    const handle = () => setContextMenu(null);
-    window.addEventListener("mousedown", handle);
-    window.addEventListener("scroll", handle, true);
-    return () => {
-      window.removeEventListener("mousedown", handle);
-      window.removeEventListener("scroll", handle, true);
-    };
-  }, [contextMenu]);
-
   useEffect(() => {
     if (annotationsParam) {
       try {
-        const decoded = decodeURIComponent(annotationsParam);
+        const decoded = annotationsParam;
         const parsed = JSON.parse(decoded);
 
-        console.log("Parsed annotations from URL:", parsed);
-
         if (Array.isArray(parsed)) {
-          // Map/convert parsed annotation objects to the expected rectangle format
-          const mapped = parsed.map(
-            (
-              { polygon: [x, y, width, height], keywords, category },
-              idx: number
-            ) => {
-              return {
-                x: x ?? 0,
-                y: y ?? 0,
-                width: width ?? 0,
-                height: height ?? 0,
-                label: keywords?.[0] ?? "",
-                category: category ?? "",
-                id: idx + Date.now(),
-              };
-            }
-          );
+          const allBoundingBoxes: BoundingBox[] = parsed
+            ? (parsed
+                .map((annotation) => {
+                  const polygon =
+                    typeof annotation.polygon === "string"
+                      ? (() => {
+                          try {
+                            return JSON.parse(annotation.polygon);
+                          } catch {
+                            return [];
+                          }
+                        })()
+                      : annotation.polygon;
+                  if (!Array.isArray(polygon) || polygon.length < 4)
+                    return null;
+                  const [x, y, width, height] = polygon;
+
+                  return {
+                    x: x,
+                    y: y,
+                    width: width - x,
+                    height: height - y,
+                    id: annotation.annotationId,
+                    annotation: annotation as any,
+                    label: annotation.keywords?.[0] ?? "",
+                    category: annotation.category ?? "",
+                  } as BoundingBox;
+                })
+                .filter(Boolean) as BoundingBox[])
+            : [];
+
           // Only update rectangles if different or empty
           setRectangles((prev) => {
             if (
               prev.length === 0 ||
-              JSON.stringify(prev) !== JSON.stringify(mapped)
+              JSON.stringify(prev) !== JSON.stringify(allBoundingBoxes)
             ) {
-              return mapped;
+              return allBoundingBoxes;
             }
             return prev;
           });
@@ -225,7 +248,7 @@ export default function Tool() {
         ...newRectangles[selectedAnnotation],
         ...newAttrs,
       };
-      setRectangles(newRectangles);
+      setRectangles([...newRectangles]);
     }
   };
 
@@ -247,7 +270,7 @@ export default function Tool() {
 
   const handleMouseDown = (e: any) => {
     // Hide combobox when clicking elsewhere
-    setShowLabelCombobox(false);
+    // Drawer replaces combobox for annotation editing
 
     // Deselect when clicking on stage
     if (e.target === e.target.getStage()) {
@@ -318,12 +341,12 @@ export default function Tool() {
           setRectangles(newRectangles);
 
           // Show combobox for labeling
-          setComboboxPosition({
-            x: window.innerWidth / 2 - 72,
-            y: window.innerHeight / 2 - 74,
-          });
-          setPendingRectIndex(newRectangles.length - 1);
-          setShowLabelCombobox(true);
+          // setComboboxPosition({
+          //   x: window.innerWidth / 2 - 72,
+          //   y: window.innerHeight / 2 - 74,
+          // });
+          // setPendingRectIndex(newRectangles.length - 1);
+          // setShowLabelCombobox(true);
           break;
         case "ellipse":
           setEllipses([...ellipses, rectWithLabel]);
@@ -345,31 +368,45 @@ export default function Tool() {
     }
   };
 
-  const handleLabelChange = (category: string) => {
-    if (pendingRectIndex !== null) {
+  // Save annotation from drawer
+  const handleDrawerSave = (updated) => {
+    if (drawerAnnotationIndex !== null) {
       const newRectangles = rectangles.slice();
-      newRectangles[pendingRectIndex] = {
-        ...newRectangles[pendingRectIndex],
-        category,
-        label:
-          ANNOTATION_CATEGORIES.find((cat) => cat.value === category)?.label ||
-          "",
+      // Update label to match category label if changed
+      const catObj = ANNOTATION_CATEGORIES.find(
+        (cat) => cat.value === updated.category
+      );
+      newRectangles[drawerAnnotationIndex] = {
+        ...newRectangles[drawerAnnotationIndex],
+        ...updated,
+        label: catObj?.label || updated.category,
       };
       setRectangles(newRectangles);
-      setShowLabelCombobox(false);
-      setPendingRectIndex(null);
+      setDrawerOpen(false);
+      setDrawerAnnotationIndex(null);
+    }
+  };
+
+  // Add new category from drawer
+  const handleDrawerCategoryCreate = (newCategory) => {
+    if (!ANNOTATION_CATEGORIES.some((cat) => cat.value === newCategory)) {
+      ANNOTATION_CATEGORIES.push({
+        value: newCategory,
+        label: newCategory,
+        color: "#64748b",
+      }); // slate-500
     }
   };
 
   const getStrokeColor = (rect: any, index: number) => {
-    if (selectedAnnotation === index) return "blue";
+    if (selectedAnnotation === index) return "#111827"; // dark gray for selected
     if (rect.category) {
       const category = ANNOTATION_CATEGORIES.find(
         (cat) => cat.value === rect.category
       );
-      return category?.color || "red";
+      return category?.color || "#222";
     }
-    return "red";
+    return "#222";
   };
 
   const exportAnnotations = () => {
@@ -469,6 +506,17 @@ export default function Tool() {
   //   </div>
   // );
 
+  // Close context menu on Escape key globally
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && contextMenu) {
+        setContextMenu(null);
+      }
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [contextMenu]);
+
   return (
     <>
       <header className="flex items-center justify-between h-14 px-6 bg-white border-b border-neutral-200 shadow-sm">
@@ -512,10 +560,15 @@ export default function Tool() {
           />
         </div>
       </header>
-      <div className="flex flex-1 overflow-hidden">
+      <div
+        className="flex flex-1 overflow-hidden"
+        onContextMenu={(event) => {
+          event.preventDefault();
+        }}
+      >
         <main className="flex-1 p-8 overflow-auto bg-neutral-50 relative">
           <div className="p-6 space-y-6">
-            <div className="flex items-center justify-center min-h-[720px] min-w-[1024px] bg-neutral-100">
+            <div className="flex items-center justify-center min-h-[600px] min-w-[800px] bg-neutral-100">
               <div
                 className="flex items-center justify-center relative"
                 style={{ width: stageSize.width, height: stageSize.height }}
@@ -528,7 +581,7 @@ export default function Tool() {
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseLeave}
                   ref={stageRef}
-                  className="bg-white relative"
+                  className={`bg-white relative${contextMenu ? " pointer-events-none" : ""}`}
                 >
                   <Layer>
                     {konvaImage && (
@@ -580,11 +633,8 @@ export default function Tool() {
                         }}
                         onDblClick={(e) => {
                           if (tool === "select") {
-                            setShowLabelCombobox(true);
-                            setComboboxPosition({
-                              x: window.innerWidth / 2 - 72,
-                              y: window.innerHeight / 2 - 74,
-                            });
+                            setDrawerOpen(true);
+                            setDrawerAnnotationIndex(i);
                           }
                         }}
                         onDragEnd={(e) => {
@@ -622,7 +672,7 @@ export default function Tool() {
                           <Text
                             x={rect.width / 2}
                             y={rect.height / 2}
-                            text={rect.label}
+                            text={rect.category || rect.label}
                             fontSize={12}
                             fill={getStrokeColor(rect, i)}
                             fontStyle="bold"
@@ -693,37 +743,24 @@ export default function Tool() {
                   <div
                     role="menu"
                     tabIndex={-1}
-                    style={{
-                      position: "fixed",
-                      top: contextMenu.y,
-                      left: contextMenu.x,
-                      zIndex: 1000,
-                      minWidth: 160,
-                      background: "white",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: 6,
-                      boxShadow: "0 10px 38px -10px rgba(22,23,24,0.35), 0 10px 20px -15px rgba(22,23,24,0.2)",
-                      padding: 4,
-                      outline: "none"
-                    }}
-                    onContextMenu={e => e.preventDefault()}
-                    onKeyDown={e => {
+                    className="fixed z-[1000] min-w-[140px] max-w-[180px] bg-white border border-neutral-200 rounded-lg shadow-xl p-0 outline-none font-sans text-neutral-800 pointer-events-auto"
+                    style={{ top: contextMenu.y, left: contextMenu.x }}
+                    onKeyDown={(e) => {
                       if (e.key === "Escape") setContextMenu(null);
                     }}
                     autoFocus
                   >
                     <button
                       role="menuitem"
-                      className="px-2 py-1.5 w-full text-left rounded cursor-pointer hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
+                      className="w-full text-left px-3 py-1.5 text-[14px] font-normal rounded-t-lg border-b border-neutral-100 hover:bg-neutral-100 focus:bg-neutral-200 focus:outline-none transition-colors"
                       tabIndex={0}
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         setTool("select");
                         setSelectedAnnotation(contextMenu.rectIndex!);
-                        setShowLabelCombobox(true);
-                        setComboboxPosition({
-                          x: window.innerWidth / 2 - 72,
-                          y: window.innerHeight / 2 - 74,
-                        });
+                        setDrawerOpen(true);
+                        setDrawerAnnotationIndex(contextMenu.rectIndex!);
                         setContextMenu(null);
                       }}
                     >
@@ -731,10 +768,11 @@ export default function Tool() {
                     </button>
                     <button
                       role="menuitem"
-                      className="px-2 py-1.5 w-full text-left rounded cursor-pointer hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
+                      className="w-full text-left px-3 py-1.5 text-[14px] font-normal border-b border-neutral-100 hover:bg-neutral-100 focus:bg-neutral-200 focus:outline-none transition-colors"
                       tabIndex={0}
-                      onClick={() => {
-                        // Move to front
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         setRectangles((rectangles) => {
                           if (contextMenu.rectIndex === null) return rectangles;
                           const arr = rectangles.slice();
@@ -749,10 +787,11 @@ export default function Tool() {
                     </button>
                     <button
                       role="menuitem"
-                      className="px-2 py-1.5 w-full text-left rounded cursor-pointer hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
+                      className="w-full text-left px-3 py-1.5 text-[14px] font-normal border-b border-neutral-100 hover:bg-neutral-100 focus:bg-neutral-200 focus:outline-none transition-colors"
                       tabIndex={0}
-                      onClick={() => {
-                        // Move to back
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         setRectangles((rectangles) => {
                           if (contextMenu.rectIndex === null) return rectangles;
                           const arr = rectangles.slice();
@@ -767,12 +806,17 @@ export default function Tool() {
                     </button>
                     <button
                       role="menuitem"
-                      className="px-2 py-1.5 w-full text-left rounded cursor-pointer hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
+                      className="w-full text-left px-3 py-1.5 text-[14px] font-normal border-b border-neutral-100 hover:bg-neutral-100 focus:bg-neutral-200 focus:outline-none transition-colors"
                       tabIndex={0}
-                      onClick={() => {
-                        // Move up
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         setRectangles((rectangles) => {
-                          if (contextMenu.rectIndex === null || contextMenu.rectIndex === rectangles.length - 1) return rectangles;
+                          if (
+                            contextMenu.rectIndex === null ||
+                            contextMenu.rectIndex === rectangles.length - 1
+                          )
+                            return rectangles;
                           const arr = rectangles.slice();
                           const idx = contextMenu.rectIndex;
                           [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]];
@@ -785,12 +829,17 @@ export default function Tool() {
                     </button>
                     <button
                       role="menuitem"
-                      className="px-2 py-1.5 w-full text-left rounded cursor-pointer hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
+                      className="w-full text-left px-3 py-1.5 text-[14px] font-normal border-b border-neutral-100 hover:bg-neutral-100 focus:bg-neutral-200 focus:outline-none transition-colors"
                       tabIndex={0}
-                      onClick={() => {
-                        // Move down
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         setRectangles((rectangles) => {
-                          if (contextMenu.rectIndex === null || contextMenu.rectIndex === 0) return rectangles;
+                          if (
+                            contextMenu.rectIndex === null ||
+                            contextMenu.rectIndex === 0
+                          )
+                            return rectangles;
                           const arr = rectangles.slice();
                           const idx = contextMenu.rectIndex;
                           [arr[idx], arr[idx - 1]] = [arr[idx - 1], arr[idx]];
@@ -803,22 +852,27 @@ export default function Tool() {
                     </button>
                     <button
                       role="menuitem"
-                      className="px-2 py-1.5 w-full text-left rounded cursor-pointer hover:bg-red-100 text-red-600 focus:bg-red-100 focus:outline-none"
+                      className="w-full text-left px-3 py-1.5 text-[14px] font-normal rounded-b-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 focus:bg-neutral-200 focus:outline-none transition-colors"
                       tabIndex={0}
                       onClick={(event) => {
                         event.preventDefault();
                         event.stopPropagation();
-                        // Remove the rectangle
+
                         setRectangles((rectangles) => {
-                          const rectToDelete = rectangles[contextMenu.rectIndex];
-                          return rectangles.filter((_, idx) => idx !== contextMenu.rectIndex);
+                          const rectToDelete =
+                            rectangles[contextMenu.rectIndex];
+                          return rectangles.filter(
+                            (_, idx) => idx !== contextMenu.rectIndex
+                          );
                         });
-                        // Remove any ellipse with the same id (if exists)
                         setEllipses((ellipses) => {
-                          if (!rectangles[contextMenu.rectIndex]) return ellipses;
+                          if (!rectangles[contextMenu.rectIndex])
+                            return ellipses;
                           const rectId = rectangles[contextMenu.rectIndex].id;
-                          return ellipses.filter(e => e.id !== rectId);
+                          return ellipses.filter((e) => e.id !== rectId);
                         });
+                        setSelectedAnnotation(null);
+                        setTool("select");
                         setContextMenu(null);
                       }}
                     >
@@ -830,20 +884,25 @@ export default function Tool() {
             </div>
           </div>
 
-          {/* Annotation Combobox */}
-          {showLabelCombobox && (
-            <SearchableCombobox
-              options={ANNOTATION_CATEGORIES}
-              value=""
-              onChange={handleLabelChange}
-              position={comboboxPosition}
-              placeholder="Search categories..."
-              onCancel={() => {
-                setShowLabelCombobox(false);
-                setPendingRectIndex(null);
-              }}
-            />
-          )}
+          {/* Annotation Drawer */}
+          <AnnotationDrawer
+            open={drawerOpen}
+            annotation={
+              drawerAnnotationIndex !== null
+                ? rectangles[drawerAnnotationIndex]
+                : null
+            }
+            categories={ANNOTATION_CATEGORIES}
+            availableKeywords={Array.from(
+              new Set(rectangles.flatMap((r) => r.keywords || []))
+            ).filter(Boolean)}
+            onClose={() => {
+              setDrawerOpen(false);
+              setDrawerAnnotationIndex(null);
+            }}
+            onSave={handleDrawerSave}
+            onCategoryCreate={handleDrawerCategoryCreate}
+          />
         </main>
       </div>
       {/* Footer/Status Bar */}
