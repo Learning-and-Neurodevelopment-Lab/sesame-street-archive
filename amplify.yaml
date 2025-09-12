@@ -1,9 +1,21 @@
 version: 1
+
+backend:
+  phases:
+    build:
+      commands:
+        # Clean, reproducible install for backend tooling (ampx, cdk, etc.)
+        - npm ci --cache .npm --prefer-offline
+        # Deploy Amplify Gen 2 backend for this branch
+        - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
+
 frontend:
   phases:
     preBuild:
       commands:
-        - npm ci
+        # Frontend deps install (do this even if you installed in backend;
+        # keeps the contract clear and works if phases are isolated)
+        - npm ci --cache .npm --prefer-offline
     build:
       commands:
         - npm run build
@@ -13,4 +25,5 @@ frontend:
       - '**/*'
   cache:
     paths:
-      - node_modules/**/*
+      - .npm/**/*
+      - .next/cache/**/*
