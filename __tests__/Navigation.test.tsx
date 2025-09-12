@@ -1,14 +1,21 @@
-import React from 'react';
-import { render } from '@testing-library/react';
-import { NextIntlClientProvider } from 'next-intl';
-import Navigation from '@/components/Navigation';
 
-describe('Navigation', () => {
-  it('renders without crashing', () => {
-    render(
-      <NextIntlClientProvider locale="en">
-        <Navigation session={null} />
-      </NextIntlClientProvider>
-    );
-  });
+// __tests__/Navigation.test.tsx
+import {render, screen} from '@testing-library/react';
+import {NextIntlClientProvider} from 'next-intl';
+import Navigation from '../components/Navigation';
+
+const messages = {
+  Navigation: {
+    Home: 'Home',
+    Browse: 'Browse',
+  }
+};
+
+test('renders Navigation', () => {
+  render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      <Navigation />
+    </NextIntlClientProvider>
+  );
+  // assertions...
 });
