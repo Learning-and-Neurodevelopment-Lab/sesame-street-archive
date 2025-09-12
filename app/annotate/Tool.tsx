@@ -28,7 +28,7 @@ import { Authenticator } from "@aws-amplify/ui-react";
 import useImage from "use-image";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-
+import type Konva from "konva"; 
 import { RectangleContextMenu } from "@/components/RectangleContextMenu";
 import { SearchableCombobox } from "@/components/SearchableCombobox";
 
@@ -108,8 +108,8 @@ export default function Tool() {
     y: number;
     rectIndex: number | null;
   } | null>(null);
-  const stageRef = useRef<any>();
-  const transformerRef = useRef<any>();
+  const stageRef = useRef<Konva.Stage | null>(null);
+  const transformerRef = useRef<Konva.Transformer | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   console.log('Current rectangles:', rectangles);
