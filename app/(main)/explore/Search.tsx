@@ -6,6 +6,7 @@ import { Stage, Layer, Rect, Image as KonvaImage } from "react-konva";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Spring, animated } from "@react-spring/konva";
 import useImage from "use-image";
+import Image from "next/image";
 
 function getExifInfo(image: SearchData) {
   return [
@@ -797,7 +798,7 @@ export default function Search() {
                       >
                         <div className="w-12 h-12 bg-gray-200 rounded overflow-hidden flex-shrink-0">
                           {result.id ? (
-                            <img
+                            <Image
                               src={imageUrls[result.id] || "/placeholder.png"}
                               alt={result.filename}
                               width={100}
@@ -1073,7 +1074,7 @@ export default function Search() {
                     >
                       <div className="aspect-square bg-gray-200 overflow-hidden">
                         {imgUrl ? (
-                          <img
+                          <Image
                             src={imgUrl}
                             alt={String(result.id)}
                             width={100}
