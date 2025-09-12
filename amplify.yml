@@ -2,35 +2,28 @@ version: 1
 
 env:
   runtime-versions:
-    nodejs: 20
+    nodejs: 20 
 
 backend:
   phases:
     install:
       commands:
-        
         - 'export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] || curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash'
         - '. "$NVM_DIR/nvm.sh" && nvm install 20.19.3 && nvm use 20.19.3'
         - node -v && npm -v
-        - export NPM_CONFIG_PRODUCTION=false
-        - export NPM_CONFIG_ENGINE_STRICT=false   
+        - export NPM_CONFIG_PRODUCTION=false   
         - npm ci --no-audit --no-fund
     build:
       commands:
         - '. "$NVM_DIR/nvm.sh" && nvm use 20.19.3'
         - node -v && npm -v
-        - echo "AWS_APP_ID=${AWS_APP_ID}  AWS_BRANCH=${AWS_BRANCH}"
-        - '[ -z "$AWS_APP_ID" ] && echo "ERROR: AWS_APP_ID empty" && exit 1 || true'
-        - '[ -z "$AWS_BRANCH" ] && echo "ERROR: AWS_BRANCH empty" && exit 1 || true'
-        - ls node_modules/@aws-amplify || (echo "Missing @aws-amplify/*" && exit 1)
-        - npx -y @aws-amplify/backend-cli@1.8.0 --version
         - npx -y @aws-amplify/backend-cli@1.8.0 pipeline-deploy --branch "$AWS_BRANCH" --app-id "$AWS_APP_ID" --outputs-out-dir ./src --outputs-version 1.4 --outputs-format json
 
 frontend:
   phases:
     install:
       commands:
-        - '. "$NVM_DIR/nvm.sh" && nvm use 20.19.3 || { echo "nvm missing"; exit 1; }'
+        - '. "$NVM_DIR/nvm.sh" && nvm use 20.19.3'
         - node -v && npm -v
         - npm ci --no-audit --no-fund
     build:
@@ -42,7 +35,3 @@ frontend:
     baseDirectory: .next
     files:
       - '**/*'
-  cache:
-    paths:
-      - .next/cache/**/*
-      - .npm/**/*
