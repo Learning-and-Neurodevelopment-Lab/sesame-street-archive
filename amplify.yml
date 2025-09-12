@@ -1,7 +1,8 @@
 version: 1
+
 env:
   runtime-versions:
-    nodejs: 20 
+    nodejs: 20
 
 backend:
   phases:
@@ -9,29 +10,23 @@ backend:
       commands:
         - node -v && npm -v
         - export NPM_CONFIG_PRODUCTION=false
-
         - npm ci --no-audit --no-fund
     build:
       commands:
         - node -v && npm -v
         - echo "AWS_APP_ID=${AWS_APP_ID}  AWS_BRANCH=${AWS_BRANCH}"
-        - [ -z "$AWS_APP_ID" ] 
-        - [ -z "$AWS_BRANCH" ] 
+        - '[ -z "$AWS_APP_ID" ] && echo "ERROR: AWS_APP_ID empty" && exit 1 || true'
+        - '[ -z "$AWS_BRANCH" ] && echo "ERROR: AWS_BRANCH empty" && exit 1 || true'
         - ls node_modules/@aws-amplify | cat
-
         - npx -y @aws-amplify/backend-cli@1.8.0 --version
-        - npx -y @aws-amplify/backend-cli@1.8.0 pipeline-deploy \
-            --branch "$AWS_BRANCH" \
-            --app-id "$AWS_APP_ID" \
-            --outputs-out-dir ./src \
-            --outputs-version 1.4 \
-            --outputs-format json
+        - npx -y @aws-amplify/backend-cli@1.8.0 pipeline-deploy --branch "$AWS_BRANCH" --app-id "$AWS_APP_ID" --outputs-out-dir ./src --outputs-version 1.4 --outputs-format json
+
 frontend:
   phases:
     install:
       commands:
         - node -v && npm -v
-        - npm install --no-audit --no-fund
+        - npm ci --no-audit --no-fund
     build:
       commands:
         - npm run build
@@ -39,4 +34,7 @@ frontend:
     baseDirectory: .next
     files:
       - '**/*'
-
+  cache:
+    paths:
+      - .next/cache/**/*
+      - .npm/**/*
