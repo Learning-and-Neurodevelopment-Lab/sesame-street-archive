@@ -28,9 +28,11 @@ import { Authenticator } from "@aws-amplify/ui-react";
 import useImage from "use-image";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+
+import { RectangleContextMenu } from "@/components/RectangleContextMenu";
 import { SearchableCombobox } from "@/components/SearchableCombobox";
 
-import 'app/amplify-auth.css';
+import "app/amplify-auth.css";
 import { useRouter } from "next/navigation";
 
 const MAX_WIDTH = 1024;
@@ -38,9 +40,10 @@ const MAX_HEIGHT = 720;
 
 // Annotation categories
 const ANNOTATION_CATEGORIES = [
-  { value: "places", label: "Places", color: "#22c55e" },
-  { value: "faces", label: "Faces", color: "#3b82f6" },
-  { value: "numbers", label: "Numbers", color: "#a855f7" },
+  { value: "PLACE", label: "Places", color: "#22c55e" },
+  { value: "FACE", label: "Faces", color: "#3b82f6" },
+  { value: "NUMBER", label: "Numbers", color: "#a855f7" },
+  { value: "WORD", label: "Words", color: "#f59e0b" },
 ];
 
 function Shape({
@@ -84,6 +87,7 @@ export default function Tool() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const imageUrl = searchParams.get("image");
+  const annotationsParam = searchParams.get("annotations");
 
   const [tool, setTool] = useAtom(toolAtom);
   const [image, setImage] = useState<string | null>(imageUrl || null);
@@ -98,28 +102,89 @@ export default function Tool() {
   const [showLabelCombobox, setShowLabelCombobox] = useState(false);
   const [comboboxPosition, setComboboxPosition] = useState({ x: 0, y: 0 });
   const [pendingRectIndex, setPendingRectIndex] = useState<number | null>(null);
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    rectIndex: number | null;
+  } | null>(null);
   const stageRef = useRef<any>();
   const transformerRef = useRef<any>();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  console.log('Current rectangles:', rectangles);
+
+  useEffect(() => {
+    if (!contextMenu) return;
+    const handle = () => setContextMenu(null);
+    window.addEventListener("mousedown", handle);
+    window.addEventListener("scroll", handle, true);
+    return () => {
+      window.removeEventListener("mousedown", handle);
+      window.removeEventListener("scroll", handle, true);
+    };
+  }, [contextMenu]);
+
+  useEffect(() => {
+    if (annotationsParam) {
+      try {
+        const decoded = decodeURIComponent(annotationsParam);
+        const parsed = JSON.parse(decoded);
+
+        console.log("Parsed annotations from URL:", parsed);
+
+        if (Array.isArray(parsed)) {
+          // Map/convert parsed annotation objects to the expected rectangle format
+          const mapped = parsed.map(
+            (
+              { polygon: [x, y, width, height], keywords, category },
+              idx: number
+            ) => {
+              return {
+                x: x ?? 0,
+                y: y ?? 0,
+                width: width ?? 0,
+                height: height ?? 0,
+                label: keywords?.[0] ?? "",
+                category: category ?? "",
+                id: idx + Date.now(),
+              };
+            }
+          );
+          // Only update rectangles if different or empty
+          setRectangles((prev) => {
+            if (
+              prev.length === 0 ||
+              JSON.stringify(prev) !== JSON.stringify(mapped)
+            ) {
+              return mapped;
+            }
+            return prev;
+          });
+        }
+      } catch (e) {
+        // Ignore parse errors
+      }
+    }
+  }, [annotationsParam]);
+
   // Calculate stage size based on image aspect ratio
+  // Store the natural image size
+  const [naturalSize, setNaturalSize] = useState({
+    width: MAX_WIDTH,
+    height: MAX_HEIGHT,
+  });
   const [stageSize, setStageSize] = useState({
     width: MAX_WIDTH,
     height: MAX_HEIGHT,
   });
 
   // Update stage size when image loads
-  useMemo(() => {
+  // Set natural image size and stage size to match image's real dimensions
+  useEffect(() => {
     if (konvaImage && konvaImage.width && konvaImage.height) {
-      const imgW = konvaImage.width;
-      const imgH = konvaImage.height;
-      let width = MAX_WIDTH;
-      let height = (imgH / imgW) * MAX_WIDTH;
-      if (height > MAX_HEIGHT) {
-        height = MAX_HEIGHT;
-        width = (imgW / imgH) * MAX_HEIGHT;
-      }
-      setStageSize({ width, height });
+      setNaturalSize({ width: konvaImage.width, height: konvaImage.height });
+      setStageSize({ width: konvaImage.width, height: konvaImage.height });
     }
   }, [konvaImage]);
 
@@ -433,9 +498,9 @@ export default function Tool() {
             <Settings className="w-5 h-5 text-neutral-700" />
           </Button>
           <Button variant="danger" onClick={() => router.back()}>
-              <X className="w-5 h-5 text-neutral-700" />
+            <X className="w-5 h-5 text-neutral-700" />
           </Button>
-          <Button variant="success" onClick={() => alert('Annotations saved!')}>
+          <Button variant="success" onClick={() => alert("Annotations saved!")}>
             <Check className="w-5 h-5 text-neutral-700" />
           </Button>
           <input
@@ -456,8 +521,8 @@ export default function Tool() {
                 style={{ width: stageSize.width, height: stageSize.height }}
               >
                 <Stage
-                  width={stageSize.width}
-                  height={stageSize.height}
+                  width={naturalSize.width}
+                  height={naturalSize.height}
                   onMouseDown={handleMouseDown}
                   onMouseMove={handleMouseMove}
                   onMouseUp={handleMouseUp}
@@ -469,15 +534,15 @@ export default function Tool() {
                     {konvaImage && (
                       <KonvaImage
                         image={konvaImage}
-                        width={stageSize.width}
-                        height={stageSize.height}
+                        width={naturalSize.width}
+                        height={naturalSize.height}
                       />
                     )}
                     {rectangles.map((rect, i) => (
                       <Group
+                        key={rect.id || i}
                         x={rect.x}
                         y={rect.y}
-                        key={rect.id || i}
                         onTransformEnd={handleTransformEnd}
                         draggable={tool === "move" || tool === "select"}
                         onMouseOver={(e) => {
@@ -515,8 +580,6 @@ export default function Tool() {
                         }}
                         onDblClick={(e) => {
                           if (tool === "select") {
-                            const rect =
-                              stageRef?.current?.content.getBoundingClientRect();
                             setShowLabelCombobox(true);
                             setComboboxPosition({
                               x: window.innerWidth / 2 - 72,
@@ -532,6 +595,15 @@ export default function Tool() {
                             y: e.target.y(),
                           };
                           setRectangles(newRectangles);
+                        }}
+                        onContextMenu={(e) => {
+                          e.evt.preventDefault();
+                          // Get mouse position relative to page
+                          setContextMenu({
+                            x: e.evt.clientX,
+                            y: e.evt.clientY,
+                            rectIndex: i,
+                          });
                         }}
                       >
                         {/* Background Rectangle with Low Opacity */}
@@ -562,6 +634,7 @@ export default function Tool() {
                         )}
                       </Group>
                     ))}
+
                     {/* Transformer for resizing selected rectangles */}
                     <Transformer
                       ref={transformerRef}
@@ -615,6 +688,144 @@ export default function Tool() {
                     <Shape rect={newRect} tool={tool} />
                   </Layer>
                 </Stage>
+                {/* Custom context menu for rectangles */}
+                {contextMenu && contextMenu.rectIndex !== null && (
+                  <div
+                    role="menu"
+                    tabIndex={-1}
+                    style={{
+                      position: "fixed",
+                      top: contextMenu.y,
+                      left: contextMenu.x,
+                      zIndex: 1000,
+                      minWidth: 160,
+                      background: "white",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: 6,
+                      boxShadow: "0 10px 38px -10px rgba(22,23,24,0.35), 0 10px 20px -15px rgba(22,23,24,0.2)",
+                      padding: 4,
+                      outline: "none"
+                    }}
+                    onContextMenu={e => e.preventDefault()}
+                    onKeyDown={e => {
+                      if (e.key === "Escape") setContextMenu(null);
+                    }}
+                    autoFocus
+                  >
+                    <button
+                      role="menuitem"
+                      className="px-2 py-1.5 w-full text-left rounded cursor-pointer hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
+                      tabIndex={0}
+                      onClick={() => {
+                        setTool("select");
+                        setSelectedAnnotation(contextMenu.rectIndex!);
+                        setShowLabelCombobox(true);
+                        setComboboxPosition({
+                          x: window.innerWidth / 2 - 72,
+                          y: window.innerHeight / 2 - 74,
+                        });
+                        setContextMenu(null);
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      role="menuitem"
+                      className="px-2 py-1.5 w-full text-left rounded cursor-pointer hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
+                      tabIndex={0}
+                      onClick={() => {
+                        // Move to front
+                        setRectangles((rectangles) => {
+                          if (contextMenu.rectIndex === null) return rectangles;
+                          const arr = rectangles.slice();
+                          const [item] = arr.splice(contextMenu.rectIndex, 1);
+                          arr.push(item);
+                          return arr;
+                        });
+                        setContextMenu(null);
+                      }}
+                    >
+                      Bring to Front
+                    </button>
+                    <button
+                      role="menuitem"
+                      className="px-2 py-1.5 w-full text-left rounded cursor-pointer hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
+                      tabIndex={0}
+                      onClick={() => {
+                        // Move to back
+                        setRectangles((rectangles) => {
+                          if (contextMenu.rectIndex === null) return rectangles;
+                          const arr = rectangles.slice();
+                          const [item] = arr.splice(contextMenu.rectIndex, 1);
+                          arr.unshift(item);
+                          return arr;
+                        });
+                        setContextMenu(null);
+                      }}
+                    >
+                      Send to Back
+                    </button>
+                    <button
+                      role="menuitem"
+                      className="px-2 py-1.5 w-full text-left rounded cursor-pointer hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
+                      tabIndex={0}
+                      onClick={() => {
+                        // Move up
+                        setRectangles((rectangles) => {
+                          if (contextMenu.rectIndex === null || contextMenu.rectIndex === rectangles.length - 1) return rectangles;
+                          const arr = rectangles.slice();
+                          const idx = contextMenu.rectIndex;
+                          [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]];
+                          return arr;
+                        });
+                        setContextMenu(null);
+                      }}
+                    >
+                      Bring Forward
+                    </button>
+                    <button
+                      role="menuitem"
+                      className="px-2 py-1.5 w-full text-left rounded cursor-pointer hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
+                      tabIndex={0}
+                      onClick={() => {
+                        // Move down
+                        setRectangles((rectangles) => {
+                          if (contextMenu.rectIndex === null || contextMenu.rectIndex === 0) return rectangles;
+                          const arr = rectangles.slice();
+                          const idx = contextMenu.rectIndex;
+                          [arr[idx], arr[idx - 1]] = [arr[idx - 1], arr[idx]];
+                          return arr;
+                        });
+                        setContextMenu(null);
+                      }}
+                    >
+                      Send Backward
+                    </button>
+                    <button
+                      role="menuitem"
+                      className="px-2 py-1.5 w-full text-left rounded cursor-pointer hover:bg-red-100 text-red-600 focus:bg-red-100 focus:outline-none"
+                      tabIndex={0}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        // Remove the rectangle
+                        setRectangles((rectangles) => {
+                          const rectToDelete = rectangles[contextMenu.rectIndex];
+                          return rectangles.filter((_, idx) => idx !== contextMenu.rectIndex);
+                        });
+                        // Remove any ellipse with the same id (if exists)
+                        setEllipses((ellipses) => {
+                          if (!rectangles[contextMenu.rectIndex]) return ellipses;
+                          const rectId = rectangles[contextMenu.rectIndex].id;
+                          return ellipses.filter(e => e.id !== rectId);
+                        });
+                        setContextMenu(null);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
