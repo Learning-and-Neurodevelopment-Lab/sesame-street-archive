@@ -1,5 +1,5 @@
 import { Hub } from "aws-amplify/utils";
-import { getCurrentUser } from "aws-amplify/auth";
+import { fetchAuthSession, fetchUserAttributes, getCurrentUser } from "aws-amplify/auth";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../../amplify/data/resource";
 
@@ -29,6 +29,15 @@ export function setupUserPersist() {
     try {
       const { userId: sub } = await getCurrentUser();
       if (!sub) return;
+      // 1) Pull verified identity data from Cognito (authoritative)
+      let attrs = await fetchUserAttributes();            // { email, email_verified, given_name, family_name, ... }
+      let email = attrs.email;
+
+      // 2) Fallback if provider didn’t return attributes
+      if (!email) {
+        const sess = await fetchAuthSession();
+        email = (sess.tokens?.idToken?.payload as any)?.email ?? "";
+      }
 
       // 1) Append consent (minimal)
     //   await client.models.DuaConsent.create({
@@ -41,7 +50,7 @@ export function setupUserPersist() {
       // 2) Upsert Users (required first)
       const baseRequired = {
         userSub: sub,
-        email: data.email,
+        email: email,
         username: data.username,
         first_name: data.firstName,
         last_name: data.lastName,

@@ -59,7 +59,7 @@ Annotation: a
   Users: a
     .model({
       userSub: a.id().required(),
-      email: a.email().required(),
+      email: a.email(),
       username: a.string().required(),
       first_name: a.string().required(),
       last_name: a.string().required(),

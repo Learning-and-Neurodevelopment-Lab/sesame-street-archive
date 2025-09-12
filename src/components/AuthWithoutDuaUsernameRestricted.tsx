@@ -10,8 +10,6 @@ type UserForm = {
   email: string;            
   username: string;         // non-traceable handle
   characters?: string[];    // up to 5 favorites
-
-
 };
 
 
