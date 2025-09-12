@@ -1,19 +1,21 @@
 version: 1
 
 backend:
-  phases:
-    preBuild:
+phases:
+    install:
       commands:
-        - node -v && npm -v
-        - npm install --no-audit --no-fund
+        - echo "Skipping backend npm install"
     build:
       commands:
-        - npx -y @aws-amplify/backend-cli@1.8.0 pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
+        - echo "Deploying backend: app=$AWS_APP_ID branch=$AWS_BRANCH"
+        - npx -y @aws-amplify/backend-cli@1.8.0 --version
+        - npx -y @aws-amplify/backend-cli@1.8.0 pipeline-deploy --branch "$AWS_BRANCH" --app-id "$AWS_APP_ID"
 
 frontend:
   phases:
-    preBuild:
+    install:
       commands:
+        - echo "Frontend: using root package.json"
         - node -v && npm -v
         - npm install --no-audit --no-fund
     build:
@@ -23,7 +25,4 @@ frontend:
     baseDirectory: .next
     files:
       - '**/*'
-  cache:
-    paths:
-      - .npm/**/*
-      - .next/cache/**/*
+
