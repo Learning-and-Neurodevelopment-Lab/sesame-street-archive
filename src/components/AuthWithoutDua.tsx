@@ -7,7 +7,6 @@ type UserForm = {
   // Required (Basic Information + SSA Profile)
   firstName: string;
   lastName: string;
-  email: string;            
   username: string;         // non-traceable handle
   characters?: string[];    // up to 5 favorites
 
@@ -23,7 +22,7 @@ const SESAME_CHARACTERS = [
 ];
 
 // —— Helpers ——
-const emailRe = /^[^@\s]+@[^@\s]+\.[^@\s]+$/i;
+// const emailRe = /^[^@\s]+@[^@\s]+\.[^@\s]+$/i;
 
 const toxicDenylist = [
   // keep brief & SFW here; extend server-side for real screening
@@ -170,7 +169,7 @@ export default function AuthWithoutDua({ onAgreed }: { onAgreed: () => void }) {
 
   const [firstName, setFirstName] = React.useState("");
   const [lastName, setLastName]   = React.useState("");
-  const [email, setEmail]         = React.useState("");
+//   const [email, setEmail]         = React.useState("");
 
   const [username, setUsername]   = React.useState("");
 
@@ -183,11 +182,11 @@ export default function AuthWithoutDua({ onAgreed }: { onAgreed: () => void }) {
   const valid = React.useMemo(() => {
     if (!agree) return false;
     if (!firstName || !lastName ) return false;
-    if (!email || !emailRe.test(email)) return false;
+    // if (!email || !emailRe.test(email)) return false;
     if (!username || isToxic(username)) return false;
     if (characters.length > 5) return false;
     return true;
-  }, [agree, firstName, lastName, email, username, characters]);
+  }, [agree, firstName, lastName, username, characters]);
 
   function queueAndGo() {
     if (!valid) {
@@ -203,7 +202,7 @@ export default function AuthWithoutDua({ onAgreed }: { onAgreed: () => void }) {
     setErr(null);
     const payload: UserForm = {
       firstName, lastName, 
-      email, username,
+      username,
  
       characters: characters.length ? characters : undefined,
 
@@ -224,7 +223,7 @@ export default function AuthWithoutDua({ onAgreed }: { onAgreed: () => void }) {
             <div className="w-[95vw] sm:w-[90vw] lg:w-[80vw] max-w-screen-2xl rounded-2xl bg-white shadow-2xl">
               <div className="grid max-h-[90vh] grid-rows-[auto_1fr_auto]">
                 <header className="px-6 py-4 border-b">
-                  <h2 id="dua-title" className="text-2xl font-semibold text-left">Create User</h2>
+                  <h2 id="dua-title" className="text-2xl font-semibold text-left"><em>Sesame Street</em>Archive user profile</h2>
                 </header>
 
                 <main className="px-6 py-4 overflow-y-auto space-y-6" style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" as any }}>
@@ -232,7 +231,6 @@ export default function AuthWithoutDua({ onAgreed }: { onAgreed: () => void }) {
 
                   {/* Basic Information */}
                   <section className="space-y-3">
-                    <h3 className="text-lg font-semibold">Basic Information</h3>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
                         <label className="block text-sm font-medium">First Name *</label>
@@ -244,20 +242,13 @@ export default function AuthWithoutDua({ onAgreed }: { onAgreed: () => void }) {
                       </div>
                     </div>
     
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div>
-                        <label className="block text-sm font-medium">Email *</label>
-                        <input type="email" className="mt-1 w-full rounded-md border px-3 py-2" value={email} onChange={(e)=>setEmail(e.target.value)} />
-                      </div>
-         
-                    </div>
+     
                   </section>
 
 
                   {/* SSA Profile */}
                   <section className="space-y-3">
                     
-                    <h3 className="text-lg font-semibold">SSA Profile</h3>
                             <MultiCheckbox
                       label="Favorite Sesame Street Character(s) (up to 5)"
                       options={SESAME_CHARACTERS}
