@@ -7,10 +7,15 @@ import texas from '@/assets/texas.png';
 import landlab from '@/assets/landlab.png';
 import digitalLab from '@/assets/digital-lab-hz.png';
 import sesameworkshop from '@/assets/sesame-workshop-cooney-center.png';
-import one from '@/assets/annotated-examples/03212.png';
-import two from '@/assets/annotated-examples/S35-E4057_01283.png';
-import three from '@/assets/annotated-examples/S35-E4058_00212.png'
-import four from '@/assets/annotated-examples/S35-E4058_00332.png';
+import one from '@/assets/annotated-examples/1.png';
+import two from '@/assets/annotated-examples/2.png';
+import three from '@/assets/annotated-examples/3.png'
+import four from '@/assets/annotated-examples/4.png';
+import five from '@/assets/annotated-examples/5.png';
+import six from '@/assets/annotated-examples/6.png';
+import seven from '@/assets/annotated-examples/7.png';
+import eight from '@/assets/annotated-examples/8.png';
+
 import { researchArticles } from '@/lib/research-data';
 
 import { useTranslations } from 'next-intl';
@@ -42,7 +47,31 @@ export default function HomePage() {
       description: t('labeledStills.four.description'),
       id: t('labeledStills.four.id'),
       image: four,
-    }
+    },
+    {
+      title: t('labeledStills.five.title'),
+      description: t('labeledStills.five.description'),
+      id: t('labeledStills.five.id'),
+      image: five,
+    },
+    {
+      title: t('labeledStills.six.title'),
+      description: t('labeledStills.six.description'),
+      id: t('labeledStills.six.id'),
+      image: six,
+    },
+    {
+      title: t('labeledStills.seven.title'),
+      description: t('labeledStills.seven.description'),
+      id: t('labeledStills.seven.id'),
+      image: seven,
+    },
+    {
+      title: t('labeledStills.eight.title'),
+      description: t('labeledStills.eight.description'),
+      id: t('labeledStills.eight.id'),
+      image: eight,
+    },
   ];
 
   const contributors = [
@@ -87,7 +116,7 @@ export default function HomePage() {
             <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6 leading-tight">
               <div>{t('heroTitle')}</div>
             </h1>
-            <p className="text-lg text-gray-600 mb-8 font-bold"> 
+            <p className="text-lg text-gray-700 mb-8 font-bold"> 
               {t.rich('heroSubTitle', {
                 em: (chunks) => <em>{chunks}</em>
               })}
