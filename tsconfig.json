@@ -8,9 +8,6 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@payload-config": [
-        "./payload.config.ts"
-      ],
       "@/*": [
         "./*"
       ]
