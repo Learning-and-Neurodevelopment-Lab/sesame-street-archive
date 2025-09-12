@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef, Key } from "react";
 import { useQuery, useQueries } from "@tanstack/react-query";
 import { Stage, Layer, Rect, Image as KonvaImage } from "react-konva";
+import type { StageProps } from "react-konva";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Spring, animated } from "@react-spring/konva";
 import useImage from "use-image";
@@ -17,80 +18,176 @@ function getExifInfo(image: SearchData) {
   ].filter((item) => item.value); // Only include if value exists
 }
 
-// Helper component for Konva image with bounding boxes
 
+  // Themed collapsible for annotations in modal
+  function CollapsibleAnnotations({ annotations, hasAnnotations }) {
+    const [open, setOpen] = useState(false);
+    return (
+      <div className="mb-2">
+        <button
+          type="button"
+          className="flex items-center justify-between w-full px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded border border-gray-200 text-sm font-medium text-gray-800 focus:outline-none"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open ? "true" : "false"}
+          aria-controls="annotations-list"
+        >
+          <span>Annotations</span>
+          <svg
+            className={`w-4 h-4 ml-2 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div
+          id="annotations-list"
+          className={`transition-all duration-200 overflow-hidden ${open ? 'max-h-40' : 'max-h-0'} bg-white border border-t-0 border-gray-200 rounded-b`}
+        >
+          {open && (
+            <div className="p-3">
+              {hasAnnotations ? (
+                <ul className="space-y-1 max-h-32 overflow-y-auto">
+                  {annotations.map((ann, idx) => (
+                    <li key={idx} className="flex items-center text-xs bg-gray-50 rounded px-2 py-1 border border-gray-100">
+                      <span className={`font-semibold mr-2 px-2 py-0.5 rounded-full ${getTypeColor(ann.category?.toLowerCase?.() || ann.category)}`}>{ann.category}</span>
+                      <span className="text-gray-400 mx-1">|</span>
+                      <span className="truncate text-gray-700">{Array.isArray(ann.keywords) ? ann.keywords.join(", ") : ann.keywords}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-xs text-gray-400">No annotations available.</div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+// Helper component for Konva image with bounding boxes
 function KonvaImageWithBoxes({ imageUrl, boxes }) {
   const [image] = useImage(imageUrl);
-  const [stageSize, setStageSize] = useState({
-    width: 0,
-    height: 0,
-  });
-  const stageRef = useRef(null);
+  const containerRef = useRef(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [imgDims, setImgDims] = useState({ width: 0, height: 0 });
 
-  useMemo(() => {
+  // Set container size to be square (responsive)
+  useEffect(() => {
+    function updateSize() {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const size = Math.min(rect.width, rect.height);
+        setContainerSize({ width: size, height: size });
+      }
+    }
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  // Get image natural dimensions
+  useEffect(() => {
     if (image && image.width && image.height) {
-      const imgW = image.width;
-      const imgH = image.height;
-      let width = imgW;
-      let height = imgH;
-      
-      setStageSize({ width, height });
+      setImgDims({ width: image.width, height: image.height });
     }
   }, [image]);
+
+  // Calculate scale and offset to fit image in square
+  const { stageWidth, stageHeight, scale, offsetX, offsetY } = useMemo(() => {
+    const cW = containerSize.width || 240;
+    const cH = containerSize.height || 240;
+    const iW = imgDims.width || 1;
+    const iH = imgDims.height || 1;
+    const scale = Math.min(cW / iW, cH / iH);
+    const stageWidth = iW * scale;
+    const stageHeight = iH * scale;
+    const offsetX = (cW - stageWidth) / 2;
+    const offsetY = (cH - stageHeight) / 2;
+    return { stageWidth, stageHeight, scale, offsetX, offsetY };
+  }, [containerSize, imgDims]);
 
   const AnimatedKonvaImage = animated(KonvaImage);
 
   return (
-    <Stage
-      width={stageSize.width}
-      height={stageSize.height}
-      ref={stageRef}
-      style={{ width: "fit-content", height: "fit-content" }}
-      onContextMenu={(evt) => evt.evt.preventDefault()}
+    <div
+      ref={containerRef}
+      style={{
+        width: "100%",
+        aspectRatio: "1 / 1",
+        maxWidth: 240,
+        maxHeight: 240,
+        margin: "0 auto",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#e5e7eb",
+      }}
     >
-      <Layer>
-        <Spring from={{ opacity: 0 }} to={{ opacity: 1 }} delay={500}>
-          {({ opacity }) => (
-            // @ts-ignore
-            <AnimatedKonvaImage
-              image={image}
-              width={stageSize.width}
-              height={stageSize.height}
-              opacity={opacity}
-            />
-          )}
-        </Spring>
-        {boxes &&
-          boxes.map(
-            (box: {
-              id: Key;
-              x: number;
-              y: number;
-              width: number;
-              height: number;
-            }) => (
-              <Rect
-                key={box.id}
-                x={box.x}
-                y={box.y}
-                width={box.width}
-                height={box.height}
-                stroke="white"
-                strokeWidth={4}
-                dash={[6, 4]}
-                cornerRadius={4}
-                opacity={0.7}
-                shadowEnabled={true}
-                shadowColor="black"
-                shadowBlur={8}
-                shadowOffset={{ x: 2, y: 2 }}
-                shadowOpacity={0.6}
-                background="rgba(255, 0, 255, 0.2)"
+      <Stage
+        width={containerSize.width}
+        height={containerSize.height}
+        style={{ background: "transparent" }}
+      >
+        <Layer>
+          <Spring from={{ opacity: 0 }} to={{ opacity: 1 }} delay={500}>
+            {({ opacity }) => (
+              // @ts-ignore
+              <AnimatedKonvaImage
+                image={image}
+                x={offsetX}
+                y={offsetY}
+                width={stageWidth}
+                height={stageHeight}
+                opacity={opacity}
               />
-            )
-          )}
-      </Layer>
-    </Stage>
+            )}
+          </Spring>
+          {boxes &&
+            boxes.map(
+              (box: {
+                id: Key;
+                x: number;
+                y: number;
+                width: number;
+                height: number;
+                annotation?: { category?: string };
+              }) => {
+                // Use getTypeColor to determine stroke color
+                let stroke = "#fff";
+                const cat = box.annotation?.category?.toLowerCase?.() || box.annotation?.category;
+                switch (cat) {
+                  case "face": stroke = "#3b82f6"; break;
+                  case "place": stroke = "#22c55e"; break;
+                  case "number": stroke = "#a855f7"; break;
+                  case "word": stroke = "#a42a04"; break;
+                  default: stroke = "#e5e7eb";
+                }
+                return (
+                  <Rect
+                    key={box.id}
+                    x={box.x * scale + offsetX}
+                    y={box.y * scale + offsetY}
+                    width={box.width * scale}
+                    height={box.height * scale}
+                    stroke={stroke}
+                    strokeWidth={4}
+                    dash={[6, 4]}
+                    cornerRadius={4}
+                    opacity={0.7}
+                    shadowEnabled={true}
+                    shadowColor="black"
+                    shadowBlur={8}
+                    shadowOffset={{ x: 2, y: 2 }}
+                    shadowOpacity={0.6}
+                  />
+                );
+              }
+            )}
+        </Layer>
+      </Stage>
+    </div>
   );
 }
 import Link from "next/link";
@@ -360,7 +457,7 @@ export default function Search() {
       return {
         id: String(image.image_id).padStart(5, "0") || 0,
         filename,
-        categories: data.map((annotation) => annotation.category),
+        categories: Array.from(new Set(data.map((annotation) => annotation.category))),
         annotations: annotationItems,
         imagePath,
         hasAnnotations: data.length > 0,
@@ -471,6 +568,13 @@ export default function Search() {
     const params = new URLSearchParams(searchParams.toString());
     const imageUrl = await getUrl({ path: `images/${image.imagePath}` });
     params.set("image", imageUrl.url.href);
+    // Pass annotations as a query param (encoded)
+    if (image.annotations && image.annotations.length > 0) {
+      try {
+        const encoded = encodeURIComponent(JSON.stringify(image.annotations));
+        params.set("annotations", encoded);
+      } catch {}
+    }
     router.push(`/annotate?${params.toString()}`);
   };
 
@@ -595,6 +699,13 @@ export default function Search() {
                         key={result.url || result.imagePath}
                         type="button"
                         onClick={() => {
+                          // Pass annotations as query param
+                          let annotationsParam = undefined;
+                          if (result.annotations && result.annotations.length > 0) {
+                            try {
+                              annotationsParam = encodeURIComponent(JSON.stringify(result.annotations));
+                            } catch {}
+                          }
                           setSearchParams({
                             image: result.imagePath,
                             fullscreen: showFullscreenResults,
@@ -603,6 +714,7 @@ export default function Search() {
                             categories: selectedCategories,
                             years: selectedYears,
                             annotated: showAnnotatedOnly,
+                            ...(annotationsParam ? { annotations: annotationsParam } : {}),
                           });
                         }}
                         className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 w-full text-left"
@@ -1067,20 +1179,8 @@ export default function Search() {
                     </li>
                   ))}
                 </ul>
-                <h4 className="font-medium mb-1">Annotations</h4>
-                {selectedImage.hasAnnotations ? (
-                  <ul className="mb-2">
-                    {selectedImage.annotations.map((ann, index) => (
-                      <li key={index} className="text-sm text-gray-800">
-                        {ann.category} - Keywords: {ann.keywords.join(", ")}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="text-sm text-gray-500 mb-2">
-                    No annotations available.
-                  </div>
-                )}
+                {/* Collapsible Annotations Section */}
+                <CollapsibleAnnotations annotations={selectedImage.annotations} hasAnnotations={selectedImage.hasAnnotations} />
                 <div className="flex gap-4 mt-4 flex-wrap w-full sm:w-auto justify-end">
                   {/* <Button
                       variant="outline"
