@@ -4,12 +4,7 @@ frontend:
     preBuild:
       commands:
         - nvm use 20
-        - node -v
-        - npm -v
         - npm ci
-        - which ampx
-        - ampx --version
-        - npx ampx generate outputs --branch $AWS_BRANCH
     build:
       commands:
         - npm run build
@@ -21,14 +16,5 @@ frontend:
     paths:
       - node_modules/**/*
       - .next/cache/**/*
-  environment:
-    variables:
-      NODE_ENV: |
-        if [ "$AWS_BRANCH" = "main" ]; then
-          echo "production"
-        else
-          echo "development"
-        fi
-      NEXT_PUBLIC_ENV: $AWS_BRANCH
 buildSettings:
   nodeVersion: '20'
