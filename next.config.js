@@ -1,5 +1,17 @@
 const createNextIntlPlugin = require('next-intl/plugin');
+
 const withMDX = require('@next/mdx')();
+
+// const withMDX = require('@next/mdx')({
+//   extension: /\.mdx?$/,
+//   options: {
+//     // Optional: map front-matter to `export const metadata`
+//     remarkPlugins: [
+//       require('remark-frontmatter'),
+//       [require('remark-mdx-frontmatter'), { name: 'metadata' }],
+//     ],
+//   },
+// });
 
 const withNextIntl = createNextIntlPlugin();
 
@@ -69,3 +81,4 @@ const nextConfig = {
  
 };
 
+module.exports = withNextIntl(withMDX(nextConfig));
