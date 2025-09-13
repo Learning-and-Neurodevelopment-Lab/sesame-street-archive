@@ -51,8 +51,8 @@
     "use-image": "^1.1.4"
   },
   "devDependencies": {
-    "@aws-amplify/backend": "^1.0.0",
-    "@aws-amplify/backend-cli": "^1.0.0",
+    "@aws-amplify/backend": "latest",
+    "@aws-amplify/backend-cli": "latest",
     "@babel/preset-env": "^7.28.3",
     "@babel/preset-react": "^7.27.1",
     "@babel/preset-typescript": "^7.27.1",

@@ -37,7 +37,8 @@ const nextConfig = {
         os: false,
       };
     }
-    
+    nextRuntime: 'nodejs'
+
     // Exclude problematic modules from client bundle
     config.externals = config.externals || [];
     config.externals.push({
@@ -48,17 +49,12 @@ const nextConfig = {
     return config;
   },
   
-  // Disable SWC minification if you have Babel config
-  swcMinify: false,
+
   
   // Output configuration for Amplify
   output: 'standalone',
   
-  // Disable static optimization for problematic pages
-  experimental: {
-    // Disable image optimization at build time
-    optimizeImages: false,
-  },
+ 
 };
 
 // Apply plugins in the correct order
