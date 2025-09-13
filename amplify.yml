@@ -15,7 +15,7 @@ backend:
         - npm ci --no-audit --no-fund
     build:
       commands:
-        - '. "$NVM_DIR/nvm.sh" && nvm use 20.19.3'
+        - '. "$NVM_DIR/nvm.sh" && nvm install 20.19.3 && nvm use 20.19.3'
         - node -v && npm -v
         - npm config get production
         - '[ -d node_modules/@aws-amplify/backend ] || { echo "MISSING: node_modules/@aws-amplify/backend"; ls -la node_modules/@aws-amplify || true; exit 1; }'
@@ -25,12 +25,12 @@ frontend:
   phases:
     install:
       commands:
-        - '. "$NVM_DIR/nvm.sh" && nvm use 20.19.3'
+        - '. "$NVM_DIR/nvm.sh" && nvm install 20.19.3 && nvm use 20.19.3'
         - node -v && npm -v
         - npm ci --no-audit --no-fund
     build:
       commands:
-        - '. "$NVM_DIR/nvm.sh" && nvm use 20.19.3'
+        - '. "$NVM_DIR/nvm.sh" && nvm install 20.19.3 && nvm use 20.19.3'
         - node -v && npm -v
         - npm run build
   artifacts:
