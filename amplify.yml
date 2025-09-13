@@ -8,17 +8,13 @@ backend:
   phases:
     install:
       commands:
-        - 'export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] || curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash'
         - '. "$NVM_DIR/nvm.sh" && nvm install 20.19.3 && nvm use 20.19.3'
-        - node -v && npm -v
-        - export NPM_CONFIG_PRODUCTION=false
-        - npm ci --no-audit --no-fund
+        - echo "BACKEND.install PWD=$(pwd)"; ls -la
+        - cd amplify && npm ci --no-audit --no-fund && ls -la node_modules/@aws-amplify && cd ..
     build:
       commands:
         - '. "$NVM_DIR/nvm.sh" && nvm install 20.19.3 && nvm use 20.19.3'
-        - node -v && npm -v
-        - npm config get production
-        - '[ -d node_modules/@aws-amplify/backend ] || { echo "MISSING: node_modules/@aws-amplify/backend"; ls -la node_modules/@aws-amplify || true; exit 1; }'
+        - echo "BACKEND.build PWD=$(pwd)"; ls -la amplify/node_modules/@aws-amplify
         - npx -y @aws-amplify/backend-cli@1.8.0 pipeline-deploy --branch "$AWS_BRANCH" --app-id "$AWS_APP_ID" --outputs-out-dir ./src --outputs-version 1.4 --outputs-format json
 
 frontend:
