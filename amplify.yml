@@ -6,6 +6,9 @@ frontend:
         - nvm use 20
         - node -v
         - npm -v
+        - npm install -g @aws-amplify/backend-cli@latest
+        - which ampx
+        - ampx --version
         - npm ci
         - npx ampx generate outputs --branch $AWS_BRANCH
     build:
