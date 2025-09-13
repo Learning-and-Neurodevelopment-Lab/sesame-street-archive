@@ -6,7 +6,7 @@ export default function PageNotFound() {
   return (
     <html lang="en">
       <head>
-        <title><em>Sesame Street</em>Archive</title>
+        <title>Sesame Street Archive</title>
         <meta
           name="description"
           content="A comprehensive archive of Sesame Street episodes and resources."
