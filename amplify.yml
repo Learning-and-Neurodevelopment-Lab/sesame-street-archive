@@ -1,21 +1,19 @@
 version: 1
 backend:
   phases:
+    preBuild:
+      commands:
+        - export SHARP_IGNORE_GLOBAL_LIBVIPS=1
+        - npm install 
     build:
       commands:
-        - npm ci --cache .npm --prefer-offline
-        - |
-          if [ "$AWS_BRANCH" !== "main" ]; then
-            echo "Deploying Gen-2 backend for dev branch..."
-            npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
-          else
-            echo "Skipping backend deploy on $AWS_BRANCH"
-          fi
+        - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
 frontend:
   phases:
     preBuild:
       commands:
-        - npm ci --cache .npm --prefer-offline
+        - if [ -f amplify_outputs.json ]; then cp amplify_outputs.json ./amplify_outputs.json; fi
+        - npm rebuild sharp --force
     build:
       commands:
         - npm run build
@@ -23,4 +21,7 @@ frontend:
     baseDirectory: .next
     files:
       - '**/*'
-
+  # cache:
+  #   paths:
+  #     - .npm/**/*
+  #     - node_modules/**/*
