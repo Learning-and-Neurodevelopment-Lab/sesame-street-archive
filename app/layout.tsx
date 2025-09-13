@@ -10,7 +10,7 @@ export default function RootLayout({ children }: Props) {
   return (
     <html lang="en">
       <head>
-        <title>Sesame Street Archive</title>
+        <title><em>Sesame Street</em>Archive</title>
         <meta name="description" content="A comprehensive archive of Sesame Street episodes and resources." />
         <link rel="icon" href="/favicon.ico" />
       </head>

@@ -1,14 +1,12 @@
 // app/(main)/(static)/research/[slug]/not-found.tsx
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import "./global.css";
-import { NextIntlClientProvider } from "next-intl";
 
 export default function PageNotFound() {
   return (
     <html lang="en">
       <head>
-        <title>Sesame Street Archive</title>
+        <title><em>Sesame Street</em>Archive</title>
         <meta
           name="description"
           content="A comprehensive archive of Sesame Street episodes and resources."

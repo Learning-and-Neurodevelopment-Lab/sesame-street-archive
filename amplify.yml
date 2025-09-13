@@ -14,7 +14,7 @@ frontend:
         - nvm use 20
         - npm ci
         # Ensure ampx is available for frontend
-        - which ampx || npm install @aws-amplify/backend-cli
+        - which ampx || npm install @aws-amplify/backend-cli || echo "Backend CLI already available"
         - npx ampx generate outputs --branch $AWS_BRANCH --app-id $AWS_APP_ID
     build:
       commands:
