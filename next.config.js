@@ -9,8 +9,12 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig = {
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   
+  
   // Image configuration for Amplify
   images: {
+        // Disable image optimization during build if causing issues
+    unoptimized: true,
+
     // Use remotePatterns instead of domains (recommended approach)
     remotePatterns: [
       {
@@ -37,10 +41,10 @@ const nextConfig = {
   output: 'standalone', // Recommended for Amplify SSR
   
   // Optional: Enable experimental features that work well with Amplify
-  experimental: {
-    // Enable if you're using App Router and want better performance
-    serverComponentsExternalPackages: ['aws-amplify'],
-  },
+ 
+  // Enable if you're using App Router and want better performance
+  serverExternalPackages: ['aws-amplify'],
+
 
   // Optional: Configure headers for better security and performance
   async headers() {
