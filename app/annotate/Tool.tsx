@@ -32,7 +32,6 @@ import type Konva from "konva";
 import { RectangleContextMenu } from "@/components/RectangleContextMenu";
 import { SearchableCombobox } from "@/components/SearchableCombobox";
 
-import "app/amplify-auth.css";
 import { useRouter } from "next/navigation";
 
 const MAX_WIDTH = 1024;
