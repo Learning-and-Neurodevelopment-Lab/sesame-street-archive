@@ -11,7 +11,7 @@ frontend:
   phases:
     preBuild:
       commands:
-        - nvm use 22
+        - nvm use 20
         - npm ci
         # Ensure ampx is available for frontend
         - which ampx || npm install @aws-amplify/backend-cli || echo "Backend CLI already available"
