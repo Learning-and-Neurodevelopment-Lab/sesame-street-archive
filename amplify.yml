@@ -29,4 +29,4 @@ frontend:
       - node_modules/**/*
       - .next/cache/**/*
 buildSettings:
-  nodeVersion: '22'
+  nodeVersion: '20'
