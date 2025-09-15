@@ -1,12 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400..900;1,400..900&display=swap');
-/* @import '@/app/amplify-auth.css'; */
 
-/* @theme {
-  --font-inter: "Inter", sans-serif; 
-  --font-inter-tight: "Inter Tight", sans-serif;
-} */
 
 main > div> section:first-child {
   background-color: #99caa8;
