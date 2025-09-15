@@ -7,6 +7,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Spring, animated } from "@react-spring/konva";
 import useImage from "use-image";
 import Image from "next/image";
+import { PulseLoader } from "react-loadly";
+import "react-loadly/styles.css";
 
 function getExifInfo(image: SearchData) {
   return [
@@ -325,9 +327,13 @@ export default function Search() {
     () => new URLSearchParams(searchParamsString).get("fullscreen") === "1",
     [searchParamsString]
   );
+  const imageParam = useMemo(
+    () => new URLSearchParams(searchParamsString).get("image"),
+    [searchParamsString]
+  );
 
   useEffect(() => {
-    const imageParam = searchParams.get("image");
+    console.log('IMAGE PARAM CHANGED', { imageParam });
     if (imageParam && searchData.length > 0) {
       const found = searchData.find((img) => img.imagePath === imageParam);
       if (found) {
@@ -344,7 +350,9 @@ export default function Search() {
       setModalOpen(false);
       setSelectedImage(null);
     }
-  }, [searchParamsString, searchData]);
+  }, [imageParam, searchData]);
+
+  console.log('UPDATE, UPDATE');
 
   const setSearchParams = (
     params: Record<string, string | string[] | boolean | undefined>
@@ -385,6 +393,7 @@ export default function Search() {
   }, []);
 
   useEffect(() => {
+    console.log('QUERY CHANGED', { query });
     if (inputRef.current && query.length > 0) {
       inputRef.current.value = query;
       inputRef.current.focus();
@@ -679,7 +688,11 @@ export default function Search() {
       : [];
 
   if (annotationsLoading && imagesLoading && searchData.length === 0) {
-    return <h1 className="text-center text-6xl h-full w-full">Loading…</h1>
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <PulseLoader color="#364153" size={60} />
+      </div>
+    );
   }
 
   return (
@@ -862,7 +875,7 @@ export default function Search() {
             {t("filterTitle")}
           </h2>
           <div className="flex items-center gap-4">
-            {activeFiltersCount > 0 && (
+            {(activeFiltersCount > 0) && (
               <span className="text-sm text-gray-600">
                 {t.rich("activeFilters", { count: activeFiltersCount })}
               </span>
@@ -975,12 +988,14 @@ export default function Search() {
 
         <div className="grid md:grid-cols-[1fr_auto] gap-4 mt-6 pt-4 border-t border-gray-200">
           <div className="w-full">
-            <p className="text-sm text-gray-600">
-              {t("criteriaLabel", {
-                count: filteredResults.length,
-                total: searchData.length,
-              })}
-            </p>
+              {filteredResults.length > 0 || activeFiltersCount !== 0 ? (
+                <p className="text-sm text-gray-600">
+                  {t("criteriaLabel", {
+                    count: filteredResults.length,
+                    total: searchData.length,
+                  })}
+                </p>
+              ) : <PulseLoader color="#364153" size={8} />}
           </div>
           <Button
             onClick={handleSearch}
