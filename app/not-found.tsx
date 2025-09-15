@@ -1,8 +1,6 @@
 // app/(main)/(static)/research/[slug]/not-found.tsx
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import "./global.css";
-import { NextIntlClientProvider } from "next-intl";
 
 export default function PageNotFound() {
   return (

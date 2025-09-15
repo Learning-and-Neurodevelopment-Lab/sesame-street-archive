@@ -23,7 +23,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     Person: ({ children: [name, title] }) => (
       <div className="mb-4">
         <span className="font-medium">{name}</span> <br />
-        <span className="text-gray-600 tex-sm">{title}</span>
+        <span className="text-gray-600 text-sm">{title}</span>
       </div>
     ),
     Category: ({ children, color }) => (
