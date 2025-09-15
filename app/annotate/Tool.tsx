@@ -368,18 +368,15 @@ export default function Tool() {
     }
   };
 
-  // Save annotation from drawer
   const handleDrawerSave = (updated) => {
     if (drawerAnnotationIndex !== null) {
       const newRectangles = rectangles.slice();
-      // Update label to match category label if changed
-      const catObj = ANNOTATION_CATEGORIES.find(
-        (cat) => cat.value === updated.category
-      );
+      const catObj = ANNOTATION_CATEGORIES.find((cat) => cat.value === updated.category);
       newRectangles[drawerAnnotationIndex] = {
         ...newRectangles[drawerAnnotationIndex],
         ...updated,
         label: catObj?.label || updated.category,
+        _labelKey: Math.random(), // force remount of Text for recentering
       };
       setRectangles(newRectangles);
       setDrawerOpen(false);
@@ -387,7 +384,6 @@ export default function Tool() {
     }
   };
 
-  // Add new category from drawer
   const handleDrawerCategoryCreate = (newCategory) => {
     if (!ANNOTATION_CATEGORIES.some((cat) => cat.value === newCategory)) {
       ANNOTATION_CATEGORIES.push({
@@ -399,7 +395,7 @@ export default function Tool() {
   };
 
   const getStrokeColor = (rect: any, index: number) => {
-    if (selectedAnnotation === index) return "#111827"; // dark gray for selected
+    if (selectedAnnotation === index) return "#111827";
     if (rect.category) {
       const category = ANNOTATION_CATEGORIES.find(
         (cat) => cat.value === rect.category
@@ -419,7 +415,6 @@ export default function Tool() {
     a.click();
   };
 
-  // Keyboard shortcuts for tool selection
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName || ""))
@@ -468,45 +463,7 @@ export default function Tool() {
     children: any[];
   }
 
-  // Type for Konva Group
-  // (imported from react-konva, but for runtime check, use typeof Group)
-  // interface KonvaGroup {} // Not needed for runtime instanceof
 
-  // Type assertion for stageRef
-  const stageRefTyped =
-    stageRef as React.MutableRefObject<KonvaStageRef | null>;
-
-  // console.log(
-  //   ((stageRefTyped.current?.children[0]?.children ?? []) as any[]).filter(
-  //     (o: any) => o.constructor.name === 'Group'
-  //   ).map((group: any) => {
-  //     // Do something with each group
-  //     return (group?.children ?? []).find((o:any) => o.constructor.name === 'Text');
-  //   }).forEach((text: any) => {
-  //     console.log('Found text node:', text.textWidth);
-  //   })
-  // );
-
-  // console.log('Stage size:', Array.from(stageRef.current?.children[0]?.children ?? []).filter((layer) => layer === true));
-
-  // return (
-  //   <div>
-  //     <div className="max-w-sm mx-auto py-16">
-  //       <Authenticator
-  //         components={{
-  //           Header() {
-  //             return (
-  //               <h1 className="text-2xl font-bold mb-6 text-center">Sign In</h1>
-  //             );
-  //           },
-  //         }}
-  //       />
-  //     </div>
-  //     {/* ...existing annotation tool code goes here, outside of Authenticator, or conditionally rendered if needed... */}
-  //   </div>
-  // );
-
-  // Close context menu on Escape key globally
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape" && contextMenu) {
@@ -670,6 +627,7 @@ export default function Tool() {
                         {/* Label Text */}
                         {rect.label && (
                           <Text
+                            key={rect._labelKey || rect.id}
                             x={rect.width / 2}
                             y={rect.height / 2}
                             text={rect.category || rect.label}
@@ -678,14 +636,13 @@ export default function Tool() {
                             fontStyle="bold"
                             align="center"
                             verticalAlign="middle"
-                            offsetX={rect.label.length * 3} // Rough centering
-                            offsetY={6} // Rough centering
+                            offsetX={0}
+                            offsetY={0}
                           />
                         )}
                       </Group>
                     ))}
 
-                    {/* Transformer for resizing selected rectangles */}
                     <Transformer
                       ref={transformerRef}
                       enabledAnchors={[
@@ -708,37 +665,9 @@ export default function Tool() {
                         return newBox;
                       }}
                     />
-                    {/* {ellipses.map((rect, i) => (
-                      <Ellipse
-                        key={i}
-                        x={rect.x + rect.width / 2}
-                        y={rect.y + rect.height / 2}
-                        radiusX={Math.abs(rect.width) / 2}
-                        radiusY={Math.abs(rect.height) / 2}
-                        stroke="red"
-                        strokeWidth={2}
-                        draggable={tool === "move"}
-                        onMouseOver={(e) => {
-                          if (tool === "select" || tool === "delete") {
-                            e.target.getStage().container().style.cursor = "pointer";
-                          }
-                        }}
-                        onMouseMove={(e) => {
-                          if (tool === "move") {
-                            e.target.getStage().container().style.cursor = "move";
-                          }
-                        }}
-                        onMouseOut={(e) => {
-                          if (tool === "move" || tool === "select" || tool === "delete") {
-                            e.target.getStage().container().style.cursor = "default";
-                          }
-                        }}
-                      />
-                    ))} */}
                     <Shape rect={newRect} tool={tool} />
                   </Layer>
                 </Stage>
-                {/* Custom context menu for rectangles */}
                 {contextMenu && contextMenu.rectIndex !== null && (
                   <div
                     role="menu"
@@ -905,7 +834,6 @@ export default function Tool() {
           />
         </main>
       </div>
-      {/* Footer/Status Bar */}
       <footer className="h-8 px-6 flex items-center bg-white border-t border-neutral-200 text-xs text-neutral-500">
         Status: Ready | Rectangles: {rectangles.length}
       </footer>
