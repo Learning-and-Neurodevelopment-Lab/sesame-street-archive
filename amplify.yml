@@ -23,10 +23,10 @@ frontend:
     baseDirectory: .next
     files:
       - '**/*'
-  cache:
-    paths:
-      - node_modules/**/*
-      - .next/cache/**/*
+  # cache:
+  #   paths:
+  #     - node_modules/**/*
+  #     - .next/cache/**/*
 
 # applications:
 #   - backend:
