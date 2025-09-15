@@ -172,7 +172,7 @@ export default function HomePage() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {researchArticles.map((article) => (
               <article key={article.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
                 <div className="aspect-video bg-gray-200 border-b">
@@ -194,7 +194,7 @@ export default function HomePage() {
                 </div>
               </article>
             ))}
-          </div>
+          </div> */}
 
           <div className="text-center mt-12">
             <Button asChild variant="outline" size="lg">

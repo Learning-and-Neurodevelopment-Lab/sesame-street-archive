@@ -22,11 +22,10 @@ export default function ResearchPage() {
       </div>
 
       {/* Featured Research */}
-      <section className="mb-16">
+      {/* <section className="mb-16">
         <h2 className="text-3xl font-bold text-gray-800 mb-8">Featured Research</h2>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
-          {/* Primary Featured Study */}
           <article className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
             <div className="aspect-video bg-gray-200">
               <Image src={one} alt="Brain imaging study" className="w-full h-full object-cover" />
@@ -52,7 +51,6 @@ export default function ResearchPage() {
             </div>
           </article>
 
-          {/* Secondary Featured */}
           <article className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
             <div className="aspect-video bg-gray-200">
               <Image src={two} alt="AI analysis" className="w-full h-full object-cover" />
@@ -73,7 +71,7 @@ export default function ResearchPage() {
             </div>
           </article>
         </div>
-      </section>
+      </section> */}
 
       {/* Research Areas */}
       <section className="mb-16">
@@ -91,9 +89,9 @@ export default function ResearchPage() {
             <p className="text-gray-600 text-sm mb-4">
               fMRI studies examining how children's brains respond to educational media content, character recognition, and visual learning patterns.
             </p>
-            <Link href="/research/neuroscience" className="text-blue-600 text-sm font-medium hover:underline">
+            {/* <Link href="/research/neuroscience" className="text-blue-600 text-sm font-medium hover:underline">
               Explore Studies →
-            </Link>
+            </Link> */}
           </div>
 
           {/* Computer Vision */}
@@ -108,9 +106,9 @@ export default function ResearchPage() {
             <p className="text-gray-600 text-sm mb-4">
               Advanced machine learning models for automated detection of faces, places, numbers, and educational content in video frames.
             </p>
-            <Link href="/research/computer-vision" className="text-blue-600 text-sm font-medium hover:underline">
+            {/* <Link href="/research/computer-vision" className="text-blue-600 text-sm font-medium hover:underline">
               View Models →
-            </Link>
+            </Link> */}
           </div>
 
           {/* Educational Psychology */}
@@ -124,15 +122,14 @@ export default function ResearchPage() {
             <p className="text-gray-600 text-sm mb-4">
               Understanding how visual narratives and character interactions influence learning outcomes in preschool and elementary education.
             </p>
-            <Link href="/research/educational-psychology" className="text-blue-600 text-sm font-medium hover:underline">
+            {/* <Link href="/research/educational-psychology" className="text-blue-600 text-sm font-medium hover:underline">
               Read Findings →
-            </Link>
+            </Link> */}
           </div>
         </div>
       </section>
 
-      {/* All Research Articles (Interactive) */}
-      <section className="mb-16">
+      {/* <section className="mb-16">
         <ResearchFilterSort />
         <div className="text-center mt-12">
           <Button asChild variant="outline">
@@ -141,7 +138,6 @@ export default function ResearchPage() {
         </div>
       </section>
 
-      {/* Call to Action */}
       <section className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-8 text-center">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">
           Collaborate with Our Research Team
@@ -157,7 +153,7 @@ export default function ResearchPage() {
             <Link href="/explore">Explore Dataset</Link>
           </Button>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 }

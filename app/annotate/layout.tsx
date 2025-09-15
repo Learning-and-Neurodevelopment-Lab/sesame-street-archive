@@ -10,9 +10,9 @@ export default function AnnotateLayout({
   return (
     <Provider>
       <div className="bg-neutral-50 text-neutral-900 min-h-screen flex flex-col w-full">
-        <div className="flex min-h-screen">
+        <div className="flex h-screen">
           <Toolbar />
-          <div className="flex flex-col flex-1">
+          <div className="flex flex-col flex-1 h-screen">
             {children}
           </div>
         </div>
