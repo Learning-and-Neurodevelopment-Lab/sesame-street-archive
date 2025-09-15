@@ -35,6 +35,26 @@
         "description": "Description for annotated example 4",
         "id": "four"
       }
+      "five": {
+        "title": "Annotated example 5",
+        "description": "Description for annotated example 5",
+        "id": "five"
+      },
+      "six": {
+        "title": "Annotated example 6",
+        "description": "Description for annotated example 6",
+        "id": "six"
+      },
+      "seven": {
+        "title": "Annotated example 7",
+        "description": "Description for annotated example 7",
+        "id": "seven"
+      },
+      "eight": {
+        "title": "Annotated example 8",
+        "description": "Description for annotated example 8",
+        "id": "eight"
+      }
     },
     "deepMRIStudies": {
       "title": "Dense Longitudinal Studies",
