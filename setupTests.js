@@ -1,2 +1,2 @@
-const matchers = require('@testing-library/jest-dom/matchers');
+import matchers from '@testing-library/jest-dom/matchers';
 expect.extend(matchers);

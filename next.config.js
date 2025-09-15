@@ -30,20 +30,20 @@ const nextConfig = {
   },
 
    // Explicitly disable experimental CSS optimizations
-  experimental: {
-    optimizeCss: false, // Disable CSS optimization that uses LightningCSS
-  },
+  // experimental: {
+  //   optimizeCss: false, // Disable CSS optimization that uses LightningCSS
+  // },
   // Webpack configuration to handle Sharp issues
   webpack: (config, { isServer, dev }) => {
         // Disable LightningCSS and use standard CSS processing
-    if (config.optimization && config.optimization.minimizer) {
-      config.optimization.minimizer = config.optimization.minimizer.filter(
-        (minimizer) => {
-          const name = minimizer.constructor.name;
-          return !name.includes('LightningCss') && !name.includes('CssMinimizerPlugin');
-        }
-      );
-    }
+    // if (config.optimization && config.optimization.minimizer) {
+    //   config.optimization.minimizer = config.optimization.minimizer.filter(
+    //     (minimizer) => {
+    //       const name = minimizer.constructor.name;
+    //       return !name.includes('LightningCss') && !name.includes('CssMinimizerPlugin');
+    //     }
+    //   );
+    // }
     // Disable webpack cache in Amplify build environment
     if (process.env.AWS_BRANCH && !dev) {
       config.cache = false;
@@ -70,7 +70,6 @@ const nextConfig = {
   },
   
 
-  
   // Output configuration for Amplify
   output: 'standalone',
   
