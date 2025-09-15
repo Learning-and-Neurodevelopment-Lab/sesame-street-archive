@@ -2,7 +2,14 @@ const createNextIntlPlugin = require('next-intl/plugin');
 
 const withMDX = require('@next/mdx')();
 
-const withNextIntl = createNextIntlPlugin();
+// const withNextIntl = createNextIntlPlugin();
+
+const withNextIntl = createNextIntlPlugin({
+  locales: ['en'],
+  defaultLocale: 'en',
+  localePrefix: 'as-needed', // keeps "/" (no /en prefix)
+  // localeDetection: false, // optional
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
