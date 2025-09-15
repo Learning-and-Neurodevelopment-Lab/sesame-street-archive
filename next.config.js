@@ -2,17 +2,6 @@ const createNextIntlPlugin = require('next-intl/plugin');
 
 const withMDX = require('@next/mdx')();
 
-// const withMDX = require('@next/mdx')({
-//   extension: /\.mdx?$/,
-//   options: {
-//     // Optional: map front-matter to `export const metadata`
-//     remarkPlugins: [
-//       require('remark-frontmatter'),
-//       [require('remark-mdx-frontmatter'), { name: 'metadata' }],
-//     ],
-//   },
-// });
-
 const withNextIntl = createNextIntlPlugin();
 
 /** @type {import('next').NextConfig} */
@@ -21,17 +10,18 @@ const nextConfig = {
   
   // Image configuration for Amplify
   images: {
-    // Disable image optimization completely
-    unoptimized: true,
-    // Disable blur placeholders which can cause Sharp issues
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'amplify-d1sw11bqfb0mo6-ma-sesamestreetimagesbucket-dxflqmasf9ji.s3.us-east-1.amazonaws.com',
+        pathname: '/**',       // allow all paths on that host
+      },
+    ],
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    // Use remotePatterns instead of domains
-    remotePatterns: [
-      // Add your remote patterns here
-    ],
   },
+
    // Explicitly disable experimental CSS optimizations
   experimental: {
     optimizeCss: false, // Disable CSS optimization that uses LightningCSS
@@ -61,7 +51,6 @@ const nextConfig = {
         os: false,
       };
     }
-    nextRuntime: 'nodejs'
 
     // Exclude problematic modules from client bundle
     config.externals = config.externals || [];
