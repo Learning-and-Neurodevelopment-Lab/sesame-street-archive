@@ -53,9 +53,6 @@
   "devDependencies": {
     "@aws-amplify/backend": "latest",
     "@aws-amplify/backend-cli": "latest",
-    "@babel/preset-env": "^7.28.3",
-    "@babel/preset-react": "^7.27.1",
-    "@babel/preset-typescript": "^7.27.1",
     "@chromatic-com/storybook": "^4.1.1",
     "@storybook/addon-a11y": "^9.1.5",
     "@storybook/addon-docs": "^9.1.5",
