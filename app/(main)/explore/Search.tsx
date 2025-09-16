@@ -20,6 +20,35 @@ function getExifInfo(image: SearchData) {
   ].filter((item) => item.value); // Only include if value exists
 }
 
+function FadeInImage(props) {
+  const imgRef = useRef(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const node = imgRef.current;
+    if (!node) return;
+    const observer = new window.IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setVisible(true);
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  return (
+    <img
+      ref={imgRef}
+      {...props}
+      style={{
+        ...props.style,
+        opacity: visible ? 1 : 0,
+        transition: "opacity 300ms",
+        transitionDelay: "300ms",
+      }}
+    />
+  );
+}
+
 function CollapsibleAnnotations({ annotations, hasAnnotations }) {
   const [open, setOpen] = useState(false);
   return (
@@ -333,7 +362,6 @@ export default function Search() {
   );
 
   useEffect(() => {
-    console.log('IMAGE PARAM CHANGED', { imageParam });
     if (imageParam && searchData.length > 0) {
       const found = searchData.find((img) => img.imagePath === imageParam);
       if (found) {
@@ -352,7 +380,6 @@ export default function Search() {
     }
   }, [imageParam, searchData]);
 
-  console.log('UPDATE, UPDATE');
 
   const setSearchParams = (
     params: Record<string, string | string[] | boolean | undefined>
@@ -393,7 +420,6 @@ export default function Search() {
   }, []);
 
   useEffect(() => {
-    console.log('QUERY CHANGED', { query });
     if (inputRef.current && query.length > 0) {
       inputRef.current.value = query;
       inputRef.current.focus();
@@ -860,7 +886,7 @@ export default function Search() {
                 </div>
               )}
 
-              {!isSearching && filteredResults.length === 0 && (
+              {isSearching ? (<PulseLoader color="#9ca3af" size={8} />) : !isSearching && filteredResults.length === 0 && (
                 <div className="p-4 text-center text-gray-500">
                   No images found for "{query}"
                 </div>
@@ -870,11 +896,11 @@ export default function Search() {
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">
+        <div className="flex flex-wrap items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 w-full md:w-auto">
             {t("filterTitle")}
           </h2>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 justify-end w-full md:w-auto mt-4 md:mt-0">
             {(activeFiltersCount > 0) && (
               <span className="text-sm text-gray-600">
                 {t.rich("activeFilters", { count: activeFiltersCount })}
@@ -1073,7 +1099,7 @@ export default function Search() {
                   const imgUrl = imageUrls[result.id] || "";
                   return (
                     <button
-                      key={`${result.id}-${result.episode}`}
+                      key={`${result.id}-${result.episode}-fullscreen`}
                       type="button"
                       className="group relative bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200 focus:outline-none"
                       onClick={() => {
@@ -1090,7 +1116,8 @@ export default function Search() {
                     >
                       <div className="aspect-square bg-gray-200 overflow-hidden">
                         {imgUrl ? (
-                          <img
+                          <FadeInImage
+                            key={`${result.id}-${result.episode}-image`}
                             src={imgUrl}
                             alt={String(result.id)}
                             width={100}
@@ -1101,7 +1128,7 @@ export default function Search() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            Loading…
+                            <PulseLoader color="#9ca3af" size={8} />
                           </div>
                         )}
                       </div>
