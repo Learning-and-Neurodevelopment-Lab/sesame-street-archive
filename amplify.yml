@@ -3,6 +3,8 @@ backend:
   phases:
     build:
       commands:
+        - nvm install 20
+        - nvm use 20
         - npm ci --cache .npm --prefer-offline
         # Install backend CLI if not available
         - npm install @aws-amplify/backend-cli || echo "Backend CLI already available"
@@ -11,6 +13,7 @@ frontend:
   phases:
     preBuild:
       commands:
+        - nvm install 20
         - nvm use 20
         - npm ci
         # Ensure ampx is available for frontend

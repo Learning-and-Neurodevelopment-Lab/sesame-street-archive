@@ -221,7 +221,7 @@ export default function AuthNoDua({ onProfileCreated }: { onProfileCreated: () =
             <div className="w-[95vw] sm:w-[90vw] lg:w-[80vw] max-w-screen-2xl rounded-2xl bg-white shadow-2xl">
               <div className="grid max-h-[90vh] grid-rows-[auto_1fr_auto]">
                 <header className="px-6 py-4 border-b">
-                  <h2 id="dua-title" className="text-2xl font-semibold text-left"><em>Sesame Street</em>Archive user profile</h2>
+                  <h2 id="dua-title" className="text-2xl font-semibold text-left"><em>Sesame Street</em> Archive user profile</h2>
                 </header>
 
                 <main className="px-6 py-4 overflow-y-auto space-y-6" style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" as any }}>

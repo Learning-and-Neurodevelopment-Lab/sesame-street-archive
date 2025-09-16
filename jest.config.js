@@ -1,7 +1,7 @@
 import nextJest from "next/jest";
 const createJestConfig = nextJest({ dir: "./" });
 
-export default async () => ({
+const jestConfig = async () => ({
   ...(await createJestConfig({
     testEnvironment: "jsdom",
     rootDir: "",
@@ -10,3 +10,5 @@ export default async () => ({
  
   setupFilesAfterEnv: ["<rootDir>/setupTests.js"],
 });
+
+export default jestConfig;

@@ -17,7 +17,6 @@ export default async function TeamPage({ params }: { params: Promise<{ locale: s
       </div>
     );
   } catch (error) {
-    console.log('ERROR', error);
     notFound();
   }
 }

@@ -1,12 +1,15 @@
 "use client";
 
-import { signIn } from "next-auth/react";
-import { useState } from "react";
 import { Authenticator } from "@aws-amplify/ui-react";
 import CustomHeader from '@/components/CustomHeader';
-import { redirect } from "next/navigation";
+import { useState } from "react";
 
-  // ---- SSA Profile / signup gating ----
+
+export default function SignInPage() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+    // ---- SSA Profile / signup gating ----
   const [profileCreated, setProfileCreated] = useState(false);
 
   const components = {
@@ -17,11 +20,6 @@ import { redirect } from "next/navigation";
       />
     ),
   };
-
-export default function SignInPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
 
   // const handleSubmit = async (e: React.FormEvent) => {
   //   e.preventDefault();

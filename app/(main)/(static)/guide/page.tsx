@@ -69,7 +69,6 @@ export default async function GuidePage({ params }: { params: Promise<{ locale: 
       </div>
     );
   } catch (error) {
-    console.log("ERROR", error);
     notFound();
   }
 

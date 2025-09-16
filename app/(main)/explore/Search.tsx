@@ -1,11 +1,14 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, Key } from "react";
+import { useState, useEffect, useMemo, useRef, Key, useCallback } from "react";
 import { useQuery, useQueries } from "@tanstack/react-query";
 import { Stage, Layer, Rect, Image as KonvaImage } from "react-konva";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Spring, animated } from "@react-spring/konva";
 import useImage from "use-image";
+import Image from "next/image";
+import { PulseLoader } from "react-loadly";
+import "react-loadly/styles.css";
 
 function getExifInfo(image: SearchData) {
   return [
@@ -15,6 +18,36 @@ function getExifInfo(image: SearchData) {
     { label: "Categories", value: image.categories.join(", ") },
     // Add more fields as needed
   ].filter((item) => item.value); // Only include if value exists
+}
+
+function FadeInImage(props: React.ImgHTMLAttributes<HTMLImageElement>) {
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const node = imgRef.current;
+    if (!node) return;
+    const observer = new window.IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setVisible(true);
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  return (
+    <img
+      ref={imgRef}
+      {...props}
+      style={{
+        ...props.style,
+        opacity: visible ? 1 : 0,
+        transition: "opacity 300ms",
+        transitionDelay: "300ms",
+      }}
+      alt={props.alt}
+    />
+  );
 }
 
 function CollapsibleAnnotations({ annotations, hasAnnotations }) {
@@ -147,7 +180,7 @@ function KonvaImageWithBoxes({ imageUrl, boxes }) {
         <Layer>
           <Spring from={{ opacity: 0 }} to={{ opacity: 1 }} delay={500}>
             {({ opacity }) => (
-              // @ts-ignore
+              // @ts-expect-error ignore
               <AnimatedKonvaImage
                 image={image}
                 x={offsetX}
@@ -324,9 +357,12 @@ export default function Search() {
     () => new URLSearchParams(searchParamsString).get("fullscreen") === "1",
     [searchParamsString]
   );
+  const imageParam = useMemo(
+    () => new URLSearchParams(searchParamsString).get("image"),
+    [searchParamsString]
+  );
 
   useEffect(() => {
-    const imageParam = searchParams.get("image");
     if (imageParam && searchData.length > 0) {
       const found = searchData.find((img) => img.imagePath === imageParam);
       if (found) {
@@ -343,9 +379,10 @@ export default function Search() {
       setModalOpen(false);
       setSelectedImage(null);
     }
-  }, [searchParamsString, searchData]);
+  }, [imageParam, searchData]);
 
-  const setSearchParams = (
+
+  const setSearchParams = useCallback((
     params: Record<string, string | string[] | boolean | undefined>
   ) => {
     const sp = new URLSearchParams(searchParams.toString());
@@ -365,7 +402,7 @@ export default function Search() {
       }
     });
     router.push(`?${sp.toString()}`);
-  };
+  }, [router, searchParams]);
 
   const t = useTranslations("ExplorePage");
 
@@ -451,13 +488,10 @@ export default function Search() {
     image_id: string | number;
   }
 
-  const concatenateImageIdForFiltering = (image: ImageForFiltering): string =>
-    `S${image.season}-E${image.episode_id}_${image.image_id}.png`;
-
   const { data: images, isLoading: imagesLoading } = useQuery({
     queryKey: ["images", isAuthenticated],
     queryFn: async () => {
-      const { data } = await client.models.Image.list({ limit: 3000 });
+      const { data } = await client.models.Image.list({ limit: 5000});
       return data || [];
     },
     staleTime: 1000 * 60 * 5,
@@ -476,13 +510,14 @@ export default function Search() {
     [uniqueImages]
   );
 
-  const { data: annotations, isLoading: annotationsLoaded } = useQuery({
+  const { data: annotations, isLoading: annotationsLoading } = useQuery({
     queryKey: ["annotations", isAuthenticated],
     queryFn: async () => {
       const { data } = await client.models.Annotation.list({
         filter: {
           or: uniqueImageIds,
         } as any,
+        limit: 1000000,
       });
       return data || [];
     },
@@ -493,6 +528,10 @@ export default function Search() {
     if (!images) return;
     const yearsSet = new Set<string>();
     const allKeywords = new Set<string>();
+
+    const concatenateImageIdForFiltering = (image: ImageForFiltering): string =>
+    `S${image.season}-E${image.episode_id}_${image.image_id}.png`;
+
     const imagesWithAnnotations = images.map((image) => {
       const data =
         annotations?.filter((a) => {
@@ -567,7 +606,7 @@ export default function Search() {
     };
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
-  }, [modalOpen, showFullscreenResults]);
+  }, [modalOpen, showFullscreenResults, setSearchParams]);
 
   const clearAllFilters = () => {
     setSearchParams({
@@ -638,10 +677,10 @@ export default function Search() {
   const handleEditAnnotations = async (image: SearchData) => {
     const params = new URLSearchParams(searchParams.toString());
     const imageUrl = await getUrl({ path: `images/${image.imagePath}` });
-    params.set("image", imageUrl.url.href);
+    params.set("image", btoa(imageUrl.url.href));
     if (image.annotations && image.annotations.length > 0) {
       try {
-        const encoded = encodeURIComponent(JSON.stringify(image.annotations));
+        const encoded = btoa(JSON.stringify(image.annotations));
         params.set("annotations", encoded);
       } catch {}
     }
@@ -675,6 +714,14 @@ export default function Search() {
           })
           .filter(Boolean) as BoundingBox[])
       : [];
+
+  if (annotationsLoading && imagesLoading && searchData.length === 0) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <PulseLoader color="#364153" size={60} />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -841,7 +888,7 @@ export default function Search() {
                 </div>
               )}
 
-              {!isSearching && filteredResults.length === 0 && (
+              {isSearching ? (<PulseLoader color="#9ca3af" size={8} />) : !isSearching && filteredResults.length === 0 && (
                 <div className="p-4 text-center text-gray-500">
                   No images found for "{query}"
                 </div>
@@ -851,12 +898,12 @@ export default function Search() {
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">
+        <div className="flex flex-wrap items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 w-full md:w-auto">
             {t("filterTitle")}
           </h2>
-          <div className="flex items-center gap-4">
-            {activeFiltersCount > 0 && (
+          <div className="flex items-center gap-4 justify-end w-full md:w-auto mt-4 md:mt-0">
+            {(activeFiltersCount > 0) && (
               <span className="text-sm text-gray-600">
                 {t.rich("activeFilters", { count: activeFiltersCount })}
               </span>
@@ -969,12 +1016,14 @@ export default function Search() {
 
         <div className="grid md:grid-cols-[1fr_auto] gap-4 mt-6 pt-4 border-t border-gray-200">
           <div className="w-full">
-            <p className="text-sm text-gray-600">
-              {t("criteriaLabel", {
-                count: filteredResults.length,
-                total: searchData.length,
-              })}
-            </p>
+              {filteredResults.length > 0 || activeFiltersCount !== 0 ? (
+                <p className="text-sm text-gray-600">
+                  {t("criteriaLabel", {
+                    count: filteredResults.length,
+                    total: searchData.length,
+                  })}
+                </p>
+              ) : <PulseLoader color="#364153" size={8} />}
           </div>
           <Button
             onClick={handleSearch}
@@ -1052,7 +1101,7 @@ export default function Search() {
                   const imgUrl = imageUrls[result.id] || "";
                   return (
                     <button
-                      key={`${result.id}-${result.episode}`}
+                      key={`${result.id}-${result.episode}-fullscreen`}
                       type="button"
                       className="group relative bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200 focus:outline-none"
                       onClick={() => {
@@ -1069,7 +1118,8 @@ export default function Search() {
                     >
                       <div className="aspect-square bg-gray-200 overflow-hidden">
                         {imgUrl ? (
-                          <img
+                          <FadeInImage
+                            key={`${result.id}-${result.episode}-image`}
                             src={imgUrl}
                             alt={String(result.id)}
                             width={100}
@@ -1080,7 +1130,7 @@ export default function Search() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            Loading…
+                            <PulseLoader color="#9ca3af" size={8} />
                           </div>
                         )}
                       </div>
