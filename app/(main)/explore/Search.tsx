@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, Key } from "react";
+import { useState, useEffect, useMemo, useRef, Key, useCallback } from "react";
 import { useQuery, useQueries } from "@tanstack/react-query";
 import { Stage, Layer, Rect, Image as KonvaImage } from "react-konva";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -20,8 +20,8 @@ function getExifInfo(image: SearchData) {
   ].filter((item) => item.value); // Only include if value exists
 }
 
-function FadeInImage(props) {
-  const imgRef = useRef(null);
+function FadeInImage(props: React.ImgHTMLAttributes<HTMLImageElement>) {
+  const imgRef = useRef<HTMLImageElement | null>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const node = imgRef.current;
@@ -45,6 +45,7 @@ function FadeInImage(props) {
         transition: "opacity 300ms",
         transitionDelay: "300ms",
       }}
+      alt={props.alt}
     />
   );
 }
@@ -179,7 +180,7 @@ function KonvaImageWithBoxes({ imageUrl, boxes }) {
         <Layer>
           <Spring from={{ opacity: 0 }} to={{ opacity: 1 }} delay={500}>
             {({ opacity }) => (
-              // @ts-ignore
+              // @ts-expect-error ignore
               <AnimatedKonvaImage
                 image={image}
                 x={offsetX}
@@ -381,7 +382,7 @@ export default function Search() {
   }, [imageParam, searchData]);
 
 
-  const setSearchParams = (
+  const setSearchParams = useCallback((
     params: Record<string, string | string[] | boolean | undefined>
   ) => {
     const sp = new URLSearchParams(searchParams.toString());
@@ -401,7 +402,7 @@ export default function Search() {
       }
     });
     router.push(`?${sp.toString()}`);
-  };
+  }, [router, searchParams]);
 
   const t = useTranslations("ExplorePage");
 
@@ -487,9 +488,6 @@ export default function Search() {
     image_id: string | number;
   }
 
-  const concatenateImageIdForFiltering = (image: ImageForFiltering): string =>
-    `S${image.season}-E${image.episode_id}_${image.image_id}.png`;
-
   const { data: images, isLoading: imagesLoading } = useQuery({
     queryKey: ["images", isAuthenticated],
     queryFn: async () => {
@@ -530,6 +528,10 @@ export default function Search() {
     if (!images) return;
     const yearsSet = new Set<string>();
     const allKeywords = new Set<string>();
+
+    const concatenateImageIdForFiltering = (image: ImageForFiltering): string =>
+    `S${image.season}-E${image.episode_id}_${image.image_id}.png`;
+
     const imagesWithAnnotations = images.map((image) => {
       const data =
         annotations?.filter((a) => {
@@ -604,7 +606,7 @@ export default function Search() {
     };
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
-  }, [modalOpen, showFullscreenResults]);
+  }, [modalOpen, showFullscreenResults, setSearchParams]);
 
   const clearAllFilters = () => {
     setSearchParams({

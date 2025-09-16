@@ -17,7 +17,6 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       </div>
     );
   } catch (error) {
-    console.log('ERROR', error);
     notFound();
   }
 }

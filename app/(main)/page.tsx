@@ -16,7 +16,7 @@ import six from '@/assets/annotated-examples/6.png';
 import seven from '@/assets/annotated-examples/7.png';
 import eight from '@/assets/annotated-examples/8.png';
 
-import { researchArticles } from '@/lib/research-data';
+// import { researchArticles } from '@/lib/research-data';
 
 import { useTranslations } from 'next-intl';
 

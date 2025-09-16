@@ -2,6 +2,7 @@
 import one from '@/assets/annotated-examples/03212.png';
 import two from '@/assets/annotated-examples/S35-E4057_01283.png';
 import three from '@/assets/annotated-examples/S35-E4058_00212.png';
+import type { StaticImageData } from 'next/image';
 
 export interface ResearchArticle {
   id: string;
@@ -13,7 +14,7 @@ export interface ResearchArticle {
     bgColor: string;
   };
   excerpt: string;
-  image: any;
+  image: StaticImageData;
   publishDate: string;
   readTime: string;
   authors: string[];

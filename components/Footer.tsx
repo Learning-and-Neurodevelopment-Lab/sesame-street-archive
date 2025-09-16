@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 import footerMessages from "@/messages/en.json";
 import { cn } from "@/lib/utils";

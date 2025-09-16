@@ -1,7 +1,7 @@
 // app/annotate/page.tsx
 "use client";
 
-import { useState, useRef, useMemo, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Stage,
   Layer,
@@ -20,22 +20,21 @@ import {
   Settings,
   Check,
   X,
-  ChevronDown,
+  // ChevronDown,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { Authenticator } from "@aws-amplify/ui-react";
+// import { Authenticator } from "@aws-amplify/ui-react";
 
 import useImage from "use-image";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+// import Link from "next/link";
 import type Konva from "konva"; 
-import { RectangleContextMenu } from "@/components/RectangleContextMenu";
+// import { RectangleContextMenu } from "@/components/RectangleContextMenu";
 import { AnnotationDrawer } from "@/components/AnnotationDrawer";
 
 import { useRouter } from "next/navigation";
 
 import type { Schema } from "@/amplify/data/resource";
-import { a } from "vitest/dist/chunks/suite.d.FvehnV49";
 
 interface BoundingBox {
   x: number;

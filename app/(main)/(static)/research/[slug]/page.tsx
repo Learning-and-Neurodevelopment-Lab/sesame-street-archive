@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Image from "next/image";
+// import Image from "next/image";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import {
   getResearchArticle,
-  getRelatedArticles,
+  // getRelatedArticles,
   getAllResearchIds,
 } from "@/lib/research-data";
 
@@ -51,7 +51,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // Default to 'en' locale if not available in params
     const { locale = "en" } = await params;
     const metadata: MDXMetadata = await getArticleMetadata(slug, locale);
-    console.log("METADATA", metadata);
 
     return {
       title: `${metadata.title} • Sesame Street Archive`,
@@ -124,7 +123,6 @@ export default async function ResearchArticlePage({
       </div>
     );
   } catch (error) {
-    console.log("ERROR", error);
     return notFound();
   }
 

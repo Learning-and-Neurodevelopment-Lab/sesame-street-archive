@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Pencil, MousePointer2, Trash2, Move, Square, Circle } from "lucide-react";
+import { Pencil, MousePointer2, Trash2, Square } from "lucide-react";
 import { useAtom } from "jotai";
 import { toolAtom } from "@/lib/annotation-atoms";
 
