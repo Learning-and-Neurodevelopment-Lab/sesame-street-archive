@@ -2,7 +2,14 @@ const createNextIntlPlugin = require('next-intl/plugin');
 
 const withMDX = require('@next/mdx')();
 
-const withNextIntl = createNextIntlPlugin();
+// const withNextIntl = createNextIntlPlugin();
+
+const withNextIntl = createNextIntlPlugin({
+  locales: ['en'],
+  defaultLocale: 'en',
+  localePrefix: 'as-needed', // keeps "/" (no /en prefix)
+  // localeDetection: false, // optional
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -21,6 +28,36 @@ const nextConfig = {
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
+
+   // Explicitly disable experimental CSS optimizations
+  // experimental: {
+  //   optimizeCss: false, // Disable CSS optimization that uses LightningCSS
+  // },
+  // Webpack configuration to handle Sharp issues
+  webpack: (config, { isServer, dev }) => {
+        // Disable LightningCSS and use standard CSS processing
+    // if (config.optimization && config.optimization.minimizer) {
+    //   config.optimization.minimizer = config.optimization.minimizer.filter(
+    //     (minimizer) => {
+    //       const name = minimizer.constructor.name;
+    //       return !name.includes('LightningCss') && !name.includes('CssMinimizerPlugin');
+    //     }
+    //   );
+    // }
+    // Disable webpack cache in Amplify build environment
+    if (process.env.AWS_BRANCH && !dev) {
+      config.cache = false;
+    }
+    
+    // Handle Sharp module issues
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        os: false,
+      };
+    }
 
    // Explicitly disable experimental CSS optimizations
   // experimental: {
@@ -59,11 +96,10 @@ const nextConfig = {
   //     canvas: 'commonjs canvas',
   //   });
     
-  //   return config;
-  // },
+    return config;
+  },
   
 
-  
   // Output configuration for Amplify
   output: 'standalone',
   

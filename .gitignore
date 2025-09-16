@@ -26,9 +26,9 @@ amplifyconfiguration.json
 
 amplify_outputs.json
 **/amplify_outputs*
+tsconfig.tsbuildinfo
 
 .amplify
 *storybook.log
 storybook-static
-
 tsconfig.tsbuildinfo
