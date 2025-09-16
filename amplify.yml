@@ -27,37 +27,3 @@ frontend:
   #   paths:
   #     - node_modules/**/*
   #     - .next/cache/**/*
-
-# applications:
-#   - backend:
-#     buildPath: '/'  # run install and build from monorepo project root
-#     phases:
-#       build:
-#         commands:
-#           - npm ci --cache .npm --prefer-offline
-#           # Install backend CLI if not available
-#           - npm install @aws-amplify/backend-cli || echo "Backend CLI already available"
-#           - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
-#   - frontend:
-#       buildPath: '/'  # run install and build from monorepo project root
-#       phases:
-#         preBuild:
-#           commands:
-#             - nvm use 20
-#             - npm ci
-#             # Ensure ampx is available for frontend
-#             - which ampx || npm install @aws-amplify/backend-cli || echo "Backend CLI already available"
-#             - npx ampx generate outputs --branch $AWS_BRANCH --app-id $AWS_APP_ID
-#         build:
-#           commands:
-#             - npm run build
-#       artifacts:
-#         baseDirectory: .next
-#         files:
-#           - '**/*'
-#       cache:
-#         paths:
-#           - node_modules/**/*
-#     appRoot: .
-# buildSettings:
-#   nodeVersion: '20'

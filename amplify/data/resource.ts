@@ -19,6 +19,8 @@ Annotation: a
   .model({
     image_id: a.string().required(),
     annotation_id: a.integer().required(),
+    user_id: a.string(),
+    user: a.string(),
     deleted: a.boolean(),
     occluded: a.boolean(),
     restricted: a.boolean(),
@@ -43,7 +45,6 @@ Annotation: a
     keywords: a.string(),
     clarity: a.string(),
     scope: a.string(),
-    user: a.string(),
     function: a.string(),
     construction: a.string(),
     language: a.string(),
