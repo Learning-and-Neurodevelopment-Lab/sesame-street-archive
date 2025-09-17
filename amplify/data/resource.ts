@@ -73,7 +73,7 @@ Annotation: a
     
     .authorization((allow) => [
       allow.owner(), // the signed-in owner can CRUD their own profile
-      allow.groups(["ADMIN"]).to(["read", "update"]), // admins can help edit
+      allow.groups(["ADMIN"]).to(["read", "update","delete","get"]), // admins can help edit
     ]),
     // Minimal, stable user profile keyed by Cognito sub.
   DuaUsers: a
@@ -97,7 +97,7 @@ Annotation: a
     .identifier(["userSub"])
     .authorization((allow) => [
       allow.owner(), // the signed-in owner can CRUD their own profile
-      allow.groups(["ADMIN"]).to(["read", "update"]), // admins can help edit
+      allow.groups(["ADMIN"]).to(["read", "update", "delete"]), // admins can help edit
     ]),
   // Append-only DUA acceptance history (minimal)
   DuaConsent: a
