@@ -61,9 +61,10 @@ Annotation: a
     .model({
       userSub: a.id().required(),
       email: a.email(),
-      username: a.string().required(),
-      first_name: a.string().required(),
-      last_name: a.string().required(),
+      username: a.string(),
+      first_name: a.string(),
+      last_name: a.string(),
+      characters: a.string().array(),
       })
     .identifier(["userSub"])
     .authorization((allow) => [
