@@ -1,4 +1,9 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { getCurrentUser } from "aws-amplify/auth";
 
 const placeholderImages = [
   "/images/placeholder1.jpg",
@@ -9,25 +14,32 @@ const placeholderImages = [
   "/images/placeholder6.jpg",
 ];
 
-export default async function DashboardPage() {
-  // if (!session?.user) {
-  //   return (
-  //     <div className="max-w-xl mx-auto py-16 text-center">
-  //       <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-  //       <p className="mb-4">You must be signed in to view the dashboard.</p>
-  //       <Link href="/auth/signin" className="text-blue-600 hover:underline">
-  //         Sign In
-  //       </Link>
-  //     </div>
-  //   );
-  // }
+function Dashboard() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const user = await getCurrentUser();
+
+        if (!user) {
+          router.push("/auth/signin");
+        }
+
+        setIsAuthenticated(!!user);
+      } catch {
+        router.push("/auth/signin");
+      }
+    };
+    checkAuth();
+  }, []);
+
+  if (!isAuthenticated) return null;
 
   return (
     <div className="max-w-5xl mx-auto py-12 px-4">
       <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
-      {/* <p className="mb-8 text-neutral-700">
-        Welcome, <span className="font-semibold">{session.user.name}</span>! Select an image below to annotate.
-      </p> */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
         {placeholderImages.map((src, idx) => (
           <div key={src} className="rounded-xl overflow-hidden shadow hover:shadow-lg transition-shadow bg-white flex flex-col items-center">
@@ -48,5 +60,13 @@ export default async function DashboardPage() {
         ))}
       </div>
     </div>
+  );
+}
+
+export default async function DashboardPage() {
+  return (
+    <>
+      <Dashboard />
+    </>
   );
 }

@@ -413,12 +413,12 @@ export default function Search() {
         const user = await getCurrentUser();
 
         if (!user) {
-          router.push("/");
+          router.push("/auth/signin");
         }
 
         setIsAuthenticated(!!user);
       } catch {
-        router.push("/");
+        router.push("/auth/signin");
         // setIsAuthenticated(false);
       }
     };
@@ -723,6 +723,8 @@ export default function Search() {
           })
           .filter(Boolean) as BoundingBox[])
       : [];
+
+  if (!isAuthenticated) return null;
 
   if (annotationsLoading && imagesLoading && searchData.length === 0) {
     return (
