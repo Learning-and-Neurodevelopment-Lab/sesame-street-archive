@@ -257,6 +257,7 @@ import { getUrl } from "aws-amplify/storage";
 import { SearchableCombobox } from "@/components/SearchableCombobox";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { auth } from "@/amplify/auth/resource";
 
 interface SearchData {
   id: string | number;
@@ -317,6 +318,8 @@ const getTypeColor = (type: string) => {
 export default function Search() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations("ExplorePage");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedImage, setSelectedImage] = useState<SearchData | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -328,7 +331,7 @@ export default function Search() {
     useState<typeof KEYWORD_OPTIONS>(KEYWORD_OPTIONS);
   const parseArray = (val: string | null) =>
     val ? val.split(",").filter(Boolean) : [];
-  // Use searchParams.toString() for reactivity
+
   const searchParamsString = searchParams.toString();
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -404,17 +407,19 @@ export default function Search() {
     router.push(`?${sp.toString()}`);
   }, [router, searchParams]);
 
-  const t = useTranslations("ExplorePage");
-
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const user = await getCurrentUser();
+
+        if (!user) {
+          router.push("/");
+        }
+
         setIsAuthenticated(!!user);
       } catch {
-        setIsAuthenticated(false);
+        router.push("/");
+        // setIsAuthenticated(false);
       }
     };
     checkAuth();
@@ -516,7 +521,7 @@ export default function Search() {
     queryKey: ["annotations", isAuthenticated],
     queryFn: async () => {
       if (!isAuthenticated) return [];
-      
+
       const { data } = await client.models.Annotation.list({
         filter: {
           or: uniqueImageIds,
