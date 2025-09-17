@@ -251,7 +251,7 @@ function KonvaImageWithBoxes({ imageUrl, boxes }) {
 import { useTranslations } from "next-intl";
 import type { Schema } from "@/amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
-import { getCurrentUser } from "aws-amplify/auth";
+import { getCurrentUser, fetchAuthSession } from "aws-amplify/auth";
 import { getUrl } from "aws-amplify/storage";
 
 import { SearchableCombobox } from "@/components/SearchableCombobox";
@@ -325,6 +325,7 @@ export default function Search() {
   const [showResults, setShowResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchData, setSearchData] = useState<SearchData[]>([]);
+  const [userGroups, setUserGroups] = useState<string[]>([]);
   const [yearOptions, setYearOptions] =
     useState<typeof YEAR_OPTIONS>(YEAR_OPTIONS);
   const [keywordOptions, setKeywordOptions] =
@@ -426,6 +427,25 @@ export default function Search() {
   }, []);
 
   useEffect(() => {
+    async function getUserGroups() {
+      try {
+        const session = await fetchAuthSession();
+        // The user's groups are typically found in the 'cognito:groups' claim within the access token payload.
+        const groups =
+          session.tokens.accessToken.payload["cognito:groups"] || [];
+
+        setUserGroups(Array.isArray(groups) ? groups.map(String) : []);
+
+        return Array.isArray(groups) ? groups.map(String) : [];
+      } catch (error) {
+        console.error("Error fetching user groups:", error);
+        return [];
+      }
+    }
+    getUserGroups();
+  }, []);
+
+  useEffect(() => {
     if (inputRef.current && query.length > 0) {
       inputRef.current.value = query;
       inputRef.current.focus();
@@ -496,13 +516,19 @@ export default function Search() {
     image_id: string | number;
   }
 
+  const isAdmin = useMemo(() => userGroups.includes("ADMIN"), [userGroups]);
+  const isResearcher = useMemo(() => userGroups.includes("RESEARCHER"), [userGroups]);
+  const isGenericUser = useMemo(() => userGroups.includes("USER"), [userGroups]);
+
   const { data: images = [], isLoading: imagesLoading } = useQuery({
     queryKey: ["images", isAuthenticated],
     queryFn: async () => {
       if (!isAuthenticated) return [];
 
+      if (!isAdmin && !isResearcher && !isGenericUser) return [];
+
       const { data } = await client.models.Image.list({ 
-        limit: 5000
+        limit: isAdmin || isResearcher ? 5000 : isGenericUser ? 100 : 0 
       });
       return data || [];
     },
@@ -518,7 +544,9 @@ export default function Search() {
     queryKey: ["annotations", isAuthenticated],
     queryFn: async () => {
       if (!isAuthenticated) return [];
-
+      
+      if (!isAdmin && !isResearcher && !isGenericUser) return [];
+      
       const { data } = await client.models.Annotation.list({
         filter: {
           or: imageIds,
@@ -720,7 +748,7 @@ export default function Search() {
 
   if (!isAuthenticated) return null;
 
-  if (annotationsLoading && imagesLoading && searchData.length === 0) {
+  if ((annotationsLoading || imagesLoading) && searchData.length === 0) {
     return (
       <div className="w-full h-full flex items-center justify-center">
         <PulseLoader color="#364153" size={60} />
@@ -1021,7 +1049,7 @@ export default function Search() {
 
         <div className="grid md:grid-cols-[1fr_auto] gap-4 mt-6 pt-4 border-t border-gray-200">
           <div className="w-full">
-              {filteredResults.length > 0 || activeFiltersCount !== 0 ? (
+              {!annotationsLoading || filteredResults.length > 0 || activeFiltersCount !== 0 ? (
                 <p className="text-sm text-gray-600">
                   {t("criteriaLabel", {
                     count: filteredResults.length,
