@@ -611,14 +611,15 @@ export default function Tool() {
                           });
                         }}
                       >
-                        {/* Background Rectangle with Low Opacity */}
                         <Rect
                           name={`rect-${i}`}
                           width={rect.width}
                           height={rect.height}
-                          fill={"#ffffff66"}
+                          fill={"#ffffff33"}
                           stroke={getStrokeColor(rect, i)}
-                          strokeWidth={2}
+                          strokeWidth={4}
+                          dash={[6, 4]}
+                          cornerRadius={4}
                           strokeScaleEnabled={false}
                         />
 
@@ -634,8 +635,22 @@ export default function Tool() {
                             fontStyle="bold"
                             align="center"
                             verticalAlign="middle"
-                            offsetX={0}
-                            offsetY={0}
+                            shadowEnabled={true}
+                            shadowColor="white"
+                            shadowBlur={1}
+                            shadowOffset={{ x: 0, y: 0 }}
+                            shadowOpacity={0.8}
+                            outlineWidth={4}
+                            outlineColor="black"
+                            ref={(node) => {
+                              if (node) {
+                                // Center the text by offsetting half its width and height
+                                const textWidth = node.width();
+                                const textHeight = node.height();
+                                node.offsetX(textWidth / 2);
+                                node.offsetY(textHeight / 2);
+                              }
+                            }}
                           />
                         )}
                       </Group>

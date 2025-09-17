@@ -494,7 +494,7 @@ export default function Search() {
       const { data } = await client.models.Image.list({ limit: 5000});
       return data || [];
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 60,
   });
 
   const uniqueImages = useMemo(
@@ -521,7 +521,7 @@ export default function Search() {
       });
       return data || [];
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 60,
   });
 
   useEffect(() => {
@@ -1137,7 +1137,7 @@ export default function Search() {
 
                       <div className="absolute inset-0 bg-transparent group-hover:bg-opacity-60 transition-all duration-200 flex items-end">
                         <div className="p-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-200 ">
-                          <div className="text-sm font-medium truncate mb-1 text-shadow-sm">
+                          <div className="text-sm font-medium truncate mb-1 text-shadow-sm text-shadow-gray-900">
                             {result.filename}
                           </div>
                           <div className="flex items-center gap-1 text-xs flex-wrap">
@@ -1261,7 +1261,7 @@ export default function Search() {
               </svg>
             </button>
             <div className="flex flex-col items-center gap-4">
-              <div className="w-full bg-gray-200 rounded overflow-hidden flex items-center justify-center m-4 relative">
+              <div className="w-full bg-gray-200 rounded overflow-hidden flex items-center justify-center m-4 relative min-h-[240px] transition-[height] duration-300">
                 {imageUrls[selectedImage.id] ? (
                   <KonvaImageWithBoxes
                     imageUrl={imageUrls[selectedImage.id]}
