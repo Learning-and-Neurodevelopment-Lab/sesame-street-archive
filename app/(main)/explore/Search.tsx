@@ -491,6 +491,8 @@ export default function Search() {
   const { data: images, isLoading: imagesLoading } = useQuery({
     queryKey: ["images", isAuthenticated],
     queryFn: async () => {
+      if (!isAuthenticated) return [];
+
       const { data } = await client.models.Image.list({ limit: 5000});
       return data || [];
     },
@@ -513,6 +515,8 @@ export default function Search() {
   const { data: annotations, isLoading: annotationsLoading } = useQuery({
     queryKey: ["annotations", isAuthenticated],
     queryFn: async () => {
+      if (!isAuthenticated) return [];
+      
       const { data } = await client.models.Annotation.list({
         filter: {
           or: uniqueImageIds,
