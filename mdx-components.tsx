@@ -20,10 +20,11 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ),
     Section: ({ children, id }) => <section className="mb-8 scroll-m-20" id={id}>{children}</section>,
     GriddedSection: ({ children }) => <section className="grid sm:grid-cols-2 md:grid-cols-3 gap-8 mb-8">{children}</section>,
-    Person: ({ children: [name, title] }) => (
+    Person: ({ children: [name, title, affliation] }) => (
       <div className="mb-4">
-        <span className="font-medium">{name}</span> <br />
+        <span className="font-medium">{name}</span><br />
         <span className="text-gray-600 text-sm">{title}</span>
+        {!!affliation && <><br /><span className="text-gray-400 text-sm">{affliation}</span></>}
       </div>
     ),
     Category: ({ children, color }) => (
