@@ -57,9 +57,6 @@ export function setupUserPersist() {
         first_name: data.firstName,
         last_name: data.lastName,
       };
-      type UsersIdentifier = Parameters<typeof client.models.Users.get>[0];
-// If this line errors, your PK is NOT userSub.
-const ident: UsersIdentifier = { userSub: sub };
 
       // build optional extras without undefined
       const extras: Record<string, any> = {};

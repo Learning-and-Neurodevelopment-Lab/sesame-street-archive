@@ -1,5 +1,7 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 
+
+
 const schema = a.schema({
   Image: a.model({
     episode_id: a.string().required(),
@@ -55,6 +57,7 @@ Annotation: a
   })
   .identifier(['image_id','annotation_id'] as const)
   .authorization((allow) => [allow.publicApiKey()]),
+  
 
     // Minimal, stable user profile keyed by Cognito sub.
   Users: a
@@ -67,9 +70,10 @@ Annotation: a
       characters: a.string().array(),
       })
     .identifier(["userSub"])
+    
     .authorization((allow) => [
       allow.owner(), // the signed-in owner can CRUD their own profile
-      // allow.groups(["Admin"]).to(["read", "update"]), // admins can help edit
+      allow.groups(["ADMIN"]).to(["read", "update"]), // admins can help edit
     ]),
     // Minimal, stable user profile keyed by Cognito sub.
   DuaUsers: a
@@ -93,7 +97,7 @@ Annotation: a
     .identifier(["userSub"])
     .authorization((allow) => [
       allow.owner(), // the signed-in owner can CRUD their own profile
-      // allow.groups(["Admin"]).to(["read", "update"]), // admins can help edit
+      allow.groups(["ADMIN"]).to(["read", "update"]), // admins can help edit
     ]),
   // Append-only DUA acceptance history (minimal)
   DuaConsent: a
@@ -108,10 +112,11 @@ Annotation: a
     .identifier(["userSub", "acceptedAt"])
     .authorization((allow) => [
       allow.owner().to(["create", "read"]), // users see their own consents
-      // allow.groups(["Admin"]).to(["read"]), // admins can audit
+      allow.groups(["ADMIN"]).to(["read"]), // admins can audit
     ])
 
 });
+
 
 export type Schema = ClientSchema<typeof schema>;
 
