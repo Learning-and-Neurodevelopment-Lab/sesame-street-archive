@@ -20,7 +20,7 @@ function getExifInfo(image: SearchData) {
   ].filter((item) => item.value); // Only include if value exists
 }
 
-function FadeInImage(props: React.ImgHTMLAttributes<HTMLImageElement>) {
+export function FadeInImage(props: React.ImgHTMLAttributes<HTMLImageElement>) {
   const imgRef = useRef<HTMLImageElement | null>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -487,34 +487,31 @@ export default function Search() {
 
   const client = useMemo(() => generateClient<Schema>(), []);
 
+  const concatenateImageIdForFiltering = (image: ImageForFiltering): string =>
+`S${image.season}-E${image.episode_id}_${image.image_id}.png`;
+
   interface ImageForFiltering {
     season: string | number;
     episode_id: string | number;
     image_id: string | number;
   }
 
-  const { data: images, isLoading: imagesLoading } = useQuery({
+  const { data: images = [], isLoading: imagesLoading } = useQuery({
     queryKey: ["images", isAuthenticated],
     queryFn: async () => {
       if (!isAuthenticated) return [];
 
-      const { data } = await client.models.Image.list({ limit: 5000});
+      const { data } = await client.models.Image.list({ 
+        limit: 5000
+      });
       return data || [];
     },
     staleTime: 1000 * 60 * 60,
   });
 
-  const uniqueImages = useMemo(
-    () =>
-      images
-        ? Array.from(new Map(images.map((img) => [img.image_id, img])).values())
-        : [],
+  const imageIds = useMemo(
+    () => images.map((img) => ({ image_id: { eq: concatenateImageIdForFiltering(img) }})),
     [images]
-  );
-
-  const uniqueImageIds = useMemo(
-    () => uniqueImages.map((img) => ({ image_id: { eq: img.image_id } })),
-    [uniqueImages]
   );
 
   const { data: annotations, isLoading: annotationsLoading } = useQuery({
@@ -524,7 +521,7 @@ export default function Search() {
 
       const { data } = await client.models.Annotation.list({
         filter: {
-          or: uniqueImageIds,
+          or: imageIds,
         } as any,
         limit: 1000000,
       });
@@ -537,9 +534,6 @@ export default function Search() {
     if (!images) return;
     const yearsSet = new Set<string>();
     const allKeywords = new Set<string>();
-
-    const concatenateImageIdForFiltering = (image: ImageForFiltering): string =>
-    `S${image.season}-E${image.episode_id}_${image.image_id}.png`;
 
     const imagesWithAnnotations = images.map((image) => {
       const data =
