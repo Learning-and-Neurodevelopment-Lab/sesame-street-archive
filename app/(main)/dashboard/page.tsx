@@ -1,72 +1,13 @@
-"use client";
-
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { getCurrentUser } from "aws-amplify/auth";
-
-const placeholderImages = [
-  "/images/placeholder1.jpg",
-  "/images/placeholder2.jpg",
-  "/images/placeholder3.jpg",
-  "/images/placeholder4.jpg",
-  "/images/placeholder5.jpg",
-  "/images/placeholder6.jpg",
-];
-
-function Dashboard() {
-  const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const user = await getCurrentUser();
-
-        if (!user) {
-          router.push("/auth/signin");
-        }
-
-        setIsAuthenticated(!!user);
-      } catch {
-        router.push("/auth/signin");
-      }
-    };
-    checkAuth();
-  }, []);
-
-  if (!isAuthenticated) return null;
-
-  return (
-    <div className="max-w-5xl mx-auto py-12 px-4">
-      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-        {placeholderImages.map((src, idx) => (
-          <div key={src} className="rounded-xl overflow-hidden shadow hover:shadow-lg transition-shadow bg-white flex flex-col items-center">
-            <img
-              src={src}
-              alt={`Placeholder ${idx + 1}`}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-4 w-full flex justify-center">
-              <Link
-                href={`/annotate?image=${encodeURIComponent(src)}`}
-                className="inline-block bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded transition"
-              >
-                Annotate
-              </Link>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+import React, { Suspense } from "react";
+import { connection } from 'next/server';
+import DashboardContainer from "./DashboardContainer";
 
 export default async function DashboardPage() {
+   await connection();
+
   return (
-    <>
-      <Dashboard />
-    </>
+    <Suspense fallback={<>...</>}>
+      <DashboardContainer />
+    </Suspense>
   );
 }
