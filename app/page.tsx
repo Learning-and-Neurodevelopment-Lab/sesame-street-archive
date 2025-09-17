@@ -7,6 +7,7 @@ import texas from "@/assets/texas.png";
 import landlab from "@/assets/landlab.png";
 import digitalLab from "@/assets/digital-lab-hz.png";
 import sesameworkshop from "@/assets/sesame-workshop-cooney-center.png";
+import cover from "@/assets/annotated-examples/cover.png";
 import one from "@/assets/annotated-examples/1.png";
 import two from "@/assets/annotated-examples/2.png";
 import three from "@/assets/annotated-examples/3.png";
@@ -137,8 +138,8 @@ export default function HomePage() {
                 </Button>
               </div>
               <div className="flex-1 flex justify-center">
-                <div className="w-80 h-80 bg-gray-200 border-2 border-gray-300 flex justify-center">
-                  <Image src={four} alt="Rep" className="object-cover" />
+                <div className="bg-gray-200 border-2 border-gray-300 flex justify-center">
+                  <Image width={cover.width} height={cover.height} src={cover} alt="Rep" className="object-cover image" />
                 </div>
               </div>
             </div>
