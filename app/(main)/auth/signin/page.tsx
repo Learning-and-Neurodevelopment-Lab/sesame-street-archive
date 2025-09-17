@@ -2,14 +2,10 @@
 
 import { Authenticator } from "@aws-amplify/ui-react";
 import CustomHeader from '@/components/CustomHeader';
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { setupUserPersist } from '@/app/(main)/auth/signin/userPersist';
 
-
-export default function SignInPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-    // ---- SSA Profile / signup gating ----
+function SignIn() {
   const [profileCreated, setProfileCreated] = useState(false);
 
   const components = {
@@ -21,28 +17,22 @@ export default function SignInPage() {
     ),
   };
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   const res = await signIn("credentials", {
-  //     username,
-  //     password,
-  //     redirect: true,
-  //     callbackUrl: "/dashboard",
-  //   });
-  //   if (res?.error) setError("Invalid credentials");
-  // };
+  useEffect(() => {
+    setupUserPersist();
+  }, [profileCreated]);
 
   return (
-    <>
-      <div className="max-w-sm mx-auto py-16">
-        
-        <Authenticator hideSignUp={!profileCreated} className="authenticator-popup" components={components}>
-          {({ signOut, user }) => {
-            if (user) window.location.replace("/dashboard");
-            return null;
-          }}
-        </Authenticator>
-      </div>
-    </>
+    <div className="max-w-sm mx-auto py-16">
+      <Authenticator hideSignUp={!profileCreated} className="authenticator-popup" components={components}>
+        {({ user }) => {
+          if (user) setTimeout(() => window.location.replace("/dashboard"), 300);
+          return null;
+        }}
+      </Authenticator>
+    </div>
   );
+}
+
+export default function SignInPage() {
+  return <SignIn />;
 }
