@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
-import { getCurrentUser, fetchAuthSession } from "aws-amplify/auth";
+import { getCurrentUser } from "aws-amplify/auth";
 import { useQuery, useQueries } from "@tanstack/react-query";
 import { PulseLoader } from "react-loadly";
 import { generateClient } from "aws-amplify/data";
@@ -22,31 +22,13 @@ type ImageUrlMap = Record<string, string>;
 
 const client = generateClient<Schema>();
 
+const concatenateImageIdForFiltering = (image: ImageForFiltering): string =>
+  `S${image.season}-E${image.episode_id}_${image.image_id}.png`;
+
 export default function Dashboard() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userGroups, setUserGroups] = useState<string[]>([]);
-
-  useEffect(() => {
-    async function getUserGroups() {
-      try {
-        const session = await fetchAuthSession();
-        // The user's groups are typically found in the 'cognito:groups' claim within the access token payload.
-        const groups =
-          session.tokens.accessToken.payload["cognito:groups"] || [];
-
-        setUserGroups(Array.isArray(groups) ? groups.map(String) : []);
-
-        return Array.isArray(groups) ? groups.map(String) : [];
-      } catch (error) {
-        console.error("Error fetching user groups:", error);
-        return [];
-      }
-    }
-    getUserGroups();
-  }, []);
-
-  console.log("USER GROUPS", userGroups);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -65,22 +47,20 @@ export default function Dashboard() {
     checkAuth();
   }, []);
 
-  const { data: images, isLoading: imagesLoading } = useQuery({
+  const { data: images = [], isLoading: imagesLoading } = useQuery({
     queryKey: ["dashboard-images", isAuthenticated],
     queryFn: async () => {
       if (!isAuthenticated) return [];
 
-      /// {image_id: {eq: "00071" }, episode_id: { eq: "4831" }
-
       const { data } = await client.models.Image.list({
         filter: {
           or: [
-            { image_id: "00751", episode_id: "4274" },
-            { image_id: "00071", episode_id: "4831" },
-            { image_id: "01156", episode_id: "4831" },
-            { image_id: "00469", episode_id: "4817" },
-            { image_id: "00266", episode_id: "4109" },
-            { image_id: "00344", episode_id: "4605" },
+            { image_id: "00751", episode_id: "4274", season: 42 },
+            { image_id: "00071", episode_id: "4831", season: 48 },
+            { image_id: "01156", episode_id: "4831", season: 48 },
+            { image_id: "00469", episode_id: "4817", season: 48 },
+            { image_id: "00266", episode_id: "4109", season: 48 },
+            { image_id: "00344", episode_id: "4605", season: 48 },
           ].map(({ image_id, episode_id }) => ({
             image_id: { eq: image_id },
             episode_id: { eq: episode_id },
@@ -93,19 +73,12 @@ export default function Dashboard() {
     staleTime: 1000 * 60 * 1,
   });
 
-  const uniqueImages = useMemo(
+  const imageIds = useMemo(
     () =>
-      images
-        ? Array.from(new Map(images.map((img) => [img.image_id, img])).values())
-        : [],
+      images.map((img) => ({
+        image_id: { eq: concatenateImageIdForFiltering(img) },
+      })),
     [images]
-  );
-
-  console.log("UNIQUE IMAGES", uniqueImages);
-
-  const uniqueImageIds = useMemo(
-    () => uniqueImages.map((img) => ({ image_id: { eq: img.image_id } })),
-    [uniqueImages]
   );
 
   const { data: annotations, isLoading: annotationsLoading } = useQuery({
@@ -115,7 +88,7 @@ export default function Dashboard() {
 
       const { data } = await client.models.Annotation.list({
         filter: {
-          or: ["00774", "00958", "00969", "00502", "00932", "01625"],
+          or: imageIds,
         } as any,
         limit: 1000000,
       });
@@ -125,8 +98,6 @@ export default function Dashboard() {
   });
 
   let imagesWithAnnotations = [];
-
-  console.log("ANNOTATIONS", annotations);
 
   if (!imagesLoading && !annotationsLoading) {
     const concatenateImageIdForFiltering = (image: ImageForFiltering): string =>
@@ -199,6 +170,14 @@ export default function Dashboard() {
 
   if (!isAuthenticated) return null;
 
+  if (annotationsLoading || imagesLoading) {
+    return (
+      <div className="w-full h-full flex items-center justify-center p-12">
+        <PulseLoader color="#364153" size={60} />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-5xl mx-auto py-12 px-4">
       <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
@@ -206,37 +185,35 @@ export default function Dashboard() {
         {imagesWithAnnotations.map((result) => {
           const imgUrl = imageUrls[result.id] || "";
           return (
-            <>
-              <div
-                key={imgUrl}
-                className="rounded-xl overflow-hidden shadow hover:shadow-lg transition-shadow bg-white flex flex-col items-center"
-              >
-                {imgUrl ? (
-                  <FadeInImage
-                    key={`${result.id}-${result.episode}-image`}
-                    src={imgUrl}
-                    alt={String(result.id)}
-                    width={100}
-                    height={100}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none pointer-events-none"
-                    loading="lazy"
-                    draggable="false"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <PulseLoader color="#9ca3af" size={8} />
-                  </div>
-                )}
-                <div className="p-4 w-full flex justify-center">
-                  <Link
-                    href={`/annotate?image=${encodeURIComponent(imgUrl)}`}
-                    className="inline-block bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded transition"
-                  >
-                    Annotate
-                  </Link>
+            <div
+              key={result.imagePath}
+              className="rounded-xl overflow-hidden shadow hover:shadow-lg transition-shadow bg-white flex flex-col items-center"
+            >
+              {imgUrl ? (
+                <FadeInImage
+                  key={`${result.id}-${result.episode}-image`}
+                  src={imgUrl}
+                  alt={String(result.id)}
+                  width={100}
+                  height={100}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none pointer-events-none"
+                  loading="lazy"
+                  draggable="false"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  <PulseLoader color="#9ca3af" size={8} />
                 </div>
+              )}
+              <div className="p-4 w-full flex justify-center">
+                <Link
+                  href={`/annotate?image=${encodeURIComponent(imgUrl)}`}
+                  className="inline-block bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded transition"
+                >
+                  Annotate
+                </Link>
               </div>
-            </>
+            </div>
           );
         })}
       </div>
