@@ -1,7 +1,5 @@
 import { View, useTheme } from "@aws-amplify/ui-react";
 import AuthNoDua from "../app/(main)/auth/signin/authNoDua"
-import { profile } from "console";
-
 
 export default function CustomHeader({
   onProfileCreated,
