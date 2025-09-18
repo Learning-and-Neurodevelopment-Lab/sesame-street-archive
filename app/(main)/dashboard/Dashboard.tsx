@@ -94,7 +94,7 @@ export default function Dashboard() {
       });
       return data || [];
     },
-    staleTime: 1000 * 60 * 60,
+    staleTime: 1000 * 60 * 1,
   });
 
   let imagesWithAnnotations = [];
