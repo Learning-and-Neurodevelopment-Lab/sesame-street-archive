@@ -481,7 +481,7 @@ export default function Tool() {
           </span>
         </div>
         <div className="flex gap-2">
-          <Button
+          {/* <Button
             variant="ghost"
             className="p-2 rounded-full hover:bg-neutral-200"
             aria-label="Upload"
@@ -499,7 +499,7 @@ export default function Tool() {
           </Button>
           <Button variant="secondary">
             <Settings className="w-5 h-5 text-neutral-700" />
-          </Button>
+          </Button> */}
           <Button variant="danger" onClick={() => router.back()}>
             <X className="w-5 h-5 text-neutral-700" />
           </Button>
