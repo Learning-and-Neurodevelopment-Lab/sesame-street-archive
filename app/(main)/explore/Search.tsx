@@ -1,263 +1,20 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, Key, useCallback } from "react";
-import { useQuery, useQueries } from "@tanstack/react-query";
-import { Stage, Layer, Rect, Image as KonvaImage } from "react-konva";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Spring, animated } from "@react-spring/konva";
-import useImage from "use-image";
-import Image from "next/image";
+import { useState, useEffect, useMemo, useRef, Key, useCallback, useLayoutEffect } from "react";
+import { useQuery, useQueries, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { PulseLoader } from "react-loadly";
 import "react-loadly/styles.css";
-
-function getExifInfo(image: SearchData) {
-  return [
-    { label: "Title", value: image.episodeTitle },
-    { label: "Episode", value: image.episode },
-    { label: "Year", value: image.year },
-    { label: "Categories", value: image.categories.join(", ") },
-    // Add more fields as needed
-  ].filter((item) => item.value); // Only include if value exists
-}
-
-export function FadeInImage(props: React.ImgHTMLAttributes<HTMLImageElement>) {
-  const imgRef = useRef<HTMLImageElement | null>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const node = imgRef.current;
-    if (!node) return;
-    const observer = new window.IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setVisible(true);
-      },
-      { threshold: 0.2 }
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-  return (
-    <img
-      ref={imgRef}
-      {...props}
-      style={{
-        ...props.style,
-        opacity: visible ? 1 : 0,
-        transition: "opacity 300ms",
-        transitionDelay: "300ms",
-      }}
-      alt={props.alt}
-    />
-  );
-}
-
-function CollapsibleAnnotations({ annotations, hasAnnotations }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="mb-2">
-      <button
-        type="button"
-        className={cn("flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded border border-gray-200 text-sm font-medium text-gray-800 focus:outline-none", hasAnnotations ? "hover:bg-gray-200" : "cursor-not-allowed opacity-50")}
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open ? "true" : "false"}
-        aria-controls="annotations-list"
-        disabled={!hasAnnotations}
-      >
-        <span>Annotations</span>
-        <svg
-          className={cn(`w-4 h-4 ml-2 transition-transform duration-200`, open && "rotate-180", !hasAnnotations && "hidden")}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
-      </button>
-      <div
-        id="annotations-list"
-        className={`transition-all duration-200 overflow-hidden ${open ? "max-h-40" : "max-h-0"} bg-white border border-t-0 border-gray-200 rounded-b`}
-      >
-        {open && (
-          <div className="p-3">
-            {hasAnnotations ? (
-              <ul className="space-y-1 max-h-32 overflow-y-auto">
-                {annotations.map((ann, idx) => (
-                  <li
-                    key={idx}
-                    className="flex items-center text-xs bg-gray-50 rounded px-2 py-1 border border-gray-100"
-                  >
-                    <span
-                      className={`font-semibold mr-2 px-2 py-0.5 rounded-full ${getTypeColor(ann.category?.toLowerCase?.() || ann.category)}`}
-                    >
-                      {ann.category}
-                    </span>
-                    <span className="text-gray-400 mx-1">|</span>
-                    <span className="truncate text-gray-700">
-                      {Array.isArray(ann.keywords)
-                        ? ann.keywords.join(", ")
-                        : ann.keywords}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-xs text-gray-400">
-                No annotations available.
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-// Helper component for Konva image with bounding boxes
-function KonvaImageWithBoxes({ imageUrl, boxes }) {
-  const [image] = useImage(imageUrl);
-  const containerRef = useRef(null);
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-  const [imgDims, setImgDims] = useState({ width: 0, height: 0 });
-
-  // Set container size to be square (responsive)
-  useEffect(() => {
-    function updateSize() {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        const size = Math.min(rect.width, rect.height);
-        setContainerSize({ width: size, height: size });
-      }
-    }
-    updateSize();
-    window.addEventListener("resize", updateSize);
-    return () => window.removeEventListener("resize", updateSize);
-  }, []);
-
-  useEffect(() => {
-    if (image && image.width && image.height) {
-      setImgDims({ width: image.width, height: image.height });
-    }
-  }, [image]);
-
-  const { stageWidth, stageHeight, scale, offsetX, offsetY } = useMemo(() => {
-    const cW = containerSize.width || 240;
-    const cH = containerSize.height || 240;
-    const iW = imgDims.width || 1;
-    const iH = imgDims.height || 1;
-    const scale = Math.min(cW / iW, cH / iH);
-    const stageWidth = iW * scale;
-    const stageHeight = iH * scale;
-    const offsetX = (cW - stageWidth) / 2;
-    const offsetY = (cH - stageHeight) / 2;
-    return { stageWidth, stageHeight, scale, offsetX, offsetY };
-  }, [containerSize, imgDims]);
-
-  const AnimatedKonvaImage = animated(KonvaImage);
-
-  return (
-    <div
-      ref={containerRef}
-      style={{
-        width: "100%",
-        aspectRatio: "1 / 1",
-        maxWidth: 240,
-        maxHeight: 240,
-        margin: "0 auto",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#e5e7eb",
-      }}
-    >
-      <Stage
-        width={containerSize.width}
-        height={containerSize.height}
-        style={{ background: "transparent" }}
-      >
-        <Layer>
-          <Spring from={{ opacity: 0 }} to={{ opacity: 1 }} delay={500}>
-            {({ opacity }) => (
-              // @ts-expect-error ignore
-              <AnimatedKonvaImage
-                image={image}
-                x={offsetX}
-                y={offsetY}
-                width={stageWidth}
-                height={stageHeight}
-                opacity={opacity}
-              />
-            )}
-          </Spring>
-          {boxes &&
-            boxes.map(
-              (box: {
-                id: Key;
-                x: number;
-                y: number;
-                width: number;
-                height: number;
-                annotation?: { category?: string };
-              }) => {
-                let stroke = "#fff";
-                const cat =
-                  box.annotation?.category?.toLowerCase?.() ||
-                  box.annotation?.category;
-                switch (cat) {
-                  case "face":
-                    stroke = "#3b82f6";
-                    break;
-                  case "place":
-                    stroke = "#22c55e";
-                    break;
-                  case "number":
-                    stroke = "#a855f7";
-                    break;
-                  case "word":
-                    stroke = "#a42a04";
-                    break;
-                  default:
-                    stroke = "#e5e7eb";
-                }
-                return (
-                  <Rect
-                    key={box.id}
-                    x={box.x * scale + offsetX}
-                    y={box.y * scale + offsetY}
-                    width={box.width * scale}
-                    height={box.height * scale}
-                    stroke={stroke}
-                    strokeWidth={4}
-                    dash={[6, 4]}
-                    cornerRadius={4}
-                    opacity={0.7}
-                    shadowEnabled={true}
-                    shadowColor="black"
-                    shadowBlur={8}
-                    shadowOffset={{ x: 2, y: 2 }}
-                    shadowOpacity={0.6}
-                  />
-                );
-              }
-            )}
-        </Layer>
-      </Stage>
-    </div>
-  );
-}
-
+import FadeInImage from "@/components/FadeInImage";
+import CollapsibleAnnotations from "@/components/CollapsibleAnnotations";
+import KonvaImageWithBoxes from "@/components/KonvaImageWithBoxes";
 import { useTranslations } from "next-intl";
 import type { Schema } from "@/amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
 import { getCurrentUser, fetchAuthSession } from "aws-amplify/auth";
 import { getUrl } from "aws-amplify/storage";
-
 import { SearchableCombobox } from "@/components/SearchableCombobox";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { auth } from "@/amplify/auth/resource";
 
 interface SearchData {
   id: string | number;
@@ -273,6 +30,7 @@ interface SearchData {
   imagePath: string; // store S-E_ID.png path, not URL
   hasAnnotations: boolean;
   episode: string;
+  season: string
   year: string;
   episodeTitle: string;
 }
@@ -315,10 +73,44 @@ const getTypeColor = (type: string) => {
   }
 };
 
-export default function Search() {
+function getExifInfo(image: SearchData) {
+  return [
+    { label: "Title", value: image.episodeTitle },
+    { label: "Episode", value: image.episode },
+    { label: "Season", value: image.season },
+    { label: "Year", value: image.year },
+    { label: "Categories", value: image.categories.join(", ") },
+    // Add more fields as needed
+  ].filter((item) => item.value); // Only include if value exists
+}
+
+interface SearchProps {
+  selectedCategories?: string[];
+  selectedKeywords?: string[];
+  selectedYears?: string[];
+  showAnnotatedOnly?: boolean;
+  showFullscreenResults?: boolean;
+  imageParam?: string | null;
+  searchParamsString?: string;
+  setSearchParams?: (params: Record<string, string | string[] | boolean | undefined>) => void;
+}
+
+export default function Search({
+  selectedCategories = [],
+  selectedKeywords = [],
+  selectedYears = [],
+  showAnnotatedOnly = false,
+  showFullscreenResults = false,
+  imageParam = null,
+  searchParamsString = "",
+  setSearchParams = () => {},
+}: SearchProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const t = useTranslations("ExplorePage");
+
+  const queryClient = useQueryClient();
+  const queryKey = ['images'];
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedImage, setSelectedImage] = useState<SearchData | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -326,46 +118,23 @@ export default function Search() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchData, setSearchData] = useState<SearchData[]>([]);
   const [userGroups, setUserGroups] = useState<string[]>([]);
-  const [yearOptions, setYearOptions] =
-    useState<typeof YEAR_OPTIONS>(YEAR_OPTIONS);
-  const [keywordOptions, setKeywordOptions] =
-    useState<typeof KEYWORD_OPTIONS>(KEYWORD_OPTIONS);
-  const parseArray = (val: string | null) =>
-    val ? val.split(",").filter(Boolean) : [];
 
-  const searchParamsString = searchParams.toString();
+  const [rawYearOptions, setRawYearOptions] = useState<string[]>(YEAR_OPTIONS.map(y => y.value));
+  const [rawKeywordOptions, setRawKeywordOptions] = useState<string[]>(KEYWORD_OPTIONS.map(k => k.value));
+
+  const yearOptions = useMemo(() => rawYearOptions.map(year => ({ value: year, label: year })), [rawYearOptions]);
+  const keywordOptions = useMemo(() => rawKeywordOptions.map(kw => ({ value: kw, label: kw })), [rawKeywordOptions]);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const query = useMemo(
-    () => new URLSearchParams(searchParamsString).get("q") ?? "",
-    [searchParamsString]
-  );
-  const selectedKeywords = useMemo(
-    () => parseArray(new URLSearchParams(searchParamsString).get("keywords")),
-    [searchParamsString]
-  );
-  const selectedCategories = useMemo(
-    () => parseArray(new URLSearchParams(searchParamsString).get("categories")),
-    [searchParamsString]
-  );
-  const selectedYears = useMemo(
-    () => parseArray(new URLSearchParams(searchParamsString).get("years")),
-    [searchParamsString]
-  );
-  const showAnnotatedOnly = useMemo(
-    () => new URLSearchParams(searchParamsString).get("annotated") === "1",
-    [searchParamsString]
-  );
-  const showFullscreenResults = useMemo(
-    () => new URLSearchParams(searchParamsString).get("fullscreen") === "1",
-    [searchParamsString]
-  );
-  const imageParam = useMemo(
-    () => new URLSearchParams(searchParamsString).get("image"),
-    [searchParamsString]
-  );
-
+  // Local state for input value to prevent blocking on re-render
+  const [query, setInputValue] = useState("");
+  
+  useEffect(() => {
+    const qParam = new URLSearchParams(searchParamsString).get("q") ?? "";
+    setInputValue(qParam);
+  }, [searchParamsString]);
+  
   useEffect(() => {
     if (imageParam && searchData.length > 0) {
       const found = searchData.find((img) => img.imagePath === imageParam);
@@ -384,29 +153,6 @@ export default function Search() {
       setSelectedImage(null);
     }
   }, [imageParam, searchData]);
-
-
-  const setSearchParams = useCallback((
-    params: Record<string, string | string[] | boolean | undefined>
-  ) => {
-    const sp = new URLSearchParams(searchParams.toString());
-    Object.entries(params).forEach(([key, value]) => {
-      if (
-        value === undefined ||
-        value === false ||
-        (Array.isArray(value) && value.length === 0)
-      ) {
-        sp.delete(key);
-      } else if (Array.isArray(value)) {
-        sp.set(key, value.join(","));
-      } else if (typeof value === "boolean") {
-        sp.set(key, value ? "1" : "0");
-      } else {
-        sp.set(key, value);
-      }
-    });
-    router.push(`?${sp.toString()}`);
-  }, [router, searchParams]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -432,7 +178,7 @@ export default function Search() {
         const session = await fetchAuthSession();
         // The user's groups are typically found in the 'cognito:groups' claim within the access token payload.
         const groups =
-          session.tokens.accessToken.payload["cognito:groups"] || [];
+          session.tokens?.accessToken?.payload["cognito:groups"] || [];
 
         setUserGroups(Array.isArray(groups) ? groups.map(String) : []);
 
@@ -444,13 +190,6 @@ export default function Search() {
     }
     getUserGroups();
   }, []);
-
-  useEffect(() => {
-    if (inputRef.current && query.length > 0) {
-      inputRef.current.value = query;
-      inputRef.current.focus();
-    }
-  }, [query]);
 
   const filteredResults = useMemo(() => {
     setIsSearching(true);
@@ -520,19 +259,16 @@ export default function Search() {
   const isResearcher = useMemo(() => userGroups.includes("RESEARCHER"), [userGroups]);
   const isGenericUser = useMemo(() => userGroups.includes("USER"), [userGroups]);
 
-  const { data: images = [], isLoading: imagesLoading } = useQuery({
-    queryKey: ["images", isAuthenticated],
+  const { data: images, isLoading: imagesLoading, error: imagesError } = useQuery({
+    queryKey: ["images", userGroups],
     queryFn: async () => {
-      if (!isAuthenticated) return [];
-
-      if (!isAdmin && !isResearcher && !isGenericUser) return [];
-
       const { data } = await client.models.Image.list({ 
         limit: isAdmin || isResearcher ? 5000 : isGenericUser ? 100 : 0 
       });
       return data || [];
     },
-    staleTime: 1000 * 60 * 60,
+    initialData: [],
+    enabled: isAuthenticated && (isAdmin || isResearcher || isGenericUser),
   });
 
   const imageIds = useMemo(
@@ -540,23 +276,40 @@ export default function Search() {
     [images]
   );
 
-  const { data: annotations, isLoading: annotationsLoading } = useQuery({
-    queryKey: ["annotations", isAuthenticated],
+  const { data: annotations, isLoading: annotationsLoading, error: annotationsError } = useQuery({
+    queryKey: ["annotations", userGroups],
     queryFn: async () => {
-      if (!isAuthenticated) return [];
-      
-      if (!isAdmin && !isResearcher && !isGenericUser) return [];
-      
-      const { data } = await client.models.Annotation.list({
-        filter: {
-          or: imageIds,
-        } as any,
-        limit: 1000000,
-      });
-      return data || [];
+      // Batch imageIds to avoid DynamoDB filter size limit
+      const BATCH_SIZE = 100;
+      const batches = [];
+      for (let i = 0; i < imageIds.length; i += BATCH_SIZE) {
+        batches.push(imageIds.slice(i, i + BATCH_SIZE));
+      }
+
+      const results = await Promise.all(
+        batches.map(async (batch) => {
+          const { data } = await client.models.Annotation.list({
+            filter: {
+              or: batch,
+            } as any,
+            limit: 1000000,
+          });
+          return data || [];
+        })
+      );
+      // Flatten results
+      return results.flat();
     },
-    staleTime: 1000 * 60 * 60,
+    initialData: [],
+    enabled: isAuthenticated && (isAdmin || isResearcher || isGenericUser),
   });
+
+  if (imagesError) {
+    console.error("Error fetching images:", imagesError);
+  } 
+  if (annotationsError) {
+    console.error("Error fetching annotations:", annotationsError);
+  }
 
   useEffect(() => {
     if (!images) return;
@@ -605,18 +358,13 @@ export default function Search() {
         hasAnnotations: data.length > 0,
         episode: String(image.episode_id),
         episodeTitle: image.episode_title || "",
+        season: String(image.season),
         year: yearStr,
       };
     });
     setSearchData(imagesWithAnnotations);
-    setYearOptions(
-      Array.from(yearsSet)
-        .sort((a, b) => Number(b) - Number(a))
-        .map((year) => ({ value: year, label: year }))
-    );
-    setKeywordOptions(
-      Array.from(allKeywords).map((kw) => ({ value: kw, label: kw }))
-    );
+    setRawYearOptions(Array.from(yearsSet).sort((a, b) => Number(b) - Number(a)));
+    setRawKeywordOptions(Array.from(allKeywords));
   }, [annotations, images]);
 
   useEffect(() => {
@@ -676,7 +424,10 @@ export default function Search() {
           return urlObj.url.href;
         },
         enabled: !!r.imagePath,
-        staleTime: 1000 * 60 * 10,
+        staleTime: Infinity,
+        refetchOnMount: true, 
+        refetchOnWindowFocus: true,
+        refetchOnReconnect: 'always',
       })) || [],
   });
 
@@ -706,7 +457,7 @@ export default function Search() {
   };
 
   const handleEditAnnotations = async (image: SearchData) => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParamsString);
     const imageUrl = await getUrl({ path: `images/${image.imagePath}` });
     params.set("image", btoa(imageUrl.url.href));
     if (image.annotations && image.annotations.length > 0) {
@@ -767,9 +518,14 @@ export default function Search() {
           <input
             type="text"
             placeholder={t("explorePlaceholder")}
+            value={query}
             onChange={(e) => {
+              setInputValue(e.target.value);
+            }}
+            onBlur={() => {
+              // On blur, update searchParams (debounced update)
               setSearchParams({
-                q: e.target.value,
+                q: query,
                 keywords: selectedKeywords,
                 categories: selectedCategories,
                 years: selectedYears,
@@ -780,6 +536,22 @@ export default function Search() {
                     ? selectedImage.imagePath
                     : undefined,
               });
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setSearchParams({
+                  q: query,
+                  keywords: selectedKeywords,
+                  categories: selectedCategories,
+                  years: selectedYears,
+                  annotated: showAnnotatedOnly,
+                  fullscreen: showFullscreenResults,
+                  image:
+                    modalOpen && selectedImage
+                      ? selectedImage.imagePath
+                      : undefined,
+                });
+              }
             }}
             onFocus={() => setShowResults(true)}
             inputMode="search"
@@ -1152,7 +924,7 @@ export default function Search() {
                       <div className="aspect-square bg-gray-200 overflow-hidden">
                         {imgUrl ? (
                           <FadeInImage
-                            key={`${result.id}-${result.episode}-image`}
+                            key={`${result.season}-${result.id}-${result.episode}-image`}
                             src={imgUrl}
                             alt={String(result.id)}
                             width={100}

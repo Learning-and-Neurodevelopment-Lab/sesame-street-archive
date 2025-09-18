@@ -27,7 +27,7 @@ export default function Navigation() {
     signOut();
     setTimeout(() => {
       window.location.replace('/');
-    }, 300);
+    }, 1000);
   }
 
   useEffect(() => {

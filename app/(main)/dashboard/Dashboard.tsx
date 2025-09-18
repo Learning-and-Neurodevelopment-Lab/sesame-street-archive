@@ -9,8 +9,7 @@ import { PulseLoader } from "react-loadly";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
 import { getUrl } from "aws-amplify/storage";
-import { FadeInImage } from "../explore/Search";
-import { set } from "date-fns";
+import FadeInImage from "@/components/FadeInImage";
 
 interface ImageForFiltering {
   season: string | number;
@@ -28,7 +27,6 @@ const concatenateImageIdForFiltering = (image: ImageForFiltering): string =>
 export default function Dashboard() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userGroups, setUserGroups] = useState<string[]>([]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -61,16 +59,18 @@ export default function Dashboard() {
             { image_id: "00469", episode_id: "4817", season: 48 },
             { image_id: "00266", episode_id: "4109", season: 48 },
             { image_id: "00344", episode_id: "4605", season: 48 },
-          ].map(({ image_id, episode_id }) => ({
+          ].map(({ image_id, episode_id, season }) => ({
             image_id: { eq: image_id },
             episode_id: { eq: episode_id },
+            season: { eq: season },
           })),
         } as any,
         limit: 6,
       });
       return data || [];
     },
-    staleTime: 1000 * 60 * 1,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: true,
   });
 
   const imageIds = useMemo(
@@ -81,7 +81,7 @@ export default function Dashboard() {
     [images]
   );
 
-  const { data: annotations, isLoading: annotationsLoading } = useQuery({
+  const { data: annotations = [], isLoading: annotationsLoading } = useQuery({
     queryKey: ["dashboard-annotations", isAuthenticated],
     queryFn: async () => {
       if (!isAuthenticated) return [];
@@ -94,7 +94,8 @@ export default function Dashboard() {
       });
       return data || [];
     },
-    staleTime: 1000 * 60 * 1,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: true,
   });
 
   let imagesWithAnnotations = [];

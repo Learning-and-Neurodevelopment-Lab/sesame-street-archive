@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 export default function PageNotFound() {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <head>
         <title>Sesame Street Archive</title>
         <meta

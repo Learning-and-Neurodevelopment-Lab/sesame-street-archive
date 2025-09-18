@@ -8,7 +8,7 @@ type Props = {
 
 export default function RootLayout({ children }: Props) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <head>
         <title>Sesame Street Archive</title>
         <meta name="description" content="A comprehensive archive of Sesame Street episodes and resources." />
