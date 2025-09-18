@@ -1,7 +1,7 @@
 {
   "HomePage": {
-    "heroTitle": "Researching Brain Development Through Children's Media",
-    "heroSubTitle": "MRI, Computer Vision, and 4,000+ Labeled <em>Sesame Street</em> images",
+    "heroTitle": "Can you tell me how to get… to the <em>Sesame Street</em> Archive?",
+    "heroSubTitle": "An interactive database for shared research and learning",
     "heroCta": "Explore the Archive",
     "heroCtaPath": "/explore",
     "data": {

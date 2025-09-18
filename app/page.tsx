@@ -122,7 +122,9 @@ export default function HomePage() {
             <div className="w-full max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12">
               <div className="flex-1 text-left">
                 <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6 leading-tight">
-                  <div>{t("heroTitle")}</div>
+                  <div>{t.rich("heroTitle", {
+                    em: (chunks) => <em>{chunks}</em>,
+                  })}</div>
                 </h1>
                 <p className="text-lg text-gray-700 mb-8 font-bold">
                   {t.rich("heroSubTitle", {
