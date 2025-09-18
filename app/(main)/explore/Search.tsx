@@ -301,7 +301,7 @@ export default function Search({
       return results.flat();
     },
     initialData: [],
-    enabled: isAuthenticated && (isAdmin || isResearcher || isGenericUser),
+    enabled: isAuthenticated && (isAdmin || isResearcher || isGenericUser) && images.length > 0,
   });
 
   if (imagesError) {
