@@ -179,44 +179,58 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto py-12 px-4">
-      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-        {imagesWithAnnotations.map((result) => {
-          const imgUrl = imageUrls[result.id] || "";
-          return (
-            <div
-              key={result.imagePath}
-              className="rounded-xl overflow-hidden shadow hover:shadow-lg transition-shadow bg-white flex flex-col items-center"
-            >
-              {imgUrl ? (
-                <FadeInImage
-                  key={`${result.id}-${result.episode}-image`}
-                  src={imgUrl}
-                  alt={String(result.id)}
-                  width={100}
-                  height={100}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none pointer-events-none"
-                  loading="lazy"
-                  draggable="false"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <PulseLoader color="#9ca3af" size={8} />
+    <div className="grid min-h-screen bg-gray-50 flex-wrap sm:grid-cols-[1fr_auto]">
+      {/* Aside Navigation */}
+      <aside className="w-full sm:w-64 bg-white border-r border-gray-200 flex flex-col py-8 px-6">
+        <h2 className="text-xl font-bold mb-8">Dashboard</h2>
+        <nav className="flex flex-col gap-2">
+          <Link href="#" className="py-1 font-normal text-gray-800  cursor-pointer">Collections</Link>
+          <span className="py-1 text-gray-400 cursor-not-allowed">Contributions</span>
+          <span className="py-1 text-gray-400 cursor-not-allowed">Scoreboard</span>
+          <span className="py-1 text-gray-400 cursor-not-allowed">Suggested</span>
+          <span className="py-1 text-gray-400 cursor-not-allowed">Notifications</span>
+          <span className="py-1 text-gray-400 cursor-not-allowed">Account</span>
+        </nav>
+      </aside>
+      {/* Main Content */}
+      <main className="flex-1 max-w-5xl mx-auto py-4 px-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          {imagesWithAnnotations.map((result) => {
+            const imgUrl = imageUrls[result.id] || "";
+            return (
+              <Link
+                href={`/annotate?image=${encodeURIComponent(imgUrl)}`}
+                key={result.imagePath}
+                className="rounded-xl overflow-hidden shadow hover:shadow-lg transition-shadow bg-white flex flex-col items-center"
+              >
+                {imgUrl ? (
+                  <FadeInImage
+                    key={`${result.id}-${result.episode}-image`}
+                    src={imgUrl}
+                    alt={String(result.id)}
+                    width={100}
+                    height={100}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none pointer-events-none"
+                    loading="lazy"
+                    draggable="false"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <PulseLoader color="#9ca3af" size={8} />
+                  </div>
+                )}
+                <div className="p-4 w-full flex justify-center">
+                  <div
+                    className="inline-block bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded transition"
+                  >
+                    Annotate
+                  </div>
                 </div>
-              )}
-              <div className="p-4 w-full flex justify-center">
-                <Link
-                  href={`/annotate?image=${encodeURIComponent(imgUrl)}`}
-                  className="inline-block bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded transition"
-                >
-                  Annotate
-                </Link>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+              </Link>
+            );
+          })}
+        </div>
+      </main>
     </div>
   );
 }
